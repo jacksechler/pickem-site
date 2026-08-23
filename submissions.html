@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Submission Status · Pick'em</title>
+<style>
+:root{--bg:#07111f;--panel:#111d30;--panel2:#182840;--line:#2b4160;--text:#f8fafc;--muted:#9fb0c6;--accent:#38bdf8;--green:#34d399;--gold:#fbbf24}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:760px;margin:auto;padding:22px}.brand{font-size:25px;font-weight:950}.brand span{color:var(--accent)}a{color:var(--accent);text-decoration:none;font-weight:800}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin:14px 0}.row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.name{font-weight:900;font-size:17px}.muted{color:var(--muted)}.pill{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;white-space:nowrap}.yes{color:var(--green);background:#0b2a25;border:1px solid #216e5a}.no{color:var(--gold);background:#29230b;border:1px solid #665522}.big{font-size:34px;font-weight:950}.top{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{margin-bottom:4px}@media(max-width:520px){.wrap{padding:14px}.row{align-items:flex-start}.top{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">PICK<span>'EM</span></div><a href="./">← Back to Pick'em</a></div>
+  <h1>Submission Status</h1>
+  <div id="weekName" class="muted">Loading current week…</div>
+  <div class="card"><div class="muted">Submitted</div><div id="count" class="big">—</div></div>
+  <div id="list" class="card">Loading…</div>
+</div>
+<script>
+const SUPABASE='https://muautxnlmnuiszueztes.supabase.co';
+const KEY='sb_publishable_jwuYX-c20lwv_jN7J7dJqg_s6tTww0W';
+const session=JSON.parse(localStorage.getItem('pickemSession')||'null');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function headers(){return {apikey:KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'};}
+async function db(path){const r=await fetch(SUPABASE+'/rest/v1/'+path,{headers:headers()});if(!r.ok)throw new Error(await r.text());return await r.json();}
+async function boot(){
+  const list=document.getElementById('list');
+  if(!session){list.innerHTML='Log in on the main Pick\'em site first.';return;}
+  try{
+    const me=(await db('profiles?id=eq.'+session.user.id+'&select=id,display_name,role'))[0];
+    if(!me||me.role!=='commissioner'){list.innerHTML='Commissioner access only.';return;}
+    const weeks=await db('weeks?is_active=eq.true&select=id,name,number&order=number.desc&limit=1');
+    const week=weeks[0];
+    if(!week){list.innerHTML='No active week.';return;}
+    document.getElementById('weekName').textContent=week.name+' · Week '+week.number;
+    const subs=await db('submissions?week_id=eq.'+week.id+'&select=user_id,submitted_at');
+    const submitted=new Map(subs.map(s=>[s.user_id,s.submitted_at]));
+    const profiles=await db('profiles?select=id,display_name,role');
+    let slots=[];try{slots=await db('player_slots?select=slot,display_name,claimed_by&order=slot.asc');}catch{}
+    const people=[];
+    const commissioner=profiles.find(p=>p.role==='commissioner');
+    if(commissioner)people.push({id:commissioner.id,name:commissioner.display_name||'Commissioner',active:true});
+    for(const s of slots){
+      const claimed=s.claimed_by?profiles.find(p=>p.id===s.claimed_by):null;
+      people.push({id:s.claimed_by||null,name:(claimed&&claimed.display_name)||s.display_name||('Player '+s.slot),active:!!s.claimed_by});
+    }
+    document.getElementById('count').textContent=subs.length+'/8';
+    list.innerHTML=people.slice(0,8).map(p=>{
+      const when=p.id&&submitted.get(p.id);
+      const status=when?'<span class="pill yes">✓ Submitted</span>':p.active?'<span class="pill no">Not submitted</span>':'<span class="pill no">Not activated</span>';
+      const detail=when?'<div class="muted">'+esc(new Date(when).toLocaleString())+'</div>':'';
+      return '<div class="row"><div><div class="name">'+esc(p.name)+'</div>'+detail+'</div>'+status+'</div>';
+    }).join('');
+  }catch(e){list.innerHTML='Could not load submission status. Refresh and try again.';}
+}
+boot();
+</script>
+</body>
+</html>
