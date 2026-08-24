@@ -1,0 +1,25 @@
+name: Patch commissioner submission status
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-commissioner-submissions.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index
+        run: python patch_commissioner_submissions.py
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Show commissioner submission status"
+          git push
