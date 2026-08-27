@@ -68,5 +68,6 @@ async function saveWeekSettings(){try{const lock=el('weekLock').value;if(!lock)r
 async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x.trim()).filter(Boolean);if(!el('qPrompt').value.trim()||opts.length<2)return alert('Enter a question and at least two choices.');try{await db('questions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({week_id:week.id,position:questions.length+1,sport:el('qSport').value,question_type:'Multiple Choice',prompt:el('qPrompt').value.trim(),answer_options:opts,counts_for_score:true})});await loadData();renderHome();renderCommissioner();}catch(e){alert('Could not add question.');}}
 if(session)boot();
 </script>
+<script src="commissioner_v2.js"></script>
 </body>
 </html>
