@@ -34,22 +34,53 @@
         return;
       }
 
-      const totals = {};
-      const weeksPlayed = {};
-      scores.forEach(s => {
-        totals[s.user_id] = (totals[s.user_id] || 0) + n(s.total_points);
-        weeksPlayed[s.user_id] = (weeksPlayed[s.user_id] || 0) + 1;
+      const latestWeek = weeks[weeks.length-1];
+      const earlierWeekIds = new Set(weeks.slice(0,-1).map(w=>w.id));
+      const totals = {}, correct = {}, questions = {}, latestScores = {}, priorTotals = {};
+
+      scores.forEach(s=>{
+        totals[s.user_id] = (totals[s.user_id]||0) + n(s.total_points);
+        correct[s.user_id] = (correct[s.user_id]||0) + n(s.correct_count);
+        questions[s.user_id] = (questions[s.user_id]||0) + n(s.question_count);
+        if(s.week_id===latestWeek.id) latestScores[s.user_id]=s;
+        if(earlierWeekIds.has(s.week_id)) priorTotals[s.user_id]=(priorTotals[s.user_id]||0)+n(s.total_points);
       });
 
-      const rows = profiles
-        .filter(p => totals[p.id] !== undefined)
-        .map(p => ({ profile:p, total:totals[p.id], weeks:weeksPlayed[p.id] || 0 }))
-        .sort((a,b) => b.total - a.total || profileName(a.profile).localeCompare(profileName(b.profile)));
+      const nameOfId = id => profileName(profiles.find(p=>p.id===id));
+      const currentIds = Object.keys(totals).sort((a,b)=>totals[b]-totals[a] || nameOfId(a).localeCompare(nameOfId(b)));
+      const previousIds = Object.keys(priorTotals).sort((a,b)=>priorTotals[b]-priorTotals[a] || nameOfId(a).localeCompare(nameOfId(b)));
+      const previousRank = Object.fromEntries(previousIds.map((id,i)=>[id,i+1]));
 
-      box.innerHTML = '<div class="notice"><b>Season Points</b><div class="muted">Running total from every published week, including placement points and bonuses.</div></div>' +
-        '<div class="tablewrap"><table class="table"><thead><tr><th>Rank</th><th>Player</th><th>Season Points</th></tr></thead><tbody>' +
-        rows.map((r,i) => '<tr><td><b>#'+(i+1)+'</b></td><td><b>'+esc(profileName(r.profile))+'</b><div class="mini">'+r.weeks+' week'+(r.weeks===1?'':'s')+' scored</div></td><td><b style="font-size:22px">'+fmt(r.total)+' pts</b></td></tr>').join('') +
-        '</tbody></table></div>';
+      const movementHtml = (id,currentRank) => {
+        if(weeks.length<2 || !previousRank[id]) return '<span class="muted">—</span>';
+        const move = previousRank[id]-currentRank;
+        if(move>0) return '<span style="color:var(--green);font-weight:950">↑ '+move+'</span>';
+        if(move<0) return '<span style="color:var(--red);font-weight:950">↓ '+Math.abs(move)+'</span>';
+        return '<span class="muted" style="font-weight:850">—</span>';
+      };
+
+      let h = '<div class="notice"><b>Season Standings</b><div class="muted">Ordered by total season points through '+esc(latestWeek.name||('Week '+latestWeek.number))+'.</div></div>';
+      h += '<div>';
+      currentIds.forEach((id,i)=>{
+        const player = profiles.find(p=>p.id===id);
+        const rank = i+1;
+        const last = latestScores[id];
+        const seasonPct = questions[id] ? correct[id]/questions[id]*100 : 0;
+        h += '<div class="card" style="padding:16px 18px;margin:10px 0">'+
+          '<div style="display:flex;align-items:center;gap:14px">'+
+            '<div style="width:38px;font-size:22px;font-weight:950;color:var(--muted)">#'+rank+'</div>'+
+            '<div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(profileName(player))+'</div></div>'+
+            '<div style="text-align:right"><div style="font-size:27px;line-height:1;font-weight:950;color:var(--accent)">'+fmt(totals[id])+'</div><div class="mini">season pts</div></div>'+
+          '</div>'+
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line);text-align:center">'+
+            '<div><div class="mini">LAST WEEK FINISH</div><div style="font-size:17px;font-weight:950;margin-top:3px">'+(last&&last.placement?'#'+last.placement:'—')+'</div></div>'+
+            '<div><div class="mini">MOVEMENT</div><div style="font-size:17px;margin-top:3px">'+movementHtml(id,rank)+'</div></div>'+
+            '<div><div class="mini">SEASON PICK %</div><div style="font-size:17px;font-weight:950;margin-top:3px">'+seasonPct.toFixed(1)+'%</div></div>'+
+          '</div>'+
+        '</div>';
+      });
+      h += '</div>';
+      box.innerHTML = h;
     }catch(e){
       console.error(e);
       box.innerHTML = '<div class="notice">Standings unavailable.</div>';
