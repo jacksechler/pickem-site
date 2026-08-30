@@ -34,32 +34,22 @@
         return;
       }
 
-      const byUser = {};
+      const totals = {};
+      const weeksPlayed = {};
       scores.forEach(s => {
-        byUser[s.user_id] ??= { total:0, weeks:{} };
-        byUser[s.user_id].total += n(s.total_points);
-        byUser[s.user_id].weeks[s.week_id] = s;
+        totals[s.user_id] = (totals[s.user_id] || 0) + n(s.total_points);
+        weeksPlayed[s.user_id] = (weeksPlayed[s.user_id] || 0) + 1;
       });
 
       const rows = profiles
-        .filter(p => byUser[p.id])
-        .map(p => ({ profile:p, ...byUser[p.id] }))
+        .filter(p => totals[p.id] !== undefined)
+        .map(p => ({ profile:p, total:totals[p.id], weeks:weeksPlayed[p.id] || 0 }))
         .sort((a,b) => b.total - a.total || profileName(a.profile).localeCompare(profileName(b.profile)));
 
-      let html = '<div class="tablewrap"><table class="table"><thead><tr><th>Rank</th><th>Player</th><th>Season Points</th>' +
-        weeks.map(w => '<th>'+esc(w.name || ('Week '+w.number))+'</th>').join('') +
-        '</tr></thead><tbody>';
-
-      html += rows.map((r,i) => {
-        return '<tr><td><b>#'+(i+1)+'</b></td><td><b>'+esc(profileName(r.profile))+'</b></td><td><b style="font-size:18px">'+fmt(r.total)+'</b></td>' +
-          weeks.map(w => {
-            const s = r.weeks[w.id];
-            return '<td>'+(s ? '<b>'+fmt(s.total_points)+'</b><div class="mini">#'+s.placement+' · '+n(s.correct_count)+'/'+n(s.question_count)+'</div>' : '—')+'</td>';
-          }).join('') + '</tr>';
-      }).join('');
-
-      html += '</tbody></table></div>';
-      box.innerHTML = html;
+      box.innerHTML = '<div class="notice"><b>Season Points</b><div class="muted">Running total from every published week, including placement points and bonuses.</div></div>' +
+        '<div class="tablewrap"><table class="table"><thead><tr><th>Rank</th><th>Player</th><th>Season Points</th></tr></thead><tbody>' +
+        rows.map((r,i) => '<tr><td><b>#'+(i+1)+'</b></td><td><b>'+esc(profileName(r.profile))+'</b><div class="mini">'+r.weeks+' week'+(r.weeks===1?'':'s')+' scored</div></td><td><b style="font-size:22px">'+fmt(r.total)+' pts</b></td></tr>').join('') +
+        '</tbody></table></div>';
     }catch(e){
       console.error(e);
       box.innerHTML = '<div class="notice">Standings unavailable.</div>';
