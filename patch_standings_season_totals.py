@@ -40,3 +40,5 @@ replacement = '''  window.renderStandings = async function(){
 
 '''
 p.write_text(s[:start] + replacement + s[end:])
+
+# Trigger installer.
