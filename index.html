@@ -13,7 +13,7 @@
   <div class="brand bigbrand">PICK<span>'EM</span></div>
   <div class="card auth-card">
     <div class="tabs"><button id="loginTab" class="btn" onclick="setAuthMode('login')">Log in</button><button id="activateTab" class="btn secondary" onclick="setAuthMode('activate')">Activate</button></div>
-    <div id="loginPanel"><h2>League Login</h2><label>Name / Username</label><input id="loginUser" autocomplete="username" placeholder="Example: Luca Cinalli"><label>Password</label><input id="loginPass" type="password" autocomplete="current-password"><button class="btn full" onclick="loginAccount()">Log in</button></div>
+    <div id="loginPanel"><h2>League Login</h2><label>Name / Username</label><input id="loginUser" autocomplete="username" placeholder="firstnamelastname"><label>Password</label><input id="loginPass" type="password" autocomplete="current-password"><button class="btn full" onclick="loginAccount()">Log in</button></div>
     <div id="activatePanel" class="hidden"><h2>Activate Account</h2><p class="muted">Do this once after the commissioner adds your name.</p><label>Your name</label><input id="activateUser" placeholder="Enter the name the commissioner added"><label>League code</label><input id="leagueCode"><label>Create password</label><input id="activatePass" type="password"><button class="btn full" onclick="activateAccount()">Activate</button></div>
     <div id="authMsg" class="muted msg"></div>
   </div>
@@ -70,5 +70,6 @@ if(session)boot();
 </script>
 <script src="commissioner_v2.js"></script>
 <script src="stats_v2.js?v=7"></script>
+<script src="account_tools.js?v=1"></script>
 </body>
 </html>
