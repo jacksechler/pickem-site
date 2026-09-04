@@ -4,24 +4,22 @@
   const sameAnswer = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const isDecided = q => q.result !== null && q.result !== undefined;
 
-  const knownInitials = {
-    jacksechler:'JS',
-    cadechristy:'CC',
-    brodyravenstahl:'BR',
-    chasecarulli:'CCa',
-    evanlewis:'EL',
-    jacksongraham:'JG',
-    klayfunovits:'KF',
-    lincolnconstant:'LC'
+  const knownFirstNames = {
+    jacksechler:'Jack',
+    cadechristy:'Cade',
+    brodyravenstahl:'Brody',
+    chasecarulli:'Chase',
+    evanlewis:'Evan',
+    jacksongraham:'Jackson',
+    klayfunovits:'Klay',
+    lincolnconstant:'Lincoln'
   };
 
-  function initials(profile){
+  function firstName(profile){
     const username=String(profile?.username||'').toLowerCase();
-    if(knownInitials[username]) return knownInitials[username];
-    const name=String(profile?.display_name||profile?.username||'P').trim();
-    const parts=name.split(/\s+/).filter(Boolean);
-    if(parts.length>=2) return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
-    return name.slice(0,2).toUpperCase();
+    if(knownFirstNames[username]) return knownFirstNames[username];
+    const name=String(profile?.display_name||profile?.username||'Player').trim();
+    return name.split(/\s+/)[0] || 'Player';
   }
 
   async function screenshotGridHtml(){
@@ -42,8 +40,9 @@
     h+='<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-bottom:9px"><div><div class="eyebrow">SCREENSHOT GRID</div><div style="font-size:17px;font-weight:950;margin-top:2px">'+esc(week.name)+' Live Picks</div></div><div class="mini" style="text-align:right">Top → bottom = Q1 → Q'+qs.length+'</div></div>';
     h+='<div style="display:grid;grid-template-columns:repeat('+users.length+',minmax(0,1fr));gap:3px;width:100%">';
     users.forEach(id=>{
-      const ini=initials(profileMap[id]);
-      h+='<div title="'+esc(profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+(ini.length>2?'9':'10')+'px;font-weight:950;padding:4px 0 5px;white-space:nowrap;overflow:hidden">'+esc(ini)+'</div>';
+      const name=firstName(profileMap[id]);
+      const size=name.length>=7?'7.5':name.length>=6?'8.5':'9.5';
+      h+='<div title="'+esc(profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:clip">'+esc(name)+'</div>';
     });
     qs.forEach(q=>{
       users.forEach(id=>{
