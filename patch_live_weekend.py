@@ -8,7 +8,9 @@ if 'live_weekend.js' not in html:
 else:
     html = html.replace('live_weekend.js?v=1', 'live_weekend.js?v=2')
 if 'screenshot_grid.js' not in html:
-    html = html.replace('<script src="live_weekend.js?v=2"></script>', '<script src="live_weekend.js?v=2"></script>\n<script src="screenshot_grid.js?v=1"></script>')
+    html = html.replace('<script src="live_weekend.js?v=2"></script>', '<script src="live_weekend.js?v=2"></script>\n<script src="screenshot_grid.js?v=2"></script>')
+else:
+    html = html.replace('screenshot_grid.js?v=1', 'screenshot_grid.js?v=2')
 idx.write_text(html)
 
 # Make the perfect-week opening streak follow the order results were entered.
