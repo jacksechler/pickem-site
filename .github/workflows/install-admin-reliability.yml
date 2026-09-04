@@ -1,0 +1,34 @@
+name: Install admin and reliability update
+
+on:
+  push:
+    paths:
+      - 'patch_admin_reliability.py'
+      - '.github/workflows/install-admin-reliability.yml'
+      - 'commissioner_admin_tools.js'
+      - 'app_update.js'
+      - 'app-version.json'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python patch_admin_reliability.py
+      - name: Commit installed update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html notifications.js
+          if git diff --cached --quiet; then
+            echo "No install changes needed"
+          else
+            git commit -m "Load reliability and commissioner tools"
+            git push
+          fi
