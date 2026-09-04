@@ -14,6 +14,7 @@
     if(applied){
       localStorage.setItem(APPLIED_KEY,applied);
       u.searchParams.delete('appv');
+      u.searchParams.delete('_refresh');
       history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);
     }
   }catch{}

@@ -281,8 +281,9 @@
     const out=document.createElement('div'); out.className='mobile-summary-cards';
     out.innerHTML=rows.map(tr=>{
       const cells=[...tr.querySelectorAll('td')].map(x=>(x.textContent||'').trim());
-      const title=cells[1]||cells[0]||'Result';
-      const fields=cells.map((v,i)=>({label:headers[i]||'',value:v})).filter((x,i)=>x.value&&i!==1&&x.label);
+      const primaryIndex=headers[0]==='Week'?0:(headers[1]==='Player'?1:(cells[1]?1:0));
+      const title=cells[primaryIndex]||cells[0]||'Result';
+      const fields=cells.map((v,i)=>({label:headers[i]||'',value:v})).filter((x,i)=>x.value&&i!==primaryIndex&&x.label);
       return '<div class="mobile-summary-row"><div class="ms-title">'+esc(title)+'</div><div class="mobile-summary-grid">'+fields.map(f=>'<div class="mobile-summary-field"><div class="mobile-summary-label">'+esc(f.label)+'</div><div class="mobile-summary-value">'+esc(f.value)+'</div></div>').join('')+'</div></div>';
     }).join('');
     table.insertAdjacentElement('afterend',out);
