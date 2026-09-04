@@ -1,0 +1,35 @@
+name: Install potential Unicorn highlighting
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'potential_unicorn.js'
+      - 'patch_potential_unicorn.py'
+      - '.github/workflows/install-potential-unicorn.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python patch_potential_unicorn.py
+      - name: Commit index update
+        run: |
+          if git diff --quiet; then
+            echo "No index update needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Load Unicorn grid styling"
+          git push
