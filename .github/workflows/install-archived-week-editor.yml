@@ -1,0 +1,32 @@
+name: Install archived week editor
+
+on:
+  push:
+    paths:
+      - 'archived_week_editor.js'
+      - 'patch_archived_week_editor.py'
+      - '.github/workflows/install-archived-week-editor.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python patch_archived_week_editor.py
+      - name: Commit installed editor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No install changes needed"
+          else
+            git commit -m "Load archived published week editor"
+            git push
+          fi
