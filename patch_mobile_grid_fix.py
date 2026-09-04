@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Installs the iPhone grid usability fix after the history/profile script.
 p = Path('index.html')
 s = p.read_text()
 needle = '<script src="history_profiles.js?v=1"></script>'
