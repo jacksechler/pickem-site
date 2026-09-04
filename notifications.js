@@ -21,7 +21,9 @@
   }
 
   async function getRegistration(){
-    return await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+    try{ await reg.update(); }catch{}
+    return reg;
   }
 
   async function currentSubscription(){
