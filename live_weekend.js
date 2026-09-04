@@ -241,21 +241,53 @@
   };
 
 
+
   // LIVE_WEEKEND_AUTO_REFRESH
+  // Quiet change-aware polling: no visual refresh unless live data actually changes.
   let liveRefreshBusy=false;
+  const localLiveFingerprint=()=>JSON.stringify({
+    week:week?.id||null,
+    status:week?.status||null,
+    lock_at:week?.lock_at||null,
+    auto_locked_at:week?.auto_locked_at||null,
+    published_at:week?.published_at||null,
+    results:[...questions]
+      .sort((a,b)=>Number(a.position||0)-Number(b.position||0))
+      .map(q=>[q.id,q.result,q.result_order,q.result_entered_at])
+  });
+  let liveFingerprint=localLiveFingerprint();
+
   setInterval(async()=>{
-    if(liveRefreshBusy || !session || !week || !locked()) return;
+    if(liveRefreshBusy || !session || !week || document.visibilityState==='hidden') return;
     const active=[...document.querySelectorAll('.page')].find(x=>!x.classList.contains('hidden'))?.id;
     if(active!=='league' && active!=='home') return;
     liveRefreshBusy=true;
     try{
+      const [freshWeekRows,freshQuestions]=await Promise.all([
+        db('weeks?id=eq.'+week.id+'&select=id,status,lock_at,auto_locked_at,published_at&limit=1'),
+        db('questions?week_id=eq.'+week.id+'&select=id,position,result,result_order,result_entered_at&order=position.asc')
+      ]);
+      const fw=freshWeekRows?.[0];
+      const nextFingerprint=JSON.stringify({
+        week:fw?.id||week.id,
+        status:fw?.status||null,
+        lock_at:fw?.lock_at||null,
+        auto_locked_at:fw?.auto_locked_at||null,
+        published_at:fw?.published_at||null,
+        results:(freshQuestions||[]).map(q=>[q.id,q.result,q.result_order,q.result_entered_at])
+      });
+      if(nextFingerprint===liveFingerprint) return;
+
+      const y=window.scrollY;
       await loadData();
+      liveFingerprint=localLiveFingerprint();
       if(active==='league') await renderLeague();
       else renderHome();
+      requestAnimationFrame(()=>window.scrollTo(0,y));
     }catch(e){
-      console.debug('Live refresh skipped',e);
+      console.debug('Live change check skipped',e);
     }finally{
       liveRefreshBusy=false;
     }
-  },15000);
+  },20000);
 })();
