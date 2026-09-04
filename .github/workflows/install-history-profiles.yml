@@ -1,0 +1,25 @@
+name: Install league history and profiles
+
+on:
+  push:
+    paths:
+      - 'patch_history_profiles.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install history and profile UI
+        run: python patch_history_profiles.py
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Load league history and player profiles"
+          git push
