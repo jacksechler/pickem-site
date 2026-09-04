@@ -1,0 +1,34 @@
+name: Install mobile header fix
+
+on:
+  push:
+    paths:
+      - 'mobile_header_fix.js'
+      - 'patch_mobile_header_fix.py'
+      - '.github/workflows/install-mobile-header-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Patch index
+        run: python patch_mobile_header_fix.py
+      - name: Commit installed script
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "Already installed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Load collapsing mobile header"
+          git push
