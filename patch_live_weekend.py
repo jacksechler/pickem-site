@@ -11,6 +11,10 @@ if 'screenshot_grid.js' not in html:
     html = html.replace('<script src="live_weekend.js?v=2"></script>', '<script src="live_weekend.js?v=2"></script>\n<script src="screenshot_grid.js?v=2"></script>')
 else:
     html = html.replace('screenshot_grid.js?v=1', 'screenshot_grid.js?v=2')
+if 'notifications.js' not in html:
+    html = html.replace('<script src="screenshot_grid.js?v=2"></script>', '<script src="screenshot_grid.js?v=2"></script>\n<script src="notifications.js?v=1"></script>')
+if 'rel="manifest"' not in html:
+    html = html.replace('<title>Pick\'em</title>', '<title>Pick\'em</title>\n<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" href="icon.svg" type="image/svg+xml">\n<meta name="theme-color" content="#07111f">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">')
 idx.write_text(html)
 
 # Make the perfect-week opening streak follow the order results were entered.
