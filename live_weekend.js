@@ -239,4 +239,23 @@
       home.insertAdjacentHTML('beforeend',html);
     }).catch(console.error);
   };
+
+
+  // LIVE_WEEKEND_AUTO_REFRESH
+  let liveRefreshBusy=false;
+  setInterval(async()=>{
+    if(liveRefreshBusy || !session || !week || !locked()) return;
+    const active=[...document.querySelectorAll('.page')].find(x=>!x.classList.contains('hidden'))?.id;
+    if(active!=='league' && active!=='home') return;
+    liveRefreshBusy=true;
+    try{
+      await loadData();
+      if(active==='league') await renderLeague();
+      else renderHome();
+    }catch(e){
+      console.debug('Live refresh skipped',e);
+    }finally{
+      liveRefreshBusy=false;
+    }
+  },15000);
 })();
