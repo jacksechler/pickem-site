@@ -144,7 +144,7 @@
         perfect_bonus:correct===questionCount?5:0,
         unicorn_count:unicornCount,unicorn_bonus:unicornCount*3,
         upset_count:upsetCount,upset_bonus:upsetCount*0.5,
-        opening_streak:openingStreak,streak_bonus:openingStreak*1.5,
+        opening_streak:openingStreak,streak_bonus:openingStreak*0.5,
         cold_bonus:correct===0?-5:0
       };
     });
