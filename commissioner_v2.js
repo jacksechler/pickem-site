@@ -70,7 +70,11 @@
 
   async function buildScoreData(){
     if(!week) throw new Error('No active week.');
-    const scored=questions.filter(q=>q.counts_for_score!==false);
+    const scored=questions.filter(q=>q.counts_for_score!==false).sort((a,b)=>{
+      const ao=a.result_order==null?999999:Number(a.result_order);
+      const bo=b.result_order==null?999999:Number(b.result_order);
+      return ao-bo || Number(a.position||0)-Number(b.position||0);
+    });
     if(!scored.length) throw new Error('There are no scored questions.');
     if(scored.some(q=>q.result===null || q.result===undefined)) throw new Error('Save every question result first.');
     if(week.tiebreaker_result===null || week.tiebreaker_result===undefined) throw new Error('Save the actual tiebreaker result first.');
