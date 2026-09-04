@@ -4,11 +4,12 @@ from pathlib import Path
 idx = Path('index.html')
 html = idx.read_text()
 if 'live_weekend.js' not in html:
-    html = html.replace('<script src="account_tools.js?v=1"></script>', '<script src="account_tools.js?v=1"></script>\n<script src="live_weekend.js?v=2"></script>')
+    html = html.replace('<script src="account_tools.js?v=1"></script>', '<script src="account_tools.js?v=1"></script>\n<script src="live_weekend.js?v=3"></script>')
 else:
-    html = html.replace('live_weekend.js?v=1', 'live_weekend.js?v=2')
+    html = html.replace('live_weekend.js?v=1', 'live_weekend.js?v=3')
+    html = html.replace('live_weekend.js?v=2', 'live_weekend.js?v=3')
 if 'screenshot_grid.js' not in html:
-    html = html.replace('<script src="live_weekend.js?v=2"></script>', '<script src="live_weekend.js?v=2"></script>\n<script src="screenshot_grid.js?v=2"></script>')
+    html = html.replace('<script src="live_weekend.js?v=3"></script>', '<script src="live_weekend.js?v=3"></script>\n<script src="screenshot_grid.js?v=2"></script>')
 else:
     html = html.replace('screenshot_grid.js?v=1', 'screenshot_grid.js?v=2')
 if 'notifications.js' not in html:
@@ -36,30 +37,64 @@ s = s.replace('opening_streak:openingStreak,streak_bonus:openingStreak*1.5,',
               'opening_streak:openingStreak,streak_bonus:openingStreak*0.5,')
 p.write_text(s)
 
-# Refresh live Home/League data automatically while the weekend is active.
+# Keep Home/League Picks live without constantly rebuilding the page.
+# Poll quietly, compare a small fingerprint, and only re-render when something
+# that changes the live experience actually changed in the database.
 live = Path('live_weekend.js')
 js = live.read_text()
 refresh_marker = '  // LIVE_WEEKEND_AUTO_REFRESH'
-if refresh_marker not in js:
-    block = r'''
-
+block = r'''
   // LIVE_WEEKEND_AUTO_REFRESH
+  // Quiet change-aware polling: no visual refresh unless live data actually changes.
   let liveRefreshBusy=false;
+  const localLiveFingerprint=()=>JSON.stringify({
+    week:week?.id||null,
+    status:week?.status||null,
+    lock_at:week?.lock_at||null,
+    auto_locked_at:week?.auto_locked_at||null,
+    published_at:week?.published_at||null,
+    results:[...questions]
+      .sort((a,b)=>Number(a.position||0)-Number(b.position||0))
+      .map(q=>[q.id,q.result,q.result_order,q.result_entered_at])
+  });
+  let liveFingerprint=localLiveFingerprint();
+
   setInterval(async()=>{
-    if(liveRefreshBusy || !session || !week || !locked()) return;
+    if(liveRefreshBusy || !session || !week || document.visibilityState==='hidden') return;
     const active=[...document.querySelectorAll('.page')].find(x=>!x.classList.contains('hidden'))?.id;
     if(active!=='league' && active!=='home') return;
     liveRefreshBusy=true;
     try{
+      const [freshWeekRows,freshQuestions]=await Promise.all([
+        db('weeks?id=eq.'+week.id+'&select=id,status,lock_at,auto_locked_at,published_at&limit=1'),
+        db('questions?week_id=eq.'+week.id+'&select=id,position,result,result_order,result_entered_at&order=position.asc')
+      ]);
+      const fw=freshWeekRows?.[0];
+      const nextFingerprint=JSON.stringify({
+        week:fw?.id||week.id,
+        status:fw?.status||null,
+        lock_at:fw?.lock_at||null,
+        auto_locked_at:fw?.auto_locked_at||null,
+        published_at:fw?.published_at||null,
+        results:(freshQuestions||[]).map(q=>[q.id,q.result,q.result_order,q.result_entered_at])
+      });
+      if(nextFingerprint===liveFingerprint) return;
+
+      const y=window.scrollY;
       await loadData();
+      liveFingerprint=localLiveFingerprint();
       if(active==='league') await renderLeague();
       else renderHome();
+      requestAnimationFrame(()=>window.scrollTo(0,y));
     }catch(e){
-      console.debug('Live refresh skipped',e);
+      console.debug('Live change check skipped',e);
     }finally{
       liveRefreshBusy=false;
     }
-  },15000);
+  },20000);
 '''
-    js = js.rsplit('})();',1)[0] + block + '})();\n'
+if refresh_marker in js:
+    js = js[:js.index(refresh_marker)] + block + '})();\n'
+else:
+    js = js.rsplit('})();',1)[0] + '\n' + block + '})();\n'
 live.write_text(js)
