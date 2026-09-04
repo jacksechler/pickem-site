@@ -13,11 +13,16 @@ else:
     html = html.replace('screenshot_grid.js?v=1', 'screenshot_grid.js?v=2')
 if 'notifications.js' not in html:
     html = html.replace('<script src="screenshot_grid.js?v=2"></script>', '<script src="screenshot_grid.js?v=2"></script>\n<script src="notifications.js?v=1"></script>')
+if '<script src="commissioner_v2.js"></script>' in html:
+    html = html.replace('<script src="commissioner_v2.js"></script>', '<script src="commissioner_v2.js?v=2"></script>')
+else:
+    html = html.replace('commissioner_v2.js?v=1', 'commissioner_v2.js?v=2')
 if 'rel="manifest"' not in html:
     html = html.replace('<title>Pick\'em</title>', '<title>Pick\'em</title>\n<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" href="icon.svg" type="image/svg+xml">\n<meta name="theme-color" content="#07111f">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">')
 idx.write_text(html)
 
-# Make the perfect-week opening streak follow the order results were entered.
+# Make the perfect-week opening streak follow the order results were entered,
+# and award +0.5 for each consecutive correct result after a perfect week.
 p = Path('commissioner_v2.js')
 s = p.read_text()
 marker = '  async function buildScoreData(){'
@@ -27,6 +32,8 @@ if marker in s and new not in s[s.index(marker):]:
     start = s.index(marker)
     pos = s.index(old, start)
     s = s[:pos] + new + s[pos+len(old):]
+s = s.replace('opening_streak:openingStreak,streak_bonus:openingStreak*1.5,',
+              'opening_streak:openingStreak,streak_bonus:openingStreak*0.5,')
 p.write_text(s)
 
 # Refresh live Home/League data automatically while the weekend is active.
