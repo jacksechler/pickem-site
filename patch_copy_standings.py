@@ -1,0 +1,22 @@
+from pathlib import Path
+import re
+
+# Load the copy helper last so it wraps the final League/Standings renderers.
+p=Path('index.html')
+s=p.read_text()
+tag='<script src="copy_standings.js?v=1"></script>'
+anchor='<script src="weekly_standings_v2.js?v=1"></script>'
+if tag not in s:
+    if anchor not in s:
+        raise SystemExit('weekly standings anchor missing')
+    s=s.replace(anchor,anchor+'\n'+tag,1)
+s=re.sub(r'<script src="app_update\.js\?v=\d+"></script>','<script src="app_update.js?v=6"></script>',s,count=1)
+p.write_text(s)
+
+# Bump the app build so phones receive this feature exactly once.
+p=Path('app_update.js')
+s=p.read_text()
+s=re.sub(r"const BUILD_VERSION = '[^']+';","const BUILD_VERSION = '2026.09.06.1';",s,count=1)
+p.write_text(s)
+
+Path('app-version.json').write_text('{"version":"2026.09.06.1"}\n')
