@@ -1,0 +1,32 @@
+name: Install golf tie scoring
+
+on:
+  push:
+    paths:
+      - 'patch_golf_tie_scoring.py'
+      - '.github/workflows/install-golf-tie-scoring.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply scoring update
+        run: python patch_golf_tie_scoring.py
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add commissioner_v2.js archived_week_editor.js weekly_standings_v2.js copy_standings.js history_profiles.js index.html app_update.js app-version.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Use golf-style placement splits for exact ties"
+            git push
+          fi
