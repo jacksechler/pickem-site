@@ -118,6 +118,8 @@
         points:s?Number(s.total_points||0):null
       };
     }).sort((a,b)=>a.rank-b.rank||((b.points??-Infinity)-(a.points??-Infinity))||a.name.localeCompare(b.name));
+    const placeCounts={}; rows.forEach(r=>placeCounts[r.rank]=(placeCounts[r.rank]||0)+1);
+    rows.forEach(r=>r.exactTbTie=(placeCounts[r.rank]||0)>1);
     return {rows,actual};
   }
 
@@ -136,9 +138,9 @@
     let h='<div class="card tablewrap" id="weeklyStandingsV2"><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><div class="eyebrow">WEEKLY STANDINGS</div><h2 style="margin:4px 0">'+esc(d.w?.name||'Week')+' · '+status+'</h2><div class="muted">'+(hasActual?'Ties are broken by closest tiebreaker answer. Actual: <b>'+esc(fmt(actual))+'</b>.':'Tied records stay tied until the actual tiebreaker is entered.')+'</div></div><div class="pill">'+decidedCount+'/'+d.scored.length+' decided</div></div>';
     h+='<table class="table" style="min-width:720px;margin-top:10px"><thead><tr><th>Place</th><th>Player</th><th>Correct</th><th>Pick Streak</th><th>Tiebreaker</th>'+(isFinal?'<th>Points</th>':'')+'</tr></thead><tbody>';
     h+=out.rows.map(r=>{
-      const place=r.rank>=999?'—':'#'+r.rank;
+      const place=r.rank>=999?'—':(r.exactTbTie?'T':'#')+r.rank;
       const correct=isFinal?r.correct+'/'+r.questionCount:r.correct+'/'+r.decided;
-      const tieNote=r.exactTbTie?'<div class="mini" style="color:var(--gold)">Exact TB tie</div>':'';
+      const tieNote=r.exactTbTie?'<div class="mini" style="color:var(--gold)">Golf-style tie · placement points split</div>':'';
       return '<tr><td><b>'+place+'</b></td><td><button onclick="openPlayerProfile(\''+r.id+'\')" style="border:0;background:transparent;color:inherit;padding:0;font:inherit;font-weight:950;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(56,189,248,.45);text-underline-offset:3px">'+esc(r.name)+'</button></td><td><b>'+correct+'</b></td><td><b>'+streakLabel(r.streak)+'</b></td><td><b>'+esc(r.tb.label)+'</b>'+tieNote+'</td>'+(isFinal?'<td><b>'+fmt(r.points)+'</b></td>':'')+'</tr>';
     }).join('');
     h+='</tbody></table><div class="mini" style="margin-top:8px">Pick Streak = consecutive correct picks ending with the most recently decided result.</div></div>';

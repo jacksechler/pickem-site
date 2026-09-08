@@ -149,36 +149,30 @@
       };
     });
 
-    const groups={};
-    rows.forEach(r=>{
-      const key=r.correct_count+'|'+r.tb_distance;
-      (groups[key]??=[]).push(r);
-    });
-    const unresolved=[];
-    for(const [key,group] of Object.entries(groups)){
-      if(group.length<2) continue;
-      const orders=manualTieOrder[key]||{};
-      const vals=group.map(r=>Number(orders[r.user_id]||0));
-      const valid=vals.every(v=>v>=1&&v<=group.length) && new Set(vals).size===group.length;
-      if(!valid) unresolved.push({key,group});
-    }
-
     rows.sort((a,b)=>{
       if(b.correct_count!==a.correct_count) return b.correct_count-a.correct_count;
       if(a.tb_distance!==b.tb_distance) return a.tb_distance-b.tb_distance;
-      const key=a.correct_count+'|'+a.tb_distance;
-      const orders=manualTieOrder[key]||{};
-      const ao=Number(orders[a.user_id]||999),bo=Number(orders[b.user_id]||999);
-      if(ao!==bo) return ao-bo;
       return a.name.localeCompare(b.name);
     });
 
-    rows.forEach((r,i)=>{
-      r.placement=i+1;
-      r.placement_points=placementPoints[i]??0;
-      r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
-    });
-    return {rows,unresolved};
+    // Golf-style split for an exact tie after the tiebreaker. Everyone in the
+    // tie gets the same place, and the placement-point slots they occupy are averaged.
+    let i=0;
+    while(i<rows.length){
+      let j=i+1;
+      while(j<rows.length && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
+      const tieSize=j-i;
+      const splitPoints=placementPoints.slice(i,j).reduce((sum,v)=>sum+Number(v??0),0)/tieSize;
+      for(let k=i;k<j;k++){
+        const r=rows[k];
+        r.placement=i+1;
+        r.placement_points=splitPoints;
+        r.golf_tie=tieSize>1;
+        r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
+      }
+      i=j;
+    }
+    return {rows,unresolved:[]};
   }
 
   function tieResolverHtml(unresolved){
@@ -207,9 +201,9 @@
         if(r.upset_bonus) bonuses.push('Upset +'+fmtNum(r.upset_bonus));
         if(r.streak_bonus) bonuses.push('Streak +'+fmtNum(r.streak_bonus));
         if(r.cold_bonus) bonuses.push('Cold '+fmtNum(r.cold_bonus));
-        return '<tr><td><b>#'+r.placement+'</b></td><td><b>'+esc(r.name)+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+fmtNum(r.tb_distance)+'</td><td>'+fmtNum(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmtNum(r.total_points)+'</b></td></tr>';
+        return '<tr><td><b>'+(r.golf_tie?'T':'#')+r.placement+'</b></td><td><b>'+esc(r.name)+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+fmtNum(r.tb_distance)+'</td><td>'+fmtNum(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmtNum(r.total_points)+'</b></td></tr>';
       }).join('')+'</tbody></table></div>';
-      const resolver=tieResolverHtml(unresolved);
+      const resolver=rows.some(r=>r.golf_tie)?'<div class="notice"><b>Golf-style tie split applied</b><div class="muted">Players exactly tied on correct picks and tiebreaker distance share the same place and split the placement points for the tied spots.</div></div>':'';
       const publish='<button class="btn full" '+(unresolved.length?'disabled':'')+' onclick="publishCurrentWeek()">Publish '+esc(week.name)+'</button><div class="mini">Publishing makes the scores visible to everyone and unlocks Create Next Week.</div>';
       if(out) out.innerHTML=resolver+table+publish;
       return {rows,unresolved};

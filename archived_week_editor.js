@@ -177,41 +177,28 @@
         opening_streak:openingStreak,streak_bonus:openingStreak*0.5,cold_bonus:correct===0?-5:0};
     });
 
-    const groups={}; rows.forEach(r=>(groups[r.correct_count+'|'+r.tb_distance]??=[]).push(r));
-    const unresolved=[];
-    const orderMap=archiveState.tieOrder[w.id]??={};
-    for(const [key,group] of Object.entries(groups)){
-      if(group.length<2) continue;
-      const oldKeys=group.map(r=>{
-        const s=existingMap[r.user_id];
-        if(!s) return 'missing';
-        const oldDist=Math.abs(Number(s.tiebreaker_answer)-Number(w.tiebreaker_result));
-        return Number(s.correct_count)+'|'+oldDist;
-      });
-      const existedBefore=oldKeys.every(k=>k!=='missing') && new Set(oldKeys).size===1;
-      orderMap[key]??={};
-      if(existedBefore){
-        group.slice().sort((a,b)=>Number(existingMap[a.user_id]?.placement||99)-Number(existingMap[b.user_id]?.placement||99)).forEach((r,i)=>orderMap[key][r.user_id]=i+1);
-      }
-      const vals=group.map(r=>Number(orderMap[key][r.user_id]||0));
-      const valid=vals.every(v=>v>=1&&v<=group.length)&&new Set(vals).size===group.length;
-      if(!valid) unresolved.push({key,group});
-    }
-
     rows.sort((a,b)=>{
       if(b.correct_count!==a.correct_count) return b.correct_count-a.correct_count;
       if(a.tb_distance!==b.tb_distance) return a.tb_distance-b.tb_distance;
-      const key=a.correct_count+'|'+a.tb_distance, orders=orderMap[key]||{};
-      const ao=Number(orders[a.user_id]||999),bo=Number(orders[b.user_id]||999);
-      if(ao!==bo) return ao-bo;
       return a.name.localeCompare(b.name);
     });
-    rows.forEach((r,i)=>{
-      r.placement=i+1;
-      r.placement_points=placementPoints[i]??0;
-      r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
-    });
-    return {rows,unresolved,existingMap};
+
+    let i=0;
+    while(i<rows.length){
+      let j=i+1;
+      while(j<rows.length && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
+      const tieSize=j-i;
+      const splitPoints=placementPoints.slice(i,j).reduce((sum,v)=>sum+Number(v??0),0)/tieSize;
+      for(let k=i;k<j;k++){
+        const r=rows[k];
+        r.placement=i+1;
+        r.placement_points=splitPoints;
+        r.golf_tie=tieSize>1;
+        r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
+      }
+      i=j;
+    }
+    return {rows,unresolved:[],existingMap};
   }
 
   function tieResolverHtml(unresolved){
@@ -232,9 +219,10 @@
       if(r.upset_bonus) bonuses.push('Upset +'+fmt(r.upset_bonus));
       if(r.streak_bonus) bonuses.push('Streak +'+fmt(r.streak_bonus));
       if(r.cold_bonus) bonuses.push('Cold '+fmt(r.cold_bonus));
-      return '<tr><td><b>#'+r.placement+'</b></td><td><b>'+esc(r.name)+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+fmt(r.tb_distance)+'</td><td>'+fmt(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmt(r.total_points)+'</b></td></tr>';
+      return '<tr><td><b>'+(r.golf_tie?'T':'#')+r.placement+'</b></td><td><b>'+esc(r.name)+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+fmt(r.tb_distance)+'</td><td>'+fmt(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmt(r.total_points)+'</b></td></tr>';
     }).join('')+'</tbody></table></div>';
-    return tieResolverHtml(data.unresolved)+table+'<button class="btn full" '+(data.unresolved.length?'disabled':'')+' onclick="applyArchivedCorrection()">Apply Corrected Official Scores</button><div class="mini">This keeps the week archived and updates season totals automatically.</div>';
+    const tieNotice=data.rows.some(r=>r.golf_tie)?'<div class="notice"><b>Golf-style tie split applied</b><div class="muted">Exact ties share the same place and split the placement points for the tied spots.</div></div>':'';
+    return tieNotice+table+'<button class="btn full" onclick="applyArchivedCorrection()">Apply Corrected Official Scores</button><div class="mini">This keeps the week archived and updates season totals automatically.</div>';
   }
 
   window.previewArchivedCorrection=async function(){

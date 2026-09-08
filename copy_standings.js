@@ -117,6 +117,7 @@
     if(isFinal){
       rows.sort((a,b)=>a.storedPlace-b.storedPlace||((b.points??0)-(a.points??0))||a.name.localeCompare(b.name));
       rows.forEach(r=>r.rank=r.storedPlace);
+      const pc={}; rows.forEach(r=>pc[r.rank]=(pc[r.rank]||0)+1); rows.forEach(r=>r.tied=(pc[r.rank]||0)>1);
     }else{
       rows.sort((a,b)=>b.correct-a.correct||(hasActual?((a.dist??Infinity)-(b.dist??Infinity)):0)||a.name.localeCompare(b.name));
       let prev=null,rank=0;
@@ -128,7 +129,7 @@
       const streak=r.streak>=2?'🔥'+r.streak:String(r.streak);
       let tb='—';
       if(r.answer!==null&&r.answer!==undefined&&r.answer!=='') tb=String(r.answer)+(r.dist!=null?' ('+fmt(r.dist)+' away)':'');
-      lines.push('#'+r.rank+' '+r.name+' — '+r.correct+'/'+r.total+' correct'+(isFinal?' • '+fmt(r.points)+' pts':''));
+      lines.push((r.tied?'T':'#')+r.rank+' '+r.name+' — '+r.correct+'/'+r.total+' correct'+(isFinal?' • '+fmt(r.points)+' pts':''));
       lines.push('   Pick streak: '+streak+' • TB: '+tb);
     });
     return lines.join('\n');

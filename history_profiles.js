@@ -91,10 +91,11 @@
       return '<div class="card"><div class="eyebrow">LIVE WEEK STATS</div><h2 style="margin:4px 0">'+done.length+'/'+d.questions.filter(q=>q.counts_for_score!==false).length+' decided</h2>'+rows.map((r,i)=>'<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><div><b>#'+(i+1)+' '+profileButton(r.id,prettyName(d.pmap[r.id]))+'</b></div><b>'+r.correct+'/'+done.length+'</b></div>').join('')+'</div>';
     }
     const rows=[...d.scores].sort((a,b)=>num(a.placement)-num(b.placement)||num(b.total_points)-num(a.total_points));
+    const placeCounts={}; rows.forEach(s=>placeCounts[num(s.placement)]=(placeCounts[num(s.placement)]||0)+1);
     return '<div class="card tablewrap"><div class="eyebrow">WEEK STATS</div><h2 style="margin:4px 0 12px">Final Results</h2><table class="table" style="min-width:920px"><thead><tr><th>Finish</th><th>Player</th><th>Correct</th><th>Pick %</th><th>Placement Pts</th><th>Bonuses</th><th>Unicorns</th><th>Upsets</th><th>Opening Streak</th><th>Total</th></tr></thead><tbody>'+rows.map(s=>{
       const p=d.pmap[s.user_id];
       const pc=s.pick_percentage!=null?num(s.pick_percentage):(num(s.question_count)?num(s.correct_count)/num(s.question_count)*100:0);
-      return '<tr><td><b>#'+num(s.placement)+'</b></td><td>'+profileButton(s.user_id,prettyName(p))+'</td><td>'+num(s.correct_count)+'/'+num(s.question_count)+'</td><td>'+pc.toFixed(1)+'%</td><td>'+fmt(s.placement_points)+'</td><td>'+esc(bonusText(s))+'</td><td>'+num(s.unicorn_count)+'</td><td>'+num(s.upset_count)+'</td><td>'+num(s.opening_streak)+'</td><td><b>'+fmt(s.total_points)+'</b></td></tr>';
+      return '<tr><td><b>'+(placeCounts[num(s.placement)]>1?'T':'#')+num(s.placement)+'</b></td><td>'+profileButton(s.user_id,prettyName(p))+'</td><td>'+num(s.correct_count)+'/'+num(s.question_count)+'</td><td>'+pc.toFixed(1)+'%</td><td>'+fmt(s.placement_points)+'</td><td>'+esc(bonusText(s))+'</td><td>'+num(s.unicorn_count)+'</td><td>'+num(s.upset_count)+'</td><td>'+num(s.opening_streak)+'</td><td><b>'+fmt(s.total_points)+'</b></td></tr>';
     }).join('')+'</tbody></table></div>';
   }
 
