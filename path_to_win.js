@@ -100,8 +100,7 @@
         const ds=top.map(id=>[id,tbDistance(d.subMap[id],actual)]);
         const best=Math.min(...ds.map(x=>x[1]));
         const winners=ds.filter(x=>x[1]===best).map(x=>x[0]);
-        if(winners.length===1) return {scenario:s,totals,definite:winners,unresolved:[]};
-        return {scenario:s,totals,definite:[],unresolved:winners};
+        return {scenario:s,totals,definite:winners,unresolved:[]};
       }
       return {scenario:s,totals,definite:[],unresolved:top};
     });
@@ -151,7 +150,7 @@
     }else{
       badge='ALIVE';
       badgeStyle='color:var(--accent);border-color:#245271;background:#0d2535';
-      headline=esc(name)+' has '+wins.length+' outright win path'+(wins.length===1?'':'s')+(ties.length?' and '+ties.length+' tiebreaker path'+(ties.length===1?'':'s'):'')+'.';
+      headline=esc(name)+' has '+wins.length+' winning path'+(wins.length===1?'':'s')+(ties.length?' and '+ties.length+' tiebreaker path'+(ties.length===1?'':'s'):'')+'.';
     }
 
     if(opportunities.length && opportunities.length<total){

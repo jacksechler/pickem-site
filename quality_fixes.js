@@ -256,7 +256,7 @@
       const rows=[...group].sort((a,b)=>Number(a.placement)-Number(b.placement)).map(s=>({name:names[s.user_id]||'Player',answer:Number(s.tiebreaker_answer),distance:Math.abs(Number(s.tiebreaker_answer)-actual),placement:Number(s.placement)}));
       const duplicateDistance=new Set(rows.map(r=>r.distance)).size<rows.length;
       const order=rows.map(r=>r.name+' '+fmt(r.answer)+' ('+fmt(r.distance)+' away)').join(' → ');
-      return '<div class="tie-line"><b>'+(duplicateDistance?'Exact-distance tie resolved by commissioner':'Tiebreaker decided tied records')+'</b><div class="mini" style="margin-top:3px">'+esc(order)+' · Actual: '+esc(fmt(actual))+'</div></div>';
+      return '<div class="tie-line"><b>'+(duplicateDistance?'Exact-distance tie · golf-style split':'Tiebreaker decided tied records')+'</b><div class="mini" style="margin-top:3px">'+esc(order)+' · Actual: '+esc(fmt(actual))+'</div></div>';
     }).join('');
     return '<div class="card quality-tie-card"><div class="eyebrow">WHY THE ORDER?</div><h2 style="margin:4px 0">Tiebreaker Breakdown</h2><div class="muted">The tiebreaker only separates players with the same number of correct picks; it is never scored as a pick.</div>'+lines+'</div>';
   }
