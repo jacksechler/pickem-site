@@ -1,6 +1,7 @@
 // League history, historical pick grids, clickable player profiles, and tiebreaker rows.
 (() => {
   let selectedLeagueWeekId = null;
+  let leagueSelectionManual = false;
   let historyWeekId = null;
   let selectedPlayerId = null;
   let playerReturnPage = 'home';
@@ -34,6 +35,22 @@
   async function availableWeeks(){
     const rows=await db('weeks?select=*&order=number.desc');
     return rows.filter(w => w.status==='published' || (w.is_active && (w.status==='published' || Date.now()>=new Date(w.lock_at).getTime() || !!w.auto_locked_at)));
+  }
+
+  const FINAL_FEATURE_MS = 24*60*60*1000;
+  function isFreshPublishedWeek(w){
+    if(!w || w.status!=='published' || !w.published_at) return false;
+    const age=Date.now()-new Date(w.published_at).getTime();
+    return age>=0 && age<FINAL_FEATURE_MS;
+  }
+
+  function finalFeatureTimeLeft(w){
+    if(!isFreshPublishedWeek(w)) return '';
+    const left=Math.max(0,FINAL_FEATURE_MS-(Date.now()-new Date(w.published_at).getTime()));
+    const hours=Math.floor(left/3600000);
+    const mins=Math.max(1,Math.ceil((left-hours*3600000)/60000));
+    if(hours>=1) return hours+'h '+Math.min(59,mins)+'m';
+    return mins+'m';
   }
 
   async function loadWeekBundle(weekId){
@@ -126,7 +143,7 @@
     return '<div class="card"><label style="margin-top:0">Week</label><select onchange="'+onchange+'(this.value)">'+weeks.map(w=>'<option value="'+w.id+'" '+(w.id===value?'selected':'')+'>'+esc(w.name||('Week '+w.number))+(w.status==='published'?' · Final':' · Live')+'</option>').join('')+'</select></div>';
   }
 
-  window.setLeagueHistoryWeek=async function(id){ selectedLeagueWeekId=id; await renderLeague(); };
+  window.setLeagueHistoryWeek=async function(id){ leagueSelectionManual=true; selectedLeagueWeekId=id; await renderLeague(); };
 
   window.renderLeague=async function(){
     const box=el('leagueBox'); if(!box) return;
@@ -134,8 +151,34 @@
     try{
       const weeks=await availableWeeks();
       const activeId=week?.id||null;
-      if(!selectedLeagueWeekId) selectedLeagueWeekId=activeId || weeks[0]?.id || null;
-      if(selectedLeagueWeekId && !weeks.some(w=>w.id===selectedLeagueWeekId) && selectedLeagueWeekId!==activeId) selectedLeagueWeekId=weeks[0]?.id||activeId;
+      const freshPublished=weeks.find(w=>isFreshPublishedWeek(w))||null;
+
+      // A newly finished week stays the default League Picks/results view for
+      // 24 hours, even if a newer draft week is already active. Manual week
+      // selections always win and are never overridden by this feature.
+      if(!selectedLeagueWeekId){
+        if(freshPublished && freshPublished.id!==activeId){
+          selectedLeagueWeekId=freshPublished.id;
+          leagueSelectionManual=false;
+        }else{
+          selectedLeagueWeekId=activeId || weeks[0]?.id || null;
+          leagueSelectionManual=false;
+        }
+      }
+      if(selectedLeagueWeekId && !weeks.some(w=>w.id===selectedLeagueWeekId) && selectedLeagueWeekId!==activeId){
+        selectedLeagueWeekId=freshPublished?.id || activeId || weeks[0]?.id || null;
+        leagueSelectionManual=false;
+      }
+
+      // If the current selection happened automatically (for example it was
+      // the active week before Create Next Week), keep that published week
+      // featured only while its 24-hour window is still open.
+      if(!leagueSelectionManual && activeId && selectedLeagueWeekId!==activeId){
+        const selectedWeek=weeks.find(w=>w.id===selectedLeagueWeekId);
+        if(!isFreshPublishedWeek(selectedWeek)){
+          selectedLeagueWeekId=activeId;
+        }
+      }
 
       let h='';
       const options=[...weeks];
@@ -148,7 +191,11 @@
       }
       if(!selectedLeagueWeekId){ box.innerHTML=h+'<div class="card muted">No viewable weeks yet.</div>'; return; }
       const d=await loadWeekBundle(selectedLeagueWeekId);
+      const featuredFinal=!!(activeId && d.week?.id!==activeId && isFreshPublishedWeek(d.week));
       h+='<div class="card"><div class="eyebrow">'+(d.week?.status==='published'?'FINAL WEEK':'LIVE WEEK')+'</div><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 style="margin:4px 0">'+esc(d.week?.name||'Week')+'</h2><div class="muted">Every pick, result, tiebreaker, and weekly stat in one place.</div></div><button class="btn secondary" onclick="openHistoryWeek(\''+selectedLeagueWeekId+'\')">Open Full Week History</button></div></div>';
+      if(featuredFinal){
+        h+='<div class="notice"><b>🏆 Final results are still featured.</b><div class="muted">'+esc(d.week?.name||'This week')+' stays on League Picks for 24 hours after publication. About <b>'+esc(finalFeatureTimeLeft(d.week))+'</b> remaining. Use the Week menu above anytime to switch weeks.</div></div>';
+      }
       h+=weekScoreSummary(d)+fullGridHtml(d)+screenshotGridHtml(d);
       box.innerHTML=h;
     }catch(e){ console.error(e); box.innerHTML='<div class="notice">Could not load league history.</div>'; }
