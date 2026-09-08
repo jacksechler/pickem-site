@@ -1,0 +1,32 @@
+name: Install golf tie consistency
+
+on:
+  push:
+    paths:
+      - 'patch_golf_tie_consistency.py'
+      - '.github/workflows/install-golf-tie-consistency.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply consistency fixes
+        run: python patch_golf_tie_consistency.py
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add quality_fixes.js path_to_win.js index.html app_update.js app-version.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Align tie displays with golf-style scoring"
+            git push
+          fi
