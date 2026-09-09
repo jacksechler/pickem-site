@@ -9,8 +9,8 @@
   async function loadPublishedData(){
     const [profiles, weeks, scores] = await Promise.all([
       db('profiles?select=id,display_name,username,role'),
-      db('weeks?status=eq.published&select=id,number,name,published_at&order=number.asc'),
-      db('week_scores?select=*')
+      db('weeks?phase=eq.regular&status=eq.published&select=id,number,name,published_at&order=number.asc'),
+      db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular')
     ]);
     const publishedIds = new Set(weeks.map(w => w.id));
     return {

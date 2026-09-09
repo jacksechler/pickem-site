@@ -136,7 +136,7 @@
       classify: node => {
         const id = node.id;
         const heading = node.querySelector('h2')?.textContent || '';
-        if (['finishWeekCard', 'liveResultEntry'].includes(id) || /Results & Scoring|Enter Results/.test(heading)) return 'results';
+        if (['finishWeekCard', 'liveResultEntry', 'postseasonFinish'].includes(id) || /Results & Scoring|Enter Results/.test(heading)) return 'results';
         if (/Player Accounts|Submission Status/.test(heading)) return 'players';
         if (id === 'notificationCenter') return 'messages';
         if (id === 'finalCorrectionCard' || /Archive|What Changed/.test(heading)) return 'archive';

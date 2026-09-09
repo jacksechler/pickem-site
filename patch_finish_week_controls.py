@@ -1,6 +1,14 @@
 from pathlib import Path
 import re
 
+# One-time installer: preserve newer module URLs, wrapper order, and build versions.
+if re.search(r'<script\s+src="finish_week_controls\.js(?:\?[^"]*)?"', Path('index.html').read_text()):
+    print('finish_week_controls.js is already installed; keeping this release.')
+    raise SystemExit(0)
+
+from pathlib import Path
+import re
+
 p=Path('index.html')
 s=p.read_text()
 anchor='<script src="path_to_win.js?v=1"></script>'

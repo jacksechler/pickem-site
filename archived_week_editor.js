@@ -26,6 +26,8 @@
   function archiveEditorHtml(){
     const w=archiveState.week;
     if(!w) return '<div id="archivedEditor"></div>';
+    if(w.phase==='playoff') return '<div id="archivedEditor" class="notice"><h3>'+esc(w.name)+'</h3><p>Playoff corrections recalculate the cut and championship totals.</p><button class="btn secondary" data-ps-action="edit-correction" data-week="'+w.id+'">Review playoff correction</button></div>';
+    if(window.Postseason?.live()) return '<div id="archivedEditor" class="notice">The regular season is frozen for playoffs.</div>';
     const scored=archiveState.questions.filter(q=>q.counts_for_score!==false);
     const rows=scored.map((q,i)=>{
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
@@ -131,6 +133,7 @@
       return ao-bo || Number(a.position||0)-Number(b.position||0);
     });
     if(!w||!scored.length) throw new Error('This week has no scored questions.');
+    if(w.phase==='playoff') throw new Error('Use playoff corrections.');
     const people=await scoringPeople();
     const subs=await db('submissions?week_id=eq.'+w.id+'&select=user_id,tiebreaker_answer');
     if(subs.length!==8) throw new Error('This published week does not have all 8 submissions.');
@@ -141,7 +144,7 @@
     const existingMap={}; existingScores.forEach(s=>existingMap[s.user_id]=s);
 
     let prevScoreMap={};
-    const prevWeeks=await db('weeks?season_id=eq.'+w.season_id+'&number=lt.'+w.number+'&status=eq.published&select=id,number&order=number.desc&limit=1');
+    const prevWeeks=await db('weeks?season_id=eq.'+w.season_id+'&number=lt.'+w.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
     if(prevWeeks[0]){
       const prevScores=await db('week_scores?week_id=eq.'+prevWeeks[0].id+'&select=user_id,correct_count,question_count');
       prevScores.forEach(s=>prevScoreMap[s.user_id]=s);
@@ -253,7 +256,7 @@
   }
 
   async function refreshNextPublishedStreak(targetWeek,targetRows){
-    const next=await db('weeks?season_id=eq.'+targetWeek.season_id+'&number=gt.'+targetWeek.number+'&status=eq.published&select=id,number,name&order=number.asc&limit=1');
+    const next=await db('weeks?season_id=eq.'+targetWeek.season_id+'&number=gt.'+targetWeek.number+'&phase=eq.regular&status=eq.published&select=id,number,name&order=number.asc&limit=1');
     if(!next[0]) return null;
     const nw=next[0];
     const qs=(await db('questions?week_id=eq.'+nw.id+'&counts_for_score=eq.true&select=id,result,position,result_order&order=position.asc')).sort((a,b)=>{

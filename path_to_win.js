@@ -175,6 +175,7 @@
   }
 
   function screenHtml(d){
+    if(d.w?.phase==='playoff') return '';
     if(!d.w||d.w.status==='published') return '';
     if(d.remaining.length<1||d.remaining.length>MAX_REMAINING) return '';
     const scenarios=buildScenarios(d.remaining);

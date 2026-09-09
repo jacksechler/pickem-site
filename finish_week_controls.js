@@ -23,6 +23,7 @@
   }
 
   async function buildFinishWeekCard(){
+    if(week?.phase==='playoff') return '';
     if(profile?.role !== 'commissioner' || !week || week.status === 'published' || !isLockedWeek()) return '';
 
     const scored = questions.filter(q => q.counts_for_score !== false);
