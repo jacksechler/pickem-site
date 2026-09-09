@@ -26,11 +26,14 @@ The league has 20 regular-season cards because its first two cards preceded NFL 
 | Week 18 | Dec 22 | Dec 24–Dec 28 | NFL, CBB, bowls, CFP | Christmas games and bowls; review start times. |
 | Week 19 | Dec 29 | Dec 30–Jan 04 | NFL, CBB, bowls, CFP | Proposed Wednesday 7:30 p.m. ET lock for Fiesta and Jan 1 CFP quarterfinals. |
 | Week 20 | Jan 05 | Jan 07–Jan 11 | NFL, CBB | NFL Week 18; no TNF/MNF. CBB can use the Thu–Mon window. |
-| Wild Card · 8 → 6 | Jan 12 | Jan 14–18 | NFL, CFP, CBB | Proposed Thu 7:30 p.m. ET lock includes CFP semifinals. NFL games Jan 16–18. |
-| Divisional · 6 → 4 | Jan 19 | Jan 21–25 | NFL, CFP, CBB | NFL Jan 23–24; CFP final Monday Jan 25. Review Thursday CBB lock. |
-| Conference · 4 → 2 | Jan 26 | Jan 28–Feb 01 | NFL, CBB | NFL Jan 31; review Thursday CBB lock. |
-| Championship break | Feb 02 | Feb 04–08 | — | No championship points or extra elimination round. |
-| Super Bowl · 2 → 1 | Feb 09 | Feb 11–14 | NFL, CBB | Ends Sunday Feb 14. Review Thursday CBB lock; target 15–25 scored questions. |
+| Playoff Week 1 · 8 → 6 | Jan 12 | Jan 14–18 | NFL, CFB/CFP, CBB | Proposed Thu 7:30 p.m. ET lock includes CFP semifinals. NFL games Jan 16–18. |
+| Quarterfinals · 6 → 4 | Jan 19 | Jan 21–25 | NFL, CFB/CFP, CBB | NFL Jan 23–24; CFP final Monday Jan 25. Review Thursday CBB lock. |
+| Semifinals · 4 → 2 | Jan 26 | Jan 28–Feb 08 | NFL, CBB | One extended card: initial Thursday lock covers both weeks; final cut Tuesday Feb 9. |
+| Championship · 2 → 1 | Feb 09 | Feb 11–14 | NFL, CBB | Ends Sunday Feb 14. Review Thursday CBB lock; target 15–25 scored questions. |
+
+## The member Playoffs tab
+
+Every signed-in member can open **Playoffs** from the main navigation now. Before activation, it explains scoring, cuts, ties, deadlines, and picking for fun, alongside all four round dates and proposed locks. Once competition starts, the same page leads with the live race and keeps the format and schedule available below it. CFB/CFP fits the early rounds; the CFP ends January 25, so the later scheduled windows combine NFL and CBB. The commissioner can still select CFB for any real game within a card.
 
 ## Weekly workflow
 
@@ -39,11 +42,11 @@ The league has 20 regular-season cards because its first two cards preceded NFL 
 3. In Commissioner, choose **Create next scheduled week**. The server requires its scheduled Tuesday at 8 a.m. Eastern or later, the preceding card published, and a confirmed future lock. Add that card's questions and tiebreaker prompt normally.
 4. Scored games normally run through Monday night. Basketball and bowl games on Tuesday or Wednesday belong outside that card, apart from an explicitly reviewed exception such as Fiesta.
 
-The calendar is a plan, not a live event feed. Times are proposed until confirmed for the selected questions. Existing Weeks 1–3 keep their saved deadlines. The Super Bowl card ends Sunday; February 4–8 is a scoring break.
+The calendar is a plan, not a live event feed. Times are proposed until confirmed for the selected questions. Existing Weeks 1–3 keep their saved deadlines. Semifinals continue through February 8 as one card, with every pick due at its initial Thursday lock. February 2 continues that round; do not create another card. Its final cut opens February 9 at 8 a.m. Eastern, after all scored results. Championship ends Sunday, February 14. There is no off week.
 
 ## Activate and run playoffs
 
-During Tuesday setup on January 12, after all 20 regular cards are published and the Wild Card lock is confirmed, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds and starting points in one transaction and creates the Wild Card card. No clock job performs this action.
+During Tuesday setup on January 12, after all 20 regular cards are published and the Playoff Week 1 lock is confirmed, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds and starting points in one transaction and creates Playoff Week 1. No clock job performs this action.
 
 Every correct scored playoff pick adds exactly one point. No regular-season bonuses or placement points carry into playoff scoring. Championship total equals frozen regular-season points plus playoff correct picks earned through elimination. Current-round tiebreaker distance resolves equal totals; frozen seed resolves exact distance ties. Live ties remain tied while the actual result is pending. A missing submission adds zero; a missing tiebreaker ranks behind a supplied one.
 
@@ -55,7 +58,7 @@ The final regular-season standings stay frozen on Standings. Playoff state appea
 
 Use the playoff correction preview for a finalized round. If any later round exists, an explicit typed rebuild removes those later cards, picks, and results after saving an audit snapshot; recreate the later cards with the corrected survivors. Resetting all playoffs also requires an exact typed confirmation. Ordinary editing and legacy commissioner RPCs cannot alter frozen regular-season results or finalized playoff rounds.
 
-The migration is `database/postseason.sql`. Apply it once through the database migration service before shipping the new client. The release checks compile all loaded scripts, validate assets and version consistency, and verify that legacy installer workflows do not duplicate scripts or downgrade the app. PostgreSQL acceptance tests run entirely inside isolated PGlite, without access to the live database.
+Apply `database/postseason.sql`, then `database/postseason_calendar_revision.sql`, once each through the database migration service before shipping the client. The revision requires an inactive postseason, renames the four rounds, removes the off week, and prevents a premature semifinal cut. The release checks compile all loaded scripts, validate assets and version consistency, and verify that legacy installer workflows do not duplicate scripts or downgrade the app. PostgreSQL acceptance tests run entirely inside isolated PGlite, without access to the live database.
 
 ```sh
 node tests/release_check.mjs

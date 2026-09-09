@@ -18,6 +18,7 @@ for(let i=0;i<8;i++) {
  if(i) await q('insert into player_slots(slot,display_name,claimed_by) values($1,$2,$3)',[i,`Member ${i}`,p]);
 }
 await db.exec(migration);
+await db.exec(await fs.readFile(new URL('../database/postseason_calendar_revision.sql',import.meta.url),'utf8'));
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
 async function asUser(id,fn) {
  await db.exec('begin; set local role authenticated;');
@@ -32,7 +33,12 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
  await t.test('migration is inactive and creates a complete season calendar',async()=>{
   const s=await state(); assert.equal(s.settings.status,'scheduled'); assert.equal(s.entries.length,0); assert.equal(s.rounds.length,0);
   assert.equal(s.calendar.filter(c=>c.phase==='regular').length,20); assert.equal(s.calendar.filter(c=>c.phase==='playoff').length,4);
-  assert.equal(s.calendar.find(c=>c.phase==='break').week_number,null);
+  assert.equal(s.calendar.some(c=>c.phase==='break'),false);
+  assert.equal(s.calendar.length,24);
+  assert.deepEqual(s.calendar.filter(c=>c.phase==='playoff').map(c=>c.label),['Playoff Week 1','Quarterfinals','Semifinals','Championship']);
+  const semi=s.calendar.find(c=>c.round_number===3);
+  assert.equal(semi.starts_on,'2027-01-28');assert.equal(semi.ends_on,'2027-02-08');
+  assert.equal(new Date(semi.finalize_not_before).toISOString(),'2027-02-09T13:00:00.000Z');
   assert.equal(s.calendar.find(c=>c.round_number===4).ends_on,'2027-02-14');
   assert.ok(s.calendar.find(c=>c.week_number===10).sports.includes('CBB'));
   assert.match(s.calendar.find(c=>c.week_number===19).notes,/Wednesday December 30/);
@@ -150,7 +156,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   await q('delete from submissions where week_id=$1',[divisional]);
  });
  await card(divisional,[1,1,1,1,1,1,13,13]);
- await t.test('six contenders lock Divisional without eliminated members; eliminated scores freeze',async()=>{
+ await t.test('six contenders lock Quarterfinals without eliminated members; eliminated scores freeze',async()=>{
   assert.ok((await q('select auto_locked_at from weeks where id=$1',[divisional]))[0].auto_locked_at);
   await q("update questions set result='\"A\"' where week_id=$1",[divisional]);await q('update weeks set tiebreaker_result=44 where id=$1',[divisional]);
   const p=await action('preview_round',{week_id:divisional});assert.equal(p.rows.length,6);
@@ -160,9 +166,17 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal(Number((await q('select total_points from week_scores where week_id=$1 and user_id=$2',[divisional,players[7]]))[0].total_points),13);
  });
  let conference=(await action('create_round')).week_id;
+ await q("update season_calendar set finalize_not_before=now()+interval '7 days' where season_id=$1 and round_number=3",[sid]);
  await card(conference,[0,0,0,0,0,0,0,0],[3,4,5,6,7]);
  await q('update weeks set lock_at=now()-interval \'1 second\',tiebreaker_result=44 where id=$1',[conference]);
  await q("update questions set result='\"A\"' where week_id=$1",[conference]);
+ await t.test('semifinals cannot eliminate anyone before the extended round ends',async()=>{
+  const p=await action('preview_round',{week_id:conference});assert.equal(p.schedule_pending,true);assert.equal(p.ready,false);
+  await assert.rejects(action('finalize',{week_id:conference,revision:p.revision}),/extended semifinals are still in progress/);
+  assert.equal((await state()).entries.filter(e=>e.status==='active').length,4);
+  await assert.rejects(action('create_round'),/Finalize the current round/);
+  await q("update season_calendar set finalize_not_before=now()-interval '1 second' where season_id=$1 and round_number=3",[sid]);
+ });
  await t.test('missing submissions earn zero and do not block finalization',async()=>{
   const p=await action('preview_round',{week_id:conference}); assert.equal(p.rows.length,4); assert.equal(p.ready,true);
   const missing=p.rows.find(r=>r.user_id===players[3]); assert.equal(missing.round_correct,0);assert.equal(missing.round_tiebreaker_distance,null);

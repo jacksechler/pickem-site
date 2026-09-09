@@ -57,4 +57,17 @@
 .clean-ui #postseasonHome {order:-1;margin-bottom:24px}
 .clean-ui #postseasonHome .card {margin-bottom:12px}
 #playoffCopyFallback {width:100%;min-height:240px}
+.ps-format-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:26px 0 12px}
+.ps-format-grid>div {border-top:2px solid var(--line);padding-top:16px}
+.ps-format-grid b {font-size:.9375rem}
+.ps-format-grid p,.ps-rules li,.ps-upcoming p {font-size:.875rem;line-height:1.65;color:var(--muted)}
+.ps-rules {border-top:1px solid var(--line);padding-top:18px;margin-top:24px}
+.ps-rules summary {cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;font-size:.875rem}
+.ps-rules ul {padding-left:20px;max-width:80ch}
+.ps-rules li {margin:10px 0}
+.ps-extended-label {display:block;margin-top:6px;font-size:.6875rem;color:var(--gold);font-weight:400}
+.ps-schedule a {color:var(--accent)}
+.ps-schedule .ps-heading h2 {margin-bottom:4px}
+.ps-schedule .ps-actions {margin-top:0}
+@media(max-width:700px){.ps-format-grid{grid-template-columns:1fr;gap:10px}.ps-funnel span{overflow-wrap:anywhere}.ps-schedule .ps-table{min-width:610px}}
 @media(max-width:600px){.ps-funnel li{padding:15px 4px}.ps-funnel b{font-size:1.5rem}.ps-funnel span{font-size:.625rem}.clean-ui .ps-personal{align-items:flex-start}.ps-total{font-size:1.9rem;min-width:100px}.ps-calendar-body dl{grid-template-columns:1fr}.ps-calendar-row summary{gap:10px}.ps-calendar-row .ps-badge{font-size:.6875rem;max-width:75px}.ps-heading{align-items:flex-start}}

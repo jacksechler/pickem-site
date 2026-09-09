@@ -15,7 +15,7 @@
 
   function updateNavigation(id) {
     const navigationId = id === 'gameday' ? 'league' : id;
-    const labels = {home: 'Home', picks: 'My picks', league: 'League picks', standings: 'Standings', stats: 'Stats & records', history: 'Week history', commissioner: 'Commissioner', notificationstatus: 'Notification health'};
+    const labels = {home: 'Home', picks: 'My picks', league: 'League picks', standings: 'Standings', playoffs: 'Playoffs', seasoncalendar: 'Season calendar', stats: 'Stats & records', history: 'Week history', commissioner: 'Commissioner', notificationstatus: 'Notification health'};
     document.querySelectorAll('nav [data-page]').forEach(button => {
       const page = button.dataset.page;
       const label = mobile.matches ? ({picks: 'Picks', league: 'League'}[page] || labels[page]) : labels[page];
@@ -24,7 +24,7 @@
       if (page === navigationId) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
-    const secondary = !['home', 'picks', 'league', 'standings', 'player'].includes(navigationId);
+    const secondary = !['home', 'picks', 'league', 'standings', 'playoffs', 'player'].includes(navigationId);
     $('moreNav')?.classList.toggle('active', secondary);
     const page = $(id);
     page?.querySelectorAll('h1').forEach(heading => { heading.tabIndex = -1; });
@@ -45,7 +45,7 @@
     panel.id = 'secondaryNavigation';
     panel.className = 'nav-secondary-panel';
     nav.querySelectorAll('[data-page]').forEach(button => {
-      if (!['home', 'picks', 'league', 'standings'].includes(button.dataset.page)) panel.appendChild(button);
+      if (!['home', 'picks', 'league', 'standings', 'playoffs'].includes(button.dataset.page)) panel.appendChild(button);
     });
     nav.append(more, panel);
     more.addEventListener('click', () => {
