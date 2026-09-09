@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 p=Path('index.html')
 s=p.read_text()
@@ -8,9 +9,11 @@ s=s.replace('<script src="app_update.js?v=2"></script>','<script src="app_update
 s=s.replace('<script src="app_update.js?v=3"></script>','<script src="app_update.js?v=4"></script>')
 s=s.replace('<script src="quality_fixes.js?v=1"></script>','<script src="quality_fixes.js?v=2"></script>')
 tag='<script src="quality_fixes.js?v=2"></script>'
-anchor='<script src="mobile_header_fix.js?v=1"></script>'
-if tag not in s:
-    if anchor not in s:
-        raise SystemExit('mobile header anchor missing')
-    s=s.replace(anchor,anchor+'\n'+tag)
+if not re.search(r'<script\s+src="quality_fixes\.js(?:\?[^"]*)?"', s):
+    # Keep newer installed versions and load any missing module before the layout.
+    anchor='<script src="redesign.js?v=1"></script>'
+    if anchor in s:
+        s=s.replace(anchor,tag+'\n'+anchor,1)
+    else:
+        s=s.replace('</body>',tag+'\n</body>',1)
 p.write_text(s)
