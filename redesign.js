@@ -14,16 +14,17 @@
   }
 
   function updateNavigation(id) {
+    const navigationId = id === 'gameday' ? 'league' : id;
     const labels = {home: 'Home', picks: 'My picks', league: 'League picks', standings: 'Standings', stats: 'Stats & records', history: 'Week history', commissioner: 'Commissioner', notificationstatus: 'Notification health'};
     document.querySelectorAll('nav [data-page]').forEach(button => {
       const page = button.dataset.page;
       const label = mobile.matches ? ({picks: 'Picks', league: 'League'}[page] || labels[page]) : labels[page];
       if (label && button.textContent !== label) button.textContent = label;
-      button.classList.toggle('active', page === id);
-      if (page === id) button.setAttribute('aria-current', 'page');
+      button.classList.toggle('active', page === navigationId);
+      if (page === navigationId) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
-    const secondary = !['home', 'picks', 'league', 'standings', 'player'].includes(id);
+    const secondary = !['home', 'picks', 'league', 'standings', 'player'].includes(navigationId);
     $('moreNav')?.classList.toggle('active', secondary);
     const page = $(id);
     page?.querySelectorAll('h1').forEach(heading => { heading.tabIndex = -1; });
