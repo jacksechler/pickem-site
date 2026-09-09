@@ -20,8 +20,8 @@
     if(!force && seasonCache && Date.now()-seasonCacheAt < 10000) return seasonCache;
     const [profiles,weeks,rawScores] = await Promise.all([
       db('profiles?select=id,display_name,username,role'),
-      db('weeks?select=id,number,name,status,published_at&order=number.asc'),
-      db('week_scores?select=*')
+      db('weeks?phase=eq.regular&select=id,number,name,status,published_at&order=number.asc'),
+      db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular')
     ]);
     const published = weeks.filter(w=>w.status==='published');
     const pubIds = new Set(published.map(w=>w.id));
@@ -200,7 +200,7 @@
   }
 
   function thisWeekHtml(ctx,current){
-    if(!week) return '';
+    if(!week || week.phase==='playoff') return '';
     const latest=ctx.published[ctx.published.length-1];
     const defending=latest?ctx.scores.find(s=>s.week_id===latest.id&&n(s.placement)===1):null;
     const leaderId=ctx.currentIds[0];
@@ -263,6 +263,7 @@
   }
 
   function activityEvents(ctx,current){
+    if(week?.phase==='playoff') return questions.filter(q=>q.counts_for_score!==false&&isDecided(q)).sort(resultSort).reverse().slice(0,9).map(q=>({icon:'✅',title:'Result entered',body:q.prompt+' · '+safeResult(q)}));
     const events=[];
     const notes=leaderNotes(current);
     const carriers=perfectCarriers(ctx);
@@ -296,7 +297,7 @@
   function activityHtml(ctx,current,id){
     if(!week || !locked()) return '';
     const events=activityEvents(ctx,current);
-    return '<div class="card" id="'+id+'"><div class="row" style="align-items:flex-end;gap:12px"><div><div class="eyebrow">WHAT JUST HAPPENED</div><h2 style="margin:4px 0">Live League Feed</h2></div><div class="pill">LIVE</div></div><div class="muted">Results, lead changes, Unicorns, and bonus streak moments.</div><div class="feature-feed">'+(events.length?events.map(e=>'<div class="feature-feed-item"><div class="feature-feed-icon">'+e.icon+'</div><div><b>'+esc(e.title)+'</b><div class="mini">'+esc(e.body)+'</div></div></div>').join(''):'<div class="muted">Nothing has happened yet. The feed starts with the first result.</div>')+'</div></div>';
+    return '<div class="card" id="'+id+'"><div class="row" style="align-items:flex-end;gap:12px"><div><div class="eyebrow">WHAT JUST HAPPENED</div><h2 style="margin:4px 0">Live League Feed</h2></div><div class="pill">LIVE</div></div><div class="muted">'+(week.phase==='playoff'?'Scored results for this playoff card. Follow the cumulative cut in Playoffs.':'Results, lead changes, Unicorns, and bonus streak moments.')+'</div><div class="feature-feed">'+(events.length?events.map(e=>'<div class="feature-feed-item"><div class="feature-feed-icon">'+e.icon+'</div><div><b>'+esc(e.title)+'</b><div class="mini">'+esc(e.body)+'</div></div></div>').join(''):'<div class="muted">Nothing has happened yet. The feed starts with the first result.</div>')+'</div></div>';
   }
 
   function injectFeatureStyles(){

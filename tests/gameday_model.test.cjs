@@ -89,6 +89,20 @@ test('Unicorn, Upset, and previous-perfect opening streak match commissioner rul
   assert.equal(M.build(data, 'p0').bonuses.some(b => b.label === 'Opening streak'), false);
 });
 
+test('playoff cards do not use regular-season bonuses or weekly rank projections', async () => {
+  const data = fixture();
+  data.week.phase = 'playoff';
+  data.questions[0].result = 'A';
+  data.previous = [{user_id:'p0',correct_count:3,question_count:3}];
+  const model = M.build(data, 'p0');
+  assert.equal(model.bonusReady, false);
+  assert.deepEqual(model.bonuses, []);
+  assert.deepEqual(model.keyPicks, []);
+  const paths=[];
+  await M.loadBundle(async path=>{paths.push(path);return path.startsWith('weeks?id=')?[data.week]:[];},data.week.id);
+  assert.equal(paths.some(path=>path.includes('number=lt.')), false);
+});
+
 test('perfect and cold bonuses wait for every scored result', () => {
   const data = fixture();
   data.questions[0].result = 'A'; data.questions[1].result = 'A';

@@ -154,6 +154,7 @@
       const id=await selectedWeekId();
       if(!id) return;
       const d=await loadStandingData(id);
+      if(d.w?.phase==='playoff') return;
       const cards=[...box.querySelectorAll('.card')];
       cards.forEach(card=>{
         const eyebrow=card.querySelector('.eyebrow')?.textContent?.trim();

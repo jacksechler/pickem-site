@@ -69,11 +69,12 @@
   async function resultImpact(questionId,newResult){
     const q=questions.find(x=>x.id===questionId);
     if(!q) return ['Result impact could not be calculated.'];
+    if(week.phase==='playoff') return [q.counts_for_score===false?'This question adds no points.':'Each active contender with a correct submitted pick gains 1 championship point. No bonuses.', 'The cut stays provisional until you finalize playoff standings.'];
     const [profiles,subs,picks,prevWeeks]=await Promise.all([
       db('profiles?select=id,display_name,username'),
       db('submissions?week_id=eq.'+week.id+'&select=user_id'),
       db('picks?week_id=eq.'+week.id+'&select=user_id,question_id,answer'),
-      db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&status=eq.published&select=id,number&order=number.desc&limit=1')
+      db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1')
     ]);
     const ids=subs.map(s=>s.user_id);
     const names=Object.fromEntries(profiles.map(p=>[p.id,firstName(p)]));
@@ -242,7 +243,7 @@
 
   async function tiebreakerExplanationHtml(weekId){
     const [wr,scores,profiles]=await Promise.all([
-      db('weeks?id=eq.'+weekId+'&status=eq.published&select=id,name,tiebreaker_result'),
+      db('weeks?id=eq.'+weekId+'&phase=eq.regular&status=eq.published&select=id,name,tiebreaker_result'),
       db('week_scores?week_id=eq.'+weekId+'&select=user_id,placement,correct_count,tiebreaker_answer'),
       db('profiles?select=id,display_name,username')
     ]);

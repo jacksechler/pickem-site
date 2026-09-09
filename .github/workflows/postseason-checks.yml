@@ -1,0 +1,24 @@
+name: Postseason checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, feature/postseason-ready]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install isolated PostgreSQL test runtime
+        run: npm install --prefix "$RUNNER_TEMP/postseason-test" --no-save --package-lock=false @electric-sql/pglite@0.5.8
+      - name: Check app assets and legacy installers
+        run: node tests/release_check.mjs
+      - name: Verify GameDay and postseason behavior
+        run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/gameday_model.test.cjs tests/postseason_db.test.mjs

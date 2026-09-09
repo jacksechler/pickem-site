@@ -96,6 +96,7 @@
       db('week_scores?week_id=eq.'+id+'&select=*')
     ]);
     const w=wr[0]; if(!w) throw new Error('Week unavailable');
+    if(w.phase==='playoff'&&window.Postseason) return window.Postseason.copyText(await window.Postseason.load(w.season_id,w.id,true));
     const pmap=Object.fromEntries(profiles.map(p=>[p.id,p]));
     const scoreMap=Object.fromEntries(scores.map(s=>[s.user_id,s]));
     const pm={}; picks.forEach(p=>{(pm[p.user_id]??={})[p.question_id]=p.answer;});
@@ -136,10 +137,11 @@
   }
 
   async function seasonText(){
+    if(window.Postseason){const data=await window.Postseason.load();if(data?.settings.frozen_at)return ['PICK’EM · FINAL REGULAR SEASON','',...data.entries.map(e=>'Seed #'+e.seed+' '+e.display_name+' — '+fmt(e.regular_season_points)+' pts')].join('\n');}
     const [profiles,weeks,allScores]=await Promise.all([
       db('profiles?select=id,display_name,username'),
-      db('weeks?status=eq.published&select=id,number,name&order=number.asc'),
-      db('week_scores?select=*')
+      db('weeks?phase=eq.regular&status=eq.published&select=id,number,name&order=number.asc'),
+      db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular')
     ]);
     if(!weeks.length) throw new Error('No published standings');
     const ids=new Set(weeks.map(w=>w.id));

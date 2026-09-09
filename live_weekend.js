@@ -122,7 +122,7 @@
     if(!week || profile?.role!=='commissioner' || week.status==='published' || !locked()) return '';
     const scored=[...questions].filter(q=>q.counts_for_score!==false).sort((a,b)=>Number(a.position||0)-Number(b.position||0));
     const completed=scored.filter(decided).length;
-    let h='<div class="card" id="liveResultEntry"><div class="eyebrow">LIVE RESULT ENTRY</div><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 style="margin:4px 0">Update the Weekend Live</h2><div class="muted">Save one result at a time. The order you first save them becomes the opening-streak bonus order.</div></div><div class="pill">'+completed+'/'+scored.length+' decided</div></div>';
+    let h='<div class="card" id="liveResultEntry"><div class="eyebrow">LIVE RESULT ENTRY</div><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 style="margin:4px 0">Update the Weekend Live</h2><div class="muted">'+(week.phase==='playoff'?'Each correct scored pick adds 1 championship point. The cut stays provisional until finalization.':'Save one result at a time. The order you first save them becomes the opening-streak bonus order.')+'</div></div><div class="pill">'+completed+'/'+scored.length+' decided</div></div>';
     scored.forEach((q,i)=>{
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
       const current=opts.findIndex(v=>same(v,q.result));
@@ -184,8 +184,8 @@
   async function getHomeDashboard(){
     if(!session || !profile) return '';
     const [publishedWeeks,allScores,profiles] = await Promise.all([
-      db('weeks?status=eq.published&select=id,number,name&order=number.asc'),
-      db('week_scores?select=*'),
+      db('weeks?phase=eq.regular&status=eq.published&select=id,number,name&order=number.asc'),
+      db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular'),
       db('profiles?select=id,display_name,username')
     ]);
     const pubIds=new Set(publishedWeeks.map(w=>w.id));

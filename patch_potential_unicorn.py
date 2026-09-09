@@ -1,4 +1,12 @@
 from pathlib import Path
+import re
+
+# One-time installer: preserve newer module URLs, wrapper order, and build versions.
+if re.search(r'<script\s+src="potential_unicorn\.js(?:\?[^"]*)?"', Path('index.html').read_text()):
+    print('potential_unicorn.js is already installed; keeping this release.')
+    raise SystemExit(0)
+
+from pathlib import Path
 
 p=Path('index.html')
 s=p.read_text()

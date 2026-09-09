@@ -135,6 +135,7 @@
   }
 
   function applyRoot(root){
+    if(root?.dataset.phase==='playoff') return;
     const table=findPickTable(root);
     const analysis=analyzeTable(table);
     styleMiniGrid(root,analysis);

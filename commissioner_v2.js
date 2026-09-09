@@ -14,7 +14,7 @@
     return opts.findIndex(v=>sameAnswer(v,q.result));
   }
   function resultPanelHtml(){
-    if(!week) return '';
+    if(!week || week.phase==='playoff') return '';
     if(week.status==='published'){
       const next=Number(week.number)+1;
       return '<div class="card"><div class="eyebrow">WEEK COMPLETE</div><h2>'+esc(week.name)+' is published</h2><p class="muted">Scores are official and visible in Standings and Stats.</p></div>'+nextWeekHtml(next);
@@ -31,6 +31,7 @@
     return '<div class="card"><div class="eyebrow">COMMISSIONER RESULTS</div><h2>Enter Results</h2><p class="muted">Choose the correct answer for every scored question, then enter the actual tiebreaker result.</p>'+rows+'<label>Actual tiebreaker result</label><input id="actualTiebreaker" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'" placeholder="Final number"><div class="row" style="margin-top:14px;justify-content:flex-start;flex-wrap:wrap"><button class="btn" onclick="saveWeekResults()">Save Results</button><button class="btn secondary" onclick="previewWeekScores()">Calculate Scores</button></div><div id="scorePreview"></div></div>';
   }
   function nextWeekHtml(next){
+    if(window.Postseason) return ''; // The season calendar owns new cards.
     return '<div class="card"><div class="eyebrow">NEXT WEEK</div><h2>Create Week '+next+'</h2><p class="muted">This archives '+esc(week.name)+' and makes the new week the active week. Old picks and scores stay saved.</p><label>Week number</label><input id="nextWeekNumber" type="number" value="'+next+'"><label>Name</label><input id="nextWeekName" value="Week '+next+'"><label>Lock date & time</label><input id="nextWeekLock" type="datetime-local"><label>Tiebreaker prompt</label><input id="nextWeekTie" value="Total points in the final game?"><button class="btn full" onclick="createNextWeek()">Create & Open Week '+next+'</button></div>';
   }
 
@@ -70,6 +71,7 @@
 
   async function buildScoreData(){
     if(!week) throw new Error('No active week.');
+    if(week.phase==='playoff') throw new Error('Use Calculate playoff standings to finalize this round.');
     const scored=questions.filter(q=>q.counts_for_score!==false).sort((a,b)=>{
       const ao=a.result_order==null?999999:Number(a.result_order);
       const bo=b.result_order==null?999999:Number(b.result_order);
@@ -102,7 +104,7 @@
     picks.forEach(p=>{ if(!pickMap[p.user_id]) pickMap[p.user_id]={}; pickMap[p.user_id][p.question_id]=p.answer; });
 
     let prevScoreMap={};
-    const prevWeeks=await db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&status=eq.published&select=id,number&order=number.desc&limit=1');
+    const prevWeeks=await db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
     if(prevWeeks[0]){
       const prevScores=await db('week_scores?week_id=eq.'+prevWeeks[0].id+'&select=user_id,correct_count,question_count');
       prevScores.forEach(s=>prevScoreMap[s.user_id]=s);
@@ -240,6 +242,7 @@
   };
 
   window.createNextWeek = async function(){
+    if(window.Postseason) return window.Postseason.createNext();
     if(!week || week.status!=='published') return alert('Publish the current week first.');
     const number=Number(el('nextWeekNumber')?.value);
     const name=(el('nextWeekName')?.value||'').trim();

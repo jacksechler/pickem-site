@@ -139,8 +139,8 @@
     const focusedId = content.contains(document.activeElement) ? document.activeElement.id : null;
     const scroll = {page: window.scrollY, root: root.scrollTop};
     $('gdWeek').textContent = (m.week.name || 'Week ' + m.week.number) + ' · ' + (m.published ? 'Final' : 'Picks locked');
-    content.innerHTML = overview(m) + '<div class="gd-progress"><span>' + m.resolved + ' of ' + m.total + ' scored results in</span><progress value="' + m.resolved + '" max="' + Math.max(1, m.total) + '" aria-label="Scored results entered"></progress></div>' +
-      '<div class="gd-columns"><div class="gd-main-column">' + keyPicks(m) + recentResults(m) + '</div><div class="gd-side-column">' + leaderboard(m) + bonusPanel(m) + '</div></div>' + allPicks(m) +
+    content.innerHTML = (m.postseason ? window.Postseason.gamedayHtml(m.postseason) : overview(m)) + '<div class="gd-progress"><span>' + m.resolved + ' of ' + m.total + ' scored results in</span><progress value="' + m.resolved + '" max="' + Math.max(1, m.total) + '" aria-label="Scored results entered"></progress></div>' +
+      (m.postseason ? recentResults(m) : '<div class="gd-columns"><div class="gd-main-column">' + keyPicks(m) + recentResults(m) + '</div><div class="gd-side-column">' + leaderboard(m) + bonusPanel(m) + '</div></div>') + allPicks(m) +
       '<p class="gd-source">Results entered by your commissioner · Checks for updates every 20 seconds while you’re here.</p>';
     content.querySelectorAll('details[data-gd-key]').forEach(d => { d.open = open.has(d.dataset.gdKey); });
     if (focusedId) $(focusedId)?.focus({preventScroll: true});
@@ -187,7 +187,20 @@
         setSync('Picks private');
         return;
       }
-      const model = M.build(bundle, userId), fingerprint = JSON.stringify(model);
+      const model = M.build(bundle, userId);
+      if (model.week.phase === 'playoff') {
+        const data = await window.Postseason.load(model.week.season_id, model.week.id, true);
+        if (!data?.current) throw new Error('Playoff standings unavailable');
+        if (ticket !== state.request || !active() || session.user.id !== userId) return;
+        model.postseason = {settings:data.settings, entries:data.entries, current:data.current, rounds:data.rounds};
+        for (const row of model.rows) {
+          const playoff = data.current.rows.find(r => r.user_id === row.id);
+          row.rank = playoff?.round_rank || null;
+          row.tied = !!playoff?.tied;
+          if (playoff) row.correct = playoff.round_correct;
+        }
+      }
+      const fingerprint = JSON.stringify(model);
       if (fingerprint !== state.fingerprint) {
         const update = M.changes(state.model, model);
         // A quiet poll leaves the last movement visible. A real update replaces it.

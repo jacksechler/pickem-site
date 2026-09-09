@@ -30,6 +30,8 @@
 
   function finalCorrectionHtml(){
     if(!week || week.status!=='published') return '';
+    if(week.phase==='playoff') return '<div class="card" id="finalCorrectionCard"><h2>Playoff corrections</h2><p>Review the new cut before applying a correction.</p><button class="btn secondary" data-ps-action="edit-correction" data-week="'+week.id+'">Correct playoff results</button></div>';
+    if(window.Postseason?.live()) return '<div class="notice">The regular season is frozen for playoffs.</div>';
     if(!finalCorrectionMode){
       return '<div class="card" id="finalCorrectionCard"><div class="eyebrow">FINAL CORRECTIONS</div><h2 style="margin:4px 0">Edit & Recalculate '+esc(week.name)+'</h2><div class="muted">Fix an entered result or tiebreaker after publishing, then recalculate the official scores without deleting the week.</div><button class="btn secondary" style="margin-top:12px" onclick="toggleFinalCorrectionMode(true)">Edit Final Week</button></div>';
     }
@@ -146,6 +148,7 @@
   }
 
   window.saveFinalCorrections=async function(){
+    if(week?.phase==='playoff') return alert('Use playoff corrections.');
     if(!week || week.status!=='published') return;
     const scored=questions.filter(q=>q.counts_for_score!==false);
     const updates=[];

@@ -24,8 +24,8 @@
     const w = (await read(weekPath))[0];
     if (!canOpen(w, now())) return {week: w || null, private: true};
     async function previousScores() {
-      if (!w.season_id || !numeric(w.number)) return [];
-      const previous = await read('weeks?season_id=eq.' + encodeURIComponent(w.season_id) + '&number=lt.' + Number(w.number) + '&status=eq.published&select=id&order=number.desc&limit=1');
+      if (w.phase === 'playoff' || !w.season_id || !numeric(w.number)) return [];
+      const previous = await read('weeks?season_id=eq.' + encodeURIComponent(w.season_id) + '&number=lt.' + Number(w.number) + '&phase=eq.regular&status=eq.published&select=id&order=number.desc&limit=1');
       return previous[0] ? read('week_scores?week_id=eq.' + encodeURIComponent(previous[0].id) + '&select=user_id,correct_count,question_count') : [];
     }
     const [profiles, slots, questions, submissions, picks, scores, previous] = await Promise.all([
@@ -113,9 +113,9 @@
     const me = rows.find(r => r.id === userId) || null;
     const complete = scored.length > 0 && resolved.length === scored.length;
     // A partial roster or missing pick can look falsely unique. Wait for all 8 entries.
-    const bonusReady = entered.length === 8 && entered.every(r => r.entered && scored.every(q => r.answers[q.id] !== undefined));
+    const bonusReady = w.phase !== 'playoff' && entered.length === 8 && entered.every(r => r.entered && scored.every(q => r.answers[q.id] !== undefined));
     const bonuses = [];
-    if (me?.score) {
+    if (w.phase !== 'playoff' && me?.score) {
       for (const [key, label] of [['unicorn_bonus', 'Unicorn'], ['upset_bonus', 'Upset'], ['streak_bonus', 'Opening streak'], ['perfect_bonus', 'Perfect week'], ['cold_bonus', 'Cold week']]) {
         if (Number(me.score[key])) bonuses.push({label, points: Number(me.score[key]), official: true});
       }
@@ -134,7 +134,7 @@
       if (complete && me.correct === 0) bonuses.push({label: 'Cold week', points: -5});
     }
     const keyPicks = [];
-    if (me?.entered && !published) for (const q of scored.filter(q => !decided(q) && me.answers[q.id] !== undefined)) {
+    if (w.phase !== 'playoff' && me?.entered && !published) for (const q of scored.filter(q => !decided(q) && me.answers[q.id] !== undefined)) {
       const opponents = entered.filter(r => r.id !== me.id && r.answers[q.id] !== undefined && !same(r.answers[q.id], me.answers[q.id]))
         .sort((a, b) => Math.abs(a.correct - me.correct) - Math.abs(b.correct - me.correct) || (a.rank ?? 1) - (b.rank ?? 1) || a.name.localeCompare(b.name));
       if (!opponents.length) continue;

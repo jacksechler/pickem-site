@@ -197,7 +197,7 @@
     baseHome();
     if(week?.auto_locked_at && locked()){
       const lock=el('homeLock');
-      if(lock) lock.innerHTML='<b>🔒 '+esc(week.name)+' locked early.</b> All 8 players submitted their picks.';
+      if(lock) lock.innerHTML='<b>🔒 '+esc(week.name)+' locked early.</b> '+(week.phase==='playoff'?'All active contenders':'All 8 players')+' submitted their picks.';
     }
     renderNotificationHomeCard().catch(console.debug);
   };
@@ -213,7 +213,7 @@
       const h=await notificationCenterHtml();
       box.insertAdjacentHTML('afterbegin',h);
       if(week?.auto_locked_at){
-        box.insertAdjacentHTML('afterbegin','<div class="notice"><b>🔒 Auto-locked early</b><div class="muted">All 8 players submitted, so '+esc(week.name)+' locked automatically.</div></div>');
+        box.insertAdjacentHTML('afterbegin','<div class="notice"><b>🔒 Auto-locked early</b><div class="muted">'+(week.phase==='playoff'?'All active contenders':'All 8 players')+' submitted, so '+esc(week.name)+' locked automatically.</div></div>');
       }
     }catch(e){ console.debug('Notification center skipped',e); }
   };

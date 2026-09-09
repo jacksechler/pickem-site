@@ -69,7 +69,9 @@
     picks.forEach(p=>{ (pickMap[p.user_id]??={})[p.question_id]=p.answer; });
     const subMap=Object.fromEntries(subs.map(s=>[s.user_id,s]));
     const scoreMap=Object.fromEntries(scores.map(s=>[s.user_id,s]));
-    return {week:w,profiles,pmap,questions:qs,subs,picks,scores,users,pickMap,subMap,scoreMap};
+    const postseason=w?.phase==='playoff'&&window.Postseason?await window.Postseason.load(w.season_id,w.id):null;
+    if(postseason) for(const e of postseason.entries) if(!users.includes(e.user_id)&&pmap[e.user_id]) users.push(e.user_id);
+    return {week:w,profiles,pmap,questions:qs,subs,picks,scores,users,pickMap,subMap,scoreMap,postseason};
   }
 
   function bonusText(s){
@@ -84,6 +86,7 @@
   }
 
   function weekScoreSummary(d){
+    if(d.week?.phase==='playoff') return d.postseason?window.Postseason.raceTable(d.postseason):'<div class="notice">Open Playoffs for championship standings.</div>';
     if(!d.scores.length){
       const done=d.questions.filter(q=>q.counts_for_score!==false&&decided(q));
       if(!done.length) return '<div class="card"><div class="muted">No results have been entered yet.</div></div>';
@@ -102,7 +105,7 @@
   function fullGridHtml(d){
     if(!d.users.length) return '<div class="card muted">No submitted picks for this week.</div>';
     const qs=[...d.questions].sort((a,b)=>num(a.position)-num(b.position));
-    let h='<div class="card tablewrap" style="padding:0"><table class="table" style="min-width:1100px"><thead><tr><th style="position:sticky;left:0;background:var(--panel);z-index:3">Question</th>'+d.users.map(id=>'<th>'+profileButton(id,prettyName(d.pmap[id]))+'</th>').join('')+'</tr></thead><tbody>';
+    let h='<div class="card tablewrap" style="padding:0"><table class="table" style="min-width:1100px"><thead><tr><th style="position:sticky;left:0;background:var(--panel);z-index:3">Question</th>'+d.users.map(id=>'<th>'+profileButton(id,prettyName(d.pmap[id]))+(d.postseason?window.Postseason.badge(d.postseason,id):'')+'</th>').join('')+'</tr></thead><tbody>';
     qs.forEach(q=>{
       const done=decided(q);
       const result=done?'<div class="mini good">✓ '+esc(typeof q.result==='string'?q.result:JSON.stringify(q.result))+(q.result_order?' · Result #'+q.result_order:'')+'</div>':'';
@@ -148,6 +151,7 @@
 
   window.renderLeague=async function(){
     const box=el('leagueBox'); if(!box) return;
+    box.dataset.phase=week?.phase||'regular';
     box.innerHTML='<div class="card muted">Loading league picks…</div>';
     try{
       const weeks=await availableWeeks();
@@ -192,6 +196,7 @@
       }
       if(!selectedLeagueWeekId){ box.innerHTML=h+'<div class="card muted">No viewable weeks yet.</div>'; return; }
       const d=await loadWeekBundle(selectedLeagueWeekId);
+      box.dataset.phase=d.week?.phase||'regular';
       const featuredFinal=!!(activeId && d.week?.id!==activeId && isFreshPublishedWeek(d.week));
       h+='<div class="card"><div class="eyebrow">'+(d.week?.status==='published'?'FINAL WEEK':'LIVE WEEK')+'</div><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 style="margin:4px 0">'+esc(d.week?.name||'Week')+'</h2><div class="muted">Every pick, result, tiebreaker, and weekly stat in one place.</div></div><button class="btn secondary" onclick="openHistoryWeek(\''+selectedLeagueWeekId+'\')">Open Full Week History</button></div></div>';
       if(featuredFinal){
@@ -224,6 +229,7 @@
       if(!weeks.length){ box.innerHTML='<div class="card muted">No published weeks yet.</div>'; return; }
       if(!historyWeekId || !weeks.some(w=>w.id===historyWeekId)) historyWeekId=weeks[0].id;
       const d=await loadWeekBundle(historyWeekId);
+      box.dataset.phase=d.week?.phase||'regular';
       box.innerHTML=weekSelectorHtml(weeks,historyWeekId,'setHistoryWeek')+
         '<div class="card"><div class="eyebrow">WEEK ARCHIVE</div><h2 style="margin:4px 0">'+esc(d.week?.name||'Week')+'</h2><div class="muted">Published '+(d.week?.published_at?esc(new Date(d.week.published_at).toLocaleString()):'')+'</div></div>'+
         weekScoreSummary(d)+fullGridHtml(d)+screenshotGridHtml(d);
@@ -247,8 +253,8 @@
     try{
       const [profiles,weeks,scores]=await Promise.all([
         allProfiles(),
-        db('weeks?status=eq.published&select=id,number,name,published_at&order=number.asc'),
-        db('week_scores?select=*')
+        db('weeks?phase=eq.regular&status=eq.published&select=id,number,name,published_at&order=number.asc'),
+        db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular')
       ]);
       const p=profiles.find(x=>x.id===id); if(!p){ box.innerHTML='<div class="notice">Player not found.</div>'; return; }
       const pubIds=new Set(weeks.map(w=>w.id)); const allScores=scores.filter(s=>pubIds.has(s.week_id)); const ps=allScores.filter(s=>s.user_id===id);

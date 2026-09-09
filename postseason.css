@@ -1,0 +1,60 @@
+.ps-heading,.ps-actions,.ps-history-row {display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ps-actions {justify-content:flex-start;margin-top:20px;gap:10px}
+.ps-heading h2 {margin:4px 0 18px}
+.ps-note {font-size:.8125rem;color:var(--muted);line-height:1.65}
+.ps-badge {display:inline-flex;font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:4px 9px;line-height:1.4}
+.ps-you {font-size:.6875rem;color:var(--accent);margin-left:6px}
+.ps-table {min-width:690px;font-variant-numeric:tabular-nums}
+.ps-table td small {display:block;color:var(--muted);font-size:.6875rem;margin-top:3px}
+.ps-table th[scope=row] {font-size:.875rem;font-weight:600;color:var(--text)}
+.ps-table .ps-my-row {background:#8ab9ff10}
+.ps-table .ps-my-row>td:first-child {box-shadow:inset 3px 0 var(--accent)}
+.ps-table .ps-cut td {padding:10px 15px;color:var(--gold);border-top:2px solid var(--gold);background:#f3ce7b09;font-size:.6875rem;font-weight:700;letter-spacing:.1em}
+.ps-state {font-size:.75rem}
+.ps-funnel {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 0 24px;padding:0;list-style:none;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ps-funnel li {padding:20px 10px;text-align:center;border-right:1px solid var(--line);color:var(--muted)}
+.ps-funnel li:last-child {border:0}
+.ps-funnel b {display:block;font-size:1.8rem;font-weight:650}
+.ps-funnel span {font-size:.75rem;display:block}
+.ps-funnel .ps-stage-current {background:#20334c;color:#c5dcff;box-shadow:inset 0 -3px var(--accent)}
+.ps-funnel .ps-stage-done {color:var(--green)}
+.clean-ui .ps-personal {display:flex;align-items:center;justify-content:space-between;gap:24px;background:linear-gradient(110deg,#20334c,var(--panel));border-color:#435f82}
+.ps-personal h2 {margin:4px 0}
+.ps-personal p {margin:7px 0 0;font-size:.875rem}
+.ps-total {font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;text-align:right}
+.ps-total span {display:block;font-size:.75rem;font-weight:400;margin-top:10px;color:var(--muted)}
+.ps-champion {text-align:center;border-color:var(--gold)!important;background:linear-gradient(140deg,#322d1e,var(--panel))}
+.clean-ui .ps-champion h2 {font-size:2.4rem;margin:16px 0 8px}
+.ps-champion-total {font-size:2rem;color:var(--gold);font-weight:650}
+.ps-champion-total span {font-size:1rem;font-weight:400}
+.ps-disclosure>summary,.ps-calendar-row>summary {display:flex;align-items:center;justify-content:space-between;gap:20px;cursor:pointer;font-weight:600;min-height:44px;list-style:none}
+.ps-disclosure>summary::-webkit-details-marker,.ps-calendar-row>summary::-webkit-details-marker {display:none}
+.ps-disclosure>summary::after,.ps-calendar-row>summary::after {content:'+';font-size:1.2rem;color:var(--muted)}
+.ps-disclosure[open]>summary::after,.ps-calendar-row[open]>summary::after {content:'−'}
+.ps-disclosure>summary>span {margin-left:auto;color:var(--muted);font-size:.8125rem}
+.ps-history {margin-top:28px}
+.ps-history-row {padding:16px 0;border-bottom:1px solid var(--line);font-size:.875rem}
+.ps-history-row small {display:block;color:var(--muted);font-size:.75rem;margin-top:4px}
+.ps-calendar-intro h2 {margin-top:0}
+.ps-calendar-intro p {max-width:75ch}
+.clean-ui .ps-calendar-row {margin-bottom:10px;padding:16px 20px}
+.ps-calendar-row summary>span:first-child {flex:1}
+.ps-calendar-row summary small {display:block;color:var(--muted);font-size:.75rem;font-weight:400;margin-top:4px}
+.ps-calendar-special {border-left:3px solid #597b9d!important}
+.ps-calendar-body {padding:18px 0 4px;border-top:1px solid var(--line);margin-top:16px}
+.ps-calendar-body dl {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:0}
+.ps-calendar-body dt {color:var(--muted);font-size:.75rem}
+.ps-calendar-body dd {margin:5px 0 0;font-size:.875rem;font-weight:600}
+.ps-calendar-body p,.ps-calendar-body a {font-size:.8125rem}
+.ps-calendar-body a {color:var(--accent)}
+.ps-calendar-form {max-width:430px;border-top:1px solid var(--line);padding-top:8px;margin-top:18px}
+.ps-calendar-form button {margin-top:12px}
+.ps-checklist {padding-left:20px;color:var(--muted);font-size:.875rem}
+.ps-checklist li {margin:10px 0}
+.ps-danger {margin-top:24px;border-top:1px solid var(--line);padding-top:16px;font-size:.8125rem;color:var(--muted)}
+.ps-danger summary {cursor:pointer}
+.ps-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.clean-ui #postseasonHome {order:-1;margin-bottom:24px}
+.clean-ui #postseasonHome .card {margin-bottom:12px}
+#playoffCopyFallback {width:100%;min-height:240px}
+@media(max-width:600px){.ps-funnel li{padding:15px 4px}.ps-funnel b{font-size:1.5rem}.ps-funnel span{font-size:.625rem}.clean-ui .ps-personal{align-items:flex-start}.ps-total{font-size:1.9rem;min-width:100px}.ps-calendar-body dl{grid-template-columns:1fr}.ps-calendar-row summary{gap:10px}.ps-calendar-row .ps-badge{font-size:.6875rem;max-width:75px}.ps-heading{align-items:flex-start}}

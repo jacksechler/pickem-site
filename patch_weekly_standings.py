@@ -1,6 +1,14 @@
 from pathlib import Path
 import re
 
+# One-time installer: preserve newer module URLs, wrapper order, and build versions.
+if re.search(r'<script\s+src="weekly_standings_v2\.js(?:\?[^"]*)?"', Path('index.html').read_text()):
+    print('weekly_standings_v2.js is already installed; keeping this release.')
+    raise SystemExit(0)
+
+from pathlib import Path
+import re
+
 VERSION='2026.09.04.7'
 
 p=Path('index.html')
