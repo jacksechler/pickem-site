@@ -1,0 +1,143 @@
+{
+  "nfl": {
+    "config": {
+      "arena": "nfl",
+      "year": "2026",
+      "season": "regular",
+      "week": 1,
+      "date": "20160908"
+    },
+    "games": [
+      {
+        "id": 50029202,
+        "abbr": "NFL_20260909_NE@SEA",
+        "status": "FINAL",
+        "scheduled_epoch": 1788999600,
+        "awayTeamScore": 10,
+        "homeTeamScore": 13,
+        "awayteam": {
+          "id": 420,
+          "abbr": "NE",
+          "name": "New England Patriots",
+          "mediumname": "New England",
+          "location": "New England",
+          "nickname": "Patriots",
+          "shortname": "NE"
+        },
+        "hometeam": {
+          "id": 430,
+          "abbr": "SEA",
+          "name": "Seattle Seahawks",
+          "mediumname": "Seattle",
+          "location": "Seattle",
+          "nickname": "Seahawks",
+          "shortname": "SEA"
+        },
+        "game_status": {
+          "quarter": "4",
+          "time_remaining": "0:00",
+          "awayscore": {
+            "total": "10"
+          },
+          "homescore": {
+            "total": "13"
+          }
+        }
+      }
+    ]
+  },
+  "college-football": {
+    "config": {
+      "arena": "college-football",
+      "year": "2026",
+      "season": "regular",
+      "week": "2",
+      "date": null
+    },
+    "games": [
+      {
+        "id": 50027576,
+        "abbr": "NCAAF_20260910_FAMU@MIAMI",
+        "status": "SCHEDULED",
+        "scheduled_epoch": 1789084800,
+        "awayTeamScore": 0,
+        "homeTeamScore": 0,
+        "awayteam": {
+          "id": 582,
+          "abbr": "FAMU",
+          "name": "Florida A&M Rattlers",
+          "mediumname": "Florida A&M",
+          "location": "Florida A&M",
+          "nickname": "Rattlers",
+          "shortname": "FAMU"
+        },
+        "hometeam": {
+          "id": 687,
+          "abbr": "MIAMI",
+          "name": "Miami (Fla.) Hurricanes",
+          "mediumname": "Miami (Fla.)",
+          "location": "Miami (Fla.)",
+          "nickname": "Hurricanes",
+          "shortname": "MIA"
+        },
+        "game_status": {
+          "quarter": null,
+          "time_remaining": null,
+          "awayscore": {
+            "total": null
+          },
+          "homescore": {
+            "total": null
+          }
+        }
+      }
+    ]
+  },
+  "mens-college-basketball": {
+    "config": {
+      "arena": "college-basketball",
+      "year": null,
+      "season": null,
+      "week": null,
+      "date": "20260115"
+    },
+    "games": [
+      {
+        "id": 50008852,
+        "abbr": "NCAAB_20260115_MERCER@VMI",
+        "status": "FINAL",
+        "scheduled_epoch": 1768518000,
+        "awayTeamScore": 77,
+        "homeTeamScore": 67,
+        "awayteam": {
+          "id": 21411,
+          "abbr": "MERCER",
+          "name": "Mercer Bears",
+          "mediumname": "Mercer",
+          "location": "Mercer",
+          "nickname": "Bears",
+          "shortname": "MER"
+        },
+        "hometeam": {
+          "id": 21373,
+          "abbr": "VMI",
+          "name": "VMI Keydets",
+          "mediumname": "VMI",
+          "location": "VMI",
+          "nickname": "Keydets",
+          "shortname": "VMI"
+        },
+        "game_status": {
+          "period": "2",
+          "time_remaining": "0.0",
+          "awayscore": {
+            "total": "77"
+          },
+          "homescore": {
+            "total": "67"
+          }
+        }
+      }
+    ]
+  }
+}
