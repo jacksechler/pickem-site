@@ -139,9 +139,10 @@
     const focusedId = content.contains(document.activeElement) ? document.activeElement.id : null;
     const scroll = {page: window.scrollY, root: root.scrollTop};
     $('gdWeek').textContent = (m.week.name || 'Week ' + m.week.number) + ' · ' + (m.published ? 'Final' : 'Picks locked');
-    content.innerHTML = (m.postseason ? window.Postseason.gamedayHtml(m.postseason) : overview(m)) + '<div class="gd-progress"><span>' + m.resolved + ' of ' + m.total + ' scored results in</span><progress value="' + m.resolved + '" max="' + Math.max(1, m.total) + '" aria-label="Scored results entered"></progress></div>' +
+    content.innerHTML = (m.postseason ? window.Postseason.gamedayHtml(m.postseason) : overview(m)) + '<div id="gdLiveScores"></div><div class="gd-progress"><span>' + m.resolved + ' of ' + m.total + ' scored results in</span><progress value="' + m.resolved + '" max="' + Math.max(1, m.total) + '" aria-label="Scored results entered"></progress></div>' +
       (m.postseason ? recentResults(m) : '<div class="gd-columns"><div class="gd-main-column">' + keyPicks(m) + recentResults(m) + '</div><div class="gd-side-column">' + leaderboard(m) + bonusPanel(m) + '</div></div>') + allPicks(m) +
       '<p class="gd-source">Results entered by your commissioner · Checks for updates every 20 seconds while you’re here.</p>';
+    window.LiveScores?.mountGameDay(m.week, m.questions);
     content.querySelectorAll('details[data-gd-key]').forEach(d => { d.open = open.has(d.dataset.gdKey); });
     if (focusedId) $(focusedId)?.focus({preventScroll: true});
     root.scrollTop = scroll.root;
