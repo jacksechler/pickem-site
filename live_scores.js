@@ -2,14 +2,21 @@
 (() => {
   const M = window.LiveScoresModel;
   if (!M) return;
-  const client = new M.Client(), boards = new Map(), latest = new Map(), failedLogos = new Set();
+  const client = new M.Client(undefined, Date.now, {storage: () => window.localStorage, reader: async (league, sourcePage, signal) => {
+    const url = SUPABASE + '/functions/v1/live-scores?' + new URLSearchParams({league, page: sourcePage});
+    // This endpoint serves only public game facts. A project key keeps score
+    // refreshes independent of an expiring member session.
+    const response = await fetch(url, {signal, cache: 'no-store', headers: {apikey: KEY, Authorization: 'Bearer ' + KEY}});
+    if (!response.ok) throw new Error('Score update unavailable.');
+    return response.json();
+  }}), boards = new Map(), latest = new Map(), failedLogos = new Set();
   const $ = id => document.getElementById(id);
   let timer, controller, generation = 0, busy = false, managerGeneration = 0;
   let managerGames = [], managerMatches = [], managerBusy = false;
   const gameKey = link => link.league + ':' + link.id;
   const connected = qs => qs.filter(q => M.link(q));
   const localDate = value => new Date(value).toLocaleString([], {weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'});
-  const checkedTime = value => new Date(value).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+  const checkedTime = value => new Date(value).toLocaleString([], {...(new Date(value).toDateString() === new Date().toDateString() ? {} : {month: 'short', day: 'numeric'}), hour: 'numeric', minute: '2-digit'});
   const questionLabel = q => 'Q' + q.position + ' · ' + (Array.isArray(q.answer_options) ? q.answer_options.map(a => typeof a === 'string' ? a : '').filter(Boolean).join(' / ') : q.prompt);
   function visible(host) {
     if (!host.isConnected || host.closest('.hidden, [hidden]')) return false;
@@ -53,6 +60,10 @@
   }
   function mount(host, w, qs, compact = false) {
     if (!host || !w) return;
+    for (const q of connected(qs)) {
+      const item = M.link(q), saved = client.peek(item);
+      if (saved && !latest.has(gameKey(item))) latest.set(gameKey(item), saved);
+    }
     boards.set(host, {weekId: w.id, questions: qs, compact});
     host.classList.add('ls-board');
     paint(host, boards.get(host));
