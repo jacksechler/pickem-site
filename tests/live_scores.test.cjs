@@ -145,3 +145,77 @@ test('cancellation cannot become a successful cached refresh', async () => {
   controller.abort();
   await assert.rejects(promise, {name: 'AbortError'}); assert.equal(client.cache.size, 0);
 });
+
+const Service = require('../live_scores_service.js');
+function memoryStore() {
+  const rows = new Map();
+  return {
+    rows,
+    async ensure(source_page, league) { if (!rows.has(source_page)) rows.set(source_page, {source_page, league, games: [], fetched_at: null, next_attempt_at: '1970-01-01T00:00:00Z', failure_count: 0}); },
+    async load(url) { return structuredClone(rows.get(url)); },
+    async claim(url, now, lease) { const row=rows.get(url); if (Date.parse(row.next_attempt_at)>Date.parse(now)) return false; row.next_attempt_at=lease; return true; },
+    async save(url, lease, value) { if (rows.get(url).next_attempt_at!==lease) return false; rows.set(url, structuredClone(value)); return true; }
+  };
+}
+const scorePacket = (games, checkedAt, stale = false) => ({schema: 1, provider: 'cbs', league: 'nfl', sourcePage: page, games, checkedAt, stale});
+
+test('scores survive a full page reload and a failed refresh without claiming a fresh update', async () => {
+  const storage = new Map(), disk = {getItem: k => storage.get(k), setItem: (k,v) => storage.set(k,v)};
+  let now = Date.parse('2026-09-15T01:00:00Z');
+  const first = new M.Client(undefined, () => now, {storage: () => disk, reader: async () => scorePacket([M.event(fixture({status:'INPROGRESS',score:'13'}),'nfl',page)], now)});
+  await first.readLinks([connected('50029202')]);
+  now += 60000;
+  const reloaded = new M.Client(undefined, () => now, {storage: () => disk, reader: async () => { throw new Error('offline'); }});
+  const saved = reloaded.peek(M.link(connected('50029202')));
+  assert.equal(saved.game.teams[1].score,13); assert.equal(saved.stale,true);
+  const result = (await reloaded.readLinks([connected('50029202')])).get('nfl:50029202');
+  assert.equal(result.game.teams[1].score,13); assert.equal(result.checkedAt,now-60000); assert.equal(result.stale,true);
+});
+
+test('bad storage and forged score packets cannot inject score markup or unrelated URLs', async () => {
+  const bad = new M.Client(undefined, Date.now, {storage:()=>({getItem:()=>'{bad'})});
+  assert.equal(bad.cache.size,0);
+  const game=M.event(fixture({status:'INPROGRESS'}),'nfl',page);
+  game.teams[0].score='<img src=x onerror=alert(1)>'; game.url='https://evil.example';
+  const clean=M.packet(scorePacket([game],Date.now()),'nfl',page).games[0];
+  assert.equal(clean.teams[0].score,null); assert.ok(clean.url.startsWith('https://www.cbssports.com/'));
+  assert.throws(()=>M.packet({...scorePacket([game],Date.now()),league:'CFB'},'nfl',page));
+});
+
+test('a delayed server response does not overwrite a newer browser snapshot', async () => {
+  const now=Date.parse('2026-09-15T01:00:00Z'), game=M.event(fixture({status:'INPROGRESS',score:'13'}),'nfl',page);
+  let old=false;
+  const client=new M.Client(undefined,()=>now,{reader:async()=>scorePacket(old?[]:[game],old?now-60000:now,old)});
+  await client.readLinks([connected('50029202')]); old=true;
+  const item=(await client.readLinks([connected('50029202')],undefined,true)).get('nfl:50029202');
+  assert.equal(item.game.teams[1].score,13); assert.equal(item.checkedAt,now); assert.equal(item.stale,true);
+});
+
+test('server cache survives a worker restart, backs off failures, and recovers', async () => {
+  const store=memoryStore(); let now=Date.parse('2026-09-15T01:00:00Z'), calls=0, fail=false;
+  const fetcher=async()=>{calls++;if(fail===true)throw new Error('provider timeout');return response(state(fail==='empty'?[]:[fixture({status:'INPROGRESS',score:'13'})]));};
+  let read=Service.create({store,fetcher,now:()=>now});
+  const first=await read('nfl',page);assert.equal(first.stale,false);assert.equal(calls,1);
+  read=Service.create({store,fetcher,now:()=>now});await read('nfl',page);assert.equal(calls,1);
+  now+=31000;fail=true;
+  const stale=await read('nfl',page);assert.equal(stale.stale,true);assert.equal(stale.checkedAt,first.checkedAt);assert.equal(stale.games[0].teams[1].score,13);
+  await read('nfl',page);assert.equal(calls,2);
+  now+=31000;fail=false;assert.equal((await read('nfl',page)).stale,false);assert.equal(calls,3);
+  now+=31000;fail='empty';const empty=await read('nfl',page);assert.equal(empty.stale,true);assert.equal(empty.games[0].teams[1].score,13);
+});
+
+test('concurrent members share one provider refresh and expired leases cannot overwrite newer data', async () => {
+  const store=memoryStore(), now=Date.parse('2026-09-15T01:00:00Z');let calls=0;
+  const read=Service.create({store,now:()=>now,fetcher:async()=>{calls++;return response(state([fixture()]));}});
+  await Promise.all(Array.from({length:8},()=>read('nfl',page)));
+  assert.equal(calls,1);assert.equal(store.rows.get(page).games.length,1);
+  assert.equal(await store.save(page,'expired',{games:[]}),false);
+  assert.equal(store.rows.get(page).games.length,1);
+});
+
+test('server only accepts public CBS scoreboards and refuses other targets', () => {
+  const url=new URL('https://scores.example/?'+new URLSearchParams({league:'nfl',page}));
+  assert.deepEqual(Service.input(url),{key:'nfl',sourcePage:page});
+  url.searchParams.set('page','http://169.254.169.254/');assert.throws(()=>Service.input(url));
+  url.searchParams.set('page',page);url.searchParams.set('token','unwanted');assert.throws(()=>Service.input(url));
+});

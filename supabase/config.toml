@@ -1,0 +1,2 @@
+[functions.live-scores]
+verify_jwt = true

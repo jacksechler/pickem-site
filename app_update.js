@@ -1,6 +1,6 @@
 // Lightweight update checker for the Pick'em PWA/site.
 (() => {
-  const BUILD_VERSION = '2026.09.10.2';
+  const BUILD_VERSION = '2026.09.10.3';
   const APPLIED_KEY = 'pickemAppliedVersion';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
   let lastCheck = 0;

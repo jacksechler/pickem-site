@@ -69,6 +69,21 @@
     const page = sourcePageFor(raw.config, key) || sourcePage;
     return raw.games.map(e => event(e, key, page)).filter(Boolean);
   }
+  function cleanGame(g, key) {
+    if (!g || g.provider !== 'cbs' || g.league !== key || !/^\d{1,15}$/.test(String(g.id)) || !new RegExp('^' + leagues[key].prefix + '_[0-9]{8}_[A-Z0-9.-]+@[A-Z0-9.-]+$').test(g.abbr || '') || !Number.isFinite(Date.parse(g.date)) || !['scheduled', 'live', 'final', 'paused'].includes(g.state) || !Array.isArray(g.teams) || g.teams.length !== 2) return null;
+    const sourcePage = safePage(g.sourcePage, key);
+    const teams = g.teams.map((t, i) => !t || !/^\d+$/.test(String(t.id)) || !text(t.name) ? null : {id: String(t.id), name: text(t.name), shortName: text(t.shortName), abbreviation: text(t.abbreviation), homeAway: i ? 'home' : 'away', logo: safeLogo(t.logo), score: g.state === 'scheduled' ? null : score(t.score), aliases: Array.isArray(t.aliases) ? [...new Set(t.aliases.map(normalize).filter(Boolean))] : []});
+    if (!sourcePage || teams.some(t => !t) || teams[0].id === teams[1].id) return null;
+    return {id: String(g.id), abbr: g.abbr, provider: 'cbs', league: key, date: new Date(g.date).toISOString(), day: day(g.date), name: teams.map(t => t.name).join(' at '), state: g.state, status: text(g.status), clock: text(g.clock), period: Number(g.period) || null, teams, sourcePage, url: 'https://www.cbssports.com/' + leagues[key].page + '/gametracker/live/' + g.abbr + '/'};
+  }
+  function packet(raw, key, sourcePage) {
+    key = league(key);
+    if (!key || raw?.schema !== 1 || raw.provider !== 'cbs' || raw.league !== key || raw.sourcePage !== sourcePage || !Array.isArray(raw.games) || raw.games.length > 500) throw new Error('Score feed unavailable.');
+    const games = raw.games.map(g => cleanGame(g, key)).filter(Boolean);
+    if (games.length !== raw.games.length) throw new Error('Invalid score data.');
+    const checkedAt = Number(raw.checkedAt) || null;
+    return {games, checkedAt, stale: raw.stale !== false || !checkedAt};
+  }
   function boardUrls(key, from, to) {
     key = league(key);
     if (!key || !validDay(from) || !validDay(to) || to < from || Date.parse(to) - Date.parse(from) > 14 * 86400000) throw new Error('Choose a game window of up to 15 days.');
@@ -126,8 +141,30 @@
     return {from, to: to < from ? from : to};
   }
   class Client {
-    constructor(fetcher = globalThis.fetch.bind(globalThis), now = Date.now) { this.fetcher = fetcher; this.now = now; this.cache = new Map(); this.lastGames = new Map(); }
-    async read(url, parse, signal, force = false) {
+    constructor(fetcher = globalThis.fetch.bind(globalThis), now = Date.now, options = {}) {
+      this.fetcher = fetcher; this.now = now; this.cache = new Map(); this.lastGames = new Map(); this.reader = options.reader; this.storage = options.storage;
+      try {
+        const saved = JSON.parse(this.storage?.()?.getItem('pickemScoreBoardsV1') || 'null');
+        if (saved?.schema === 1 && Array.isArray(saved.pages)) for (const item of saved.pages.slice(0, 40)) {
+          const key = league(item.league), url = safePage(item.sourcePage, key);
+          if (!url || !item.checkedAt || this.now() - item.checkedAt > 7 * 86400000 || item.checkedAt > this.now() + 60000) continue;
+          const value = packet({...item, schema: 1, provider: 'cbs', stale: true}, key, url);
+          this.cache.set(url, {value, league: key, expires: 0});
+          value.games.forEach(game => { const id = key + ':' + game.id; if (!this.lastGames.has(id) || this.lastGames.get(id).checkedAt < value.checkedAt) this.lastGames.set(id, {game, checkedAt: value.checkedAt}); });
+        }
+      } catch { /* Storage may be unavailable or contain an older format. */ }
+    }
+    persist() {
+      try {
+        const pages = [...this.cache].filter(([, c]) => c.value.checkedAt && c.value.games.length).sort((a, b) => b[1].value.checkedAt - a[1].value.checkedAt).slice(0, 40).map(([sourcePage, c]) => ({sourcePage, league: c.league, games: c.value.games, checkedAt: c.value.checkedAt}));
+        this.storage?.()?.setItem('pickemScoreBoardsV1', JSON.stringify({schema: 1, pages}));
+      } catch { /* Scores still work when local storage is disabled or full. */ }
+    }
+    peek(item) {
+      const previous = this.lastGames.get(item.league + ':' + item.id);
+      return previous ? {key: item.league + ':' + item.id, ...previous, stale: true} : null;
+    }
+    async read(url, parse, signal, force = false, key) {
       const previous = this.cache.get(url), now = this.now();
       if (!force && previous && now < previous.expires) return previous.value;
       const controller = new AbortController(), abort = () => controller.abort();
@@ -135,27 +172,33 @@
       signal?.addEventListener('abort', abort, {once: true});
       const timer = setTimeout(abort, 20000);
       try {
-        const response = await this.fetcher(url, {signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store'});
-        if (!response.ok) throw new Error('Score feed unavailable.');
-        const games = parse(extractState(await response.text()));
+        let value;
+        if (this.reader) value = packet(await this.reader(key, url, controller.signal), key, url);
+        else {
+          const response = await this.fetcher(url, {signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store'});
+          if (!response.ok) throw new Error('Score feed unavailable.');
+          value = {games: parse(extractState(await response.text())), checkedAt: this.now(), stale: false};
+        }
         if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
-        const checkedAt = this.now(), value = {games, checkedAt, stale: false};
+        if (previous?.value.checkedAt && (!value.checkedAt || value.checkedAt < previous.value.checkedAt || (!value.games.length && previous.value.games.length))) value = {...previous.value, stale: true};
+        const {games, checkedAt} = value;
         games.forEach(game => this.lastGames.set(game.league + ':' + game.id, {game, checkedAt}));
-        const active = games.some(g => g.state === 'live' || (g.state === 'scheduled' && Date.parse(g.date) - checkedAt < 15 * 60000));
-        this.cache.set(url, {value, expires: checkedAt + (active ? 30000 : 120000)});
+        const active = games.some(g => g.state === 'live' || (g.state === 'scheduled' && Date.parse(g.date) - this.now() < 15 * 60000));
+        this.cache.set(url, {value, league: key, expires: this.now() + (value.stale || active ? 30000 : 120000)});
+        this.persist();
         return value;
       } catch (error) {
         if (signal?.aborted) throw error;
         const value = {games: previous?.value.games || [], checkedAt: previous?.value.checkedAt || null, stale: true};
         // Brief backoff; retain the last confirmed scores without inventing zeros.
-        this.cache.set(url, {value, expires: this.now() + 30000});
+        this.cache.set(url, {value, league: key, expires: this.now() + 30000});
         return value;
       } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); }
     }
     readPage(key, url, signal, force = false) {
       key = league(key);
       if (!safePage(url, key)) throw new Error('Invalid score source.');
-      return this.read(url, raw => board(raw, key, url), signal, force);
+      return this.read(url, raw => board(raw, key, url), signal, force, key);
     }
     async readBoard(key, from, to, signal, force = false) {
       const urls = boardUrls(key, from, to), pages = [];
@@ -198,5 +241,5 @@
       return results;
     }
   }
-  return {leagues, league, normalize, validDay, day, safeLogo, safePage, event, extractState, board, boardUrls, matches, link, metadata, windowFor, Client};
+  return {leagues, league, normalize, validDay, day, safeLogo, safePage, event, extractState, board, packet, boardUrls, matches, link, metadata, windowFor, Client};
 });
