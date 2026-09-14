@@ -4,7 +4,7 @@ This release deploys the calendar and playoff code in **scheduled** mode. It doe
 
 The league has 20 regular-season cards because its first two cards preceded NFL Week 1. All dates below are Eastern Time. January and February dates are in 2027.
 
-| Card | Tuesday setup | Games window | Sports | Deadline / exception |
+| Card | Planned Tuesday setup | Games window | Sports | Deadline / exception |
 |---|---|---|---|---|
 | Week 1 | Aug 25 | Aug 27–Aug 31 | CFB | Existing card and deadline preserved. |
 | Week 2 | Sep 01 | Sep 03–Sep 07 | CFB | Existing card and deadline preserved. |
@@ -37,12 +37,12 @@ Every signed-in member can open **Playoffs** from the main navigation now. Befor
 
 ## Weekly workflow
 
-1. On Tuesday morning, publish the previous card's completed results.
+1. Publish the current card as soon as its results are complete, on any day of the week.
 2. Open **More → Season calendar**, review the games you want, and confirm the next card's lock. Most cards lock at TNF. College games before that lock are excluded unless you explicitly choose an earlier exception.
-3. In Commissioner, choose **Create next scheduled week**. The server requires its scheduled Tuesday at 8 a.m. Eastern or later, the preceding card published, and a confirmed future lock. Add that card's questions and tiebreaker prompt normally.
+3. In Commissioner, choose **Create next week**. The server requires the preceding card to be published and the next lock to be confirmed and in the future. Calendar setup dates do not delay creation. Add that card's questions and tiebreaker prompt normally.
 4. Scored games normally run through Monday night. Basketball and bowl games on Tuesday or Wednesday belong outside that card, apart from an explicitly reviewed exception such as Fiesta.
 
-The calendar is a plan, not a live event feed. Times are proposed until confirmed for the selected questions. Existing Weeks 1–3 keep their saved deadlines. Semifinals continue through February 8 as one card, with every pick due at its initial Thursday lock. February 2 continues that round; do not create another card. Its final cut opens February 9 at 8 a.m. Eastern, after all scored results. Championship ends Sunday, February 14. There is no off week.
+Tuesday setup dates are planning reminders. Regular cards can be created after the previous card is published; playoff cards can be created after the previous round is finalized. The calendar is a plan, not a live event feed. Times are proposed until confirmed for the selected questions. Existing Weeks 1–3 keep their saved deadlines. Semifinals continue through February 8 as one card, with every pick due at its initial Thursday lock. February 2 continues that round; do not create another card. Its final cut opens February 9 at 8 a.m. Eastern, after all scored results. Championship ends Sunday, February 14. There is no off week.
 
 ## Activate and run playoffs
 
@@ -58,7 +58,7 @@ The final regular-season standings stay frozen on Standings. Playoff state appea
 
 Use the playoff correction preview for a finalized round. If any later round exists, an explicit typed rebuild removes those later cards, picks, and results after saving an audit snapshot; recreate the later cards with the corrected survivors. Resetting all playoffs also requires an exact typed confirmation. Ordinary editing and legacy commissioner RPCs cannot alter frozen regular-season results or finalized playoff rounds.
 
-Apply `database/postseason.sql`, then `database/postseason_calendar_revision.sql`, once each through the database migration service before shipping the client. The revision requires an inactive postseason, renames the four rounds, removes the off week, and prevents a premature semifinal cut. The release checks compile all loaded scripts, validate assets and version consistency, and verify that legacy installer workflows do not duplicate scripts or downgrade the app. PostgreSQL acceptance tests run entirely inside isolated PGlite, without access to the live database.
+Apply `database/postseason.sql`, then `database/postseason_calendar_revision.sql`, once each through the database migration service, followed by `supabase/migrations/20260914104006_allow_week_creation_after_completion.sql`, before shipping the client. The revision requires an inactive postseason, renames the four rounds, removes the off week, and prevents a premature semifinal cut. The release checks compile all loaded scripts, validate assets and version consistency, and verify that legacy installer workflows do not duplicate scripts or downgrade the app. PostgreSQL acceptance tests run entirely inside isolated PGlite, without access to the live database.
 
 ```sh
 node tests/release_check.mjs
