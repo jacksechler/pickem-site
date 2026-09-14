@@ -122,9 +122,9 @@
   }
   function calendarHtml(data,existing) {
     const map=new Map(existing.map(w=>[w.number,w]));
-    return '<div class="card ps-calendar-intro"><h2>Tuesday setup. Thursday lock. Monday finish.</h2><p>NFL and regular-season CFB share each card. College basketball joins in November; bowls and the CFP follow in December and January.</p><p class="ps-note">All dates use Eastern Time. Locks marked “Review” are proposed until you confirm the selected games. Playoffs remain inactive until you start them in January. Semifinals run January 28–February 8 as one extended card. Championship runs February 11–14 and finishes Sunday. There is no off week.</p></div>'+data.calendar.map(c=>{
+    return '<div class="card ps-calendar-intro"><h2>Weekly season schedule</h2><p>NFL and regular-season CFB share each card. College basketball joins in November; bowls and the CFP follow in December and January.</p><p class="ps-note">Tuesday setup, Thursday lock, and Monday finish are the planned schedule. You can create the next card on any day after the current one is finalized. All dates use Eastern Time. Locks marked “Review” are proposed until you confirm the selected games. Playoffs remain inactive until you start them in January. Semifinals run January 28–February 8 as one extended card. Championship runs February 11–14 and finishes Sunday. There is no off week.</p></div>'+data.calendar.map(c=>{
       const w=map.get(c.week_number),special=c.phase!=='regular'||[3,14,19,20].includes(c.week_number);
-      return '<details class="card ps-calendar-row '+(special?'ps-calendar-special':'')+'"><summary><span><b>'+esc(c.label)+'</b><small>'+date(c.starts_on)+'–'+date(c.ends_on)+' · '+esc(c.sports.join(' / ')||'No championship scoring')+'</small></span><span class="ps-badge">'+(w?w.status==='published'?'Final':w.is_active?'Current':'Created':c.phase==='break'?'Off week':c.lock_confirmed?'Ready':'Review')+'</span></summary><div class="ps-calendar-body"><dl><div><dt>Make the card</dt><dd>Tue, '+date(c.setup_date)+'</dd></div><div><dt>'+(w?'Saved lock':'Proposed lock')+'</dt><dd>'+stamp(w?.lock_at||c.suggested_lock_at)+'</dd></div><div><dt>Card finishes</dt><dd>'+date(c.ends_on)+(c.round_number===4?' · Sunday':' · after Monday games')+'</dd></div></dl><p>'+esc(c.notes)+'</p>'+(c.source_url?'<a href="'+attr(c.source_url)+'" target="_blank" rel="noopener noreferrer">Schedule source</a>':'')+
+      return '<details class="card ps-calendar-row '+(special?'ps-calendar-special':'')+'"><summary><span><b>'+esc(c.label)+'</b><small>'+date(c.starts_on)+'–'+date(c.ends_on)+' · '+esc(c.sports.join(' / ')||'No championship scoring')+'</small></span><span class="ps-badge">'+(w?w.status==='published'?'Final':w.is_active?'Current':'Created':c.phase==='break'?'Off week':c.lock_confirmed?'Ready':'Review')+'</span></summary><div class="ps-calendar-body"><dl><div><dt>Planned setup</dt><dd>Tue, '+date(c.setup_date)+'</dd></div><div><dt>'+(w?'Saved lock':'Proposed lock')+'</dt><dd>'+stamp(w?.lock_at||c.suggested_lock_at)+'</dd></div><div><dt>Card finishes</dt><dd>'+date(c.ends_on)+(c.round_number===4?' · Sunday':' · after Monday games')+'</dd></div></dl><p>'+esc(c.notes)+'</p>'+(c.source_url?'<a href="'+attr(c.source_url)+'" target="_blank" rel="noopener noreferrer">Schedule source</a>':'')+
         (profile?.role==='commissioner'&&!w&&c.phase!=='break'?'<form class="ps-calendar-form" data-ps-calendar="'+c.slot+'"><label for="psLock'+c.slot+'">Confirm card lock (your device’s local time)</label><input id="psLock'+c.slot+'" name="lock" type="datetime-local" required value="'+attr(c.suggested_lock_at?toLocalInputValue(c.suggested_lock_at):'')+'"><button class="btn secondary" type="submit">Save confirmed lock</button></form>':'')+'</div></details>';
     }).join('');
   }
@@ -155,7 +155,7 @@
     }
     let setup='<section class="card" id="postseasonSetup"><div class="eyebrow">SEASON PLAN</div><h2>'+(scheduled?'Postseason ready for January':'Postseason controls')+'</h2><p class="muted">'+(scheduled?'Regular-season scoring is active. Twenty regular-season cards lead into the 8 → 6 → 4 → 2 → 1 postseason.':'Starting points and seeds are frozen. Every correct playoff pick is worth one point.')+'</p><div class="ps-actions">'+button('Season calendar','calendar');
     if(scheduled)setup+=button('Review starting standings','preview-start');
-    if(scheduled&&week.status==='published'&&Number(week.number)<data.settings.regular_week_count)setup+=button('Create next scheduled week','create-regular');
+    if(scheduled&&week.status==='published'&&Number(week.number)<data.settings.regular_week_count)setup+=button('Create next week','create-regular');
     if(!scheduled&&data.current?.round.status==='finalized'&&data.current.round.round_number<4)setup+=button('Create '+(['','Playoff Week 1','Quarterfinals','Semifinals','Championship'][data.current.round.round_number+1]),'create-round');
     if(!scheduled)setup+=button('Open Playoffs','playoffs');
     setup+='</div><div id="postseasonStartPreview"></div>';
@@ -201,7 +201,7 @@
       await act('start',{revision:preview.revision});preview=null;await refreshAfterAction();return;
     }
     if(action==='create-regular'||action==='create-round'){
-      if(!confirm('Open the next scheduled card using its confirmed lock time?'))return;
+      if(!confirm('Open the next card using its confirmed lock time?'))return;
       await act(action==='create-round'?'create_round':'create_regular_week');step=0;await refreshAfterAction();return;
     }
     if(action==='save-tiebreaker'){

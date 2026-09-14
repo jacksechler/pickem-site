@@ -19,6 +19,7 @@ for(let i=0;i<8;i++) {
 }
 await db.exec(migration);
 await db.exec(await fs.readFile(new URL('../database/postseason_calendar_revision.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_allow_week_creation_after_completion.sql',import.meta.url),'utf8'));
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
 async function asUser(id,fn) {
  await db.exec('begin; set local role authenticated;');
@@ -54,14 +55,25 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   await assert.rejects(action('start'),/cannot start yet/);
   assert.equal((await state()).entries.length,0);
  });
- await t.test('Tuesday setup and confirmed locks are required to create regular cards',async()=>{
+ await t.test('regular cards open before planned setup once the previous card is published',async()=>{
   await assert.rejects(action('create_regular_week'),/Confirm this week/);
   await q("update season_calendar set setup_date=current_date,starts_on=current_date+2,ends_on=current_date+6 where season_id=$1 and slot=4",[sid]);
   await action('save_calendar',{slot:4,lock_at:new Date(Date.now()+2*86400000).toISOString()});
   assert.equal((await state()).calendar.find(c=>c.slot===4).lock_confirmed,true);
   await q("update season_calendar set setup_date=current_date+2,starts_on=current_date+3,ends_on=current_date+7,suggested_lock_at=now()+interval '3 days',lock_confirmed=true where season_id=$1 and slot=1",[sid]);
-  await assert.rejects(action('create_regular_week'),/Tuesday morning/);
+  const first=(await action('create_regular_week')).week_id;
+  assert.equal((await q('select number from weeks where id=$1',[first]))[0].number,1);
+  await assert.rejects(action('create_regular_week'),/Publish the current week/);
+  await q("update weeks set status='published',published_at=now() where id=$1",[first]);
+  await q("update season_calendar set setup_date=current_date+9,starts_on=current_date+10,ends_on=current_date+14,suggested_lock_at=now()-interval '1 day',lock_confirmed=true where season_id=$1 and slot=2",[sid]);
+  await assert.rejects(action('create_regular_week'),/Confirm this week/);
+  await q("update season_calendar set suggested_lock_at=now()+interval '10 days' where season_id=$1 and slot=2",[sid]);
+  const second=(await action('create_regular_week')).week_id;
+  const created=await q('select id,number,status,is_active from weeks order by number');
+  assert.deepEqual(created,[{id:first,number:1,status:'published',is_active:false},{id:second,number:2,status:'draft',is_active:true}]);
+  assert.equal((await state()).calendar.find(c=>c.slot===2).setup_date,(await q("select (current_date+9)::text as date"))[0].date);
   await assert.rejects(asUser(players[0],()=>q("insert into weeks(season_id,number,name,lock_at) values($1,21,'Wrong path',now()+interval '1 day')",[sid])),/season calendar/);
+  await q('delete from weeks where id in ($1,$2)',[first,second]);
   assert.equal((await q('select count(*)::integer n from weeks'))[0].n,0);
  });
 
@@ -83,6 +95,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   const s=await state(); assert.equal(s.entries.length,8); assert.deepEqual(s.entries.map(r=>r.seed),[1,2,3,4,5,6,7,8]);
   assert.equal(s.entries[0].regular_season_points,104); assert.equal(s.settings.status,'live');
   await assert.rejects(action('start',{revision:preview.revision}),/already started/);
+  await assert.rejects(action('create_round'),/Finalize the current round/);
  });
  await t.test('regular-season corrections and direct playoff scoring are blocked',async()=>{
   const regular=(await q("select id from weeks where phase='regular' limit 1"))[0].id;
@@ -149,7 +162,14 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal(s.history.length,8); assert.equal(s.current.round.status,'finalized');
   await assert.rejects(action('finalize',{week_id:wildcard,revision:p.revision}),/already finalized/);
  });
- let divisional=(await action('create_round')).week_id;
+ let divisional;
+ await t.test('the next playoff card opens after finalization even before its planned setup date',async()=>{
+  await q("update season_calendar set setup_date=current_date+2,starts_on=current_date+3,ends_on=current_date+7,suggested_lock_at=now()+interval '3 days',lock_confirmed=false where season_id=$1 and round_number=2",[sid]);
+  await assert.rejects(action('create_round'),/Confirm this round/);
+  await q("update season_calendar set lock_confirmed=true where season_id=$1 and round_number=2",[sid]);
+  divisional=(await action('create_round')).week_id;
+  assert.equal((await state()).current.round.round_number,2);
+ });
  await t.test('unlocked live state does not reveal other members’ tiebreaker guesses',async()=>{
   await asUser(players[0],()=>q('insert into submissions(week_id,user_id,tiebreaker_answer) values($1,$2,999)',[divisional,players[0]]));
   const s=await state(players[1]); assert.ok(s.current.rows.every(r=>r.round_tiebreaker_answer===null));
