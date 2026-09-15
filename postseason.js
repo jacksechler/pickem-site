@@ -3,7 +3,7 @@
   const $=id=>document.getElementById(id), cache=new Map();
   let latest=null, preview=null, correction=null, rendering=null;
   const fmt=v=>Number(v||0).toFixed(1).replace(/\.0$/,'');
-  const seedBonus=seed=>({1:8,2:6,3:5,4:4,5:3,6:2,7:1,8:0}[Number(seed)]??0);
+  const seedBonus=seed=>({1:10,2:8,3:7,4:5,5:4,6:3,7:2,8:0}[Number(seed)]??0);
   const label={active:'Active',eliminated:'Eliminated',champion:'Champion',runner_up:'Runner-up',projected_advance:'Projected to advance',projected_out:'Projected out',tiebreaker_pending:'Tiebreaker pending'};
   const date=v=>v?new Date(v+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'}):'—';
   const stamp=v=>v?new Date(v).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'Review lock';
@@ -96,7 +96,7 @@
     const rounds=data.calendar.filter(c=>c.phase==='playoff').sort((a,b)=>a.round_number-b.round_number);
     const field=[[8,6],[6,4],[4,2],[2,1]];
     return '<section class="card ps-format"><div class="eyebrow">HOW IT WORKS</div><h2>Eight members. Four rounds. One champion.</h2><p>Your regular-season finish becomes a one-time playoff starting bonus. Keep adding one point per correct playoff pick and stay above the cut.</p><div class="ps-format-grid">'+
-      '<div><b>Earn your starting bonus</b><p>Final regular-season finish sets a one-time bonus: 1st +8, 2nd +6, then +5, +4, +3, +2, +1, +0. The bonus is awarded once and your playoff total carries forward.</p></div>'+
+      '<div><b>Earn your starting bonus</b><p>Final regular-season finish sets a one-time bonus: 1st +10, 2nd +8, 3rd +7, 4th +5, 5th +4, 6th +3, 7th +2, 8th +0. The bonus is awarded once and your playoff total carries forward.</p></div>'+
       '<div><b>Every correct pick adds 1</b><p>Every scored sport counts equally. Playoff rounds award no placement points or bonuses.</p></div>'+
       '<div><b>Survive the cumulative cut</b><p>The top 6 advance, then 4, then 2. The finalist with the highest championship total wins.</p></div></div>'+
       '<details class="ps-rules"><summary>Ties, deadlines, and picking after elimination</summary><ul><li>Equal totals use this round’s tiebreaker distance, then the higher saved regular-season seed. Live ties stay tied while the actual result is pending.</li><li>A missing submission earns zero. A missing tiebreaker ranks behind a supplied answer.</li><li>Every card has one lock. It can lock early when all active contenders submit: 8, 6, 4, or 2 members.</li><li>Eliminated members can keep picking for fun until lock. Their championship total stays frozen, and their submissions do not trigger early lock.</li><li>The semifinal card spans both weeks. Submit all picks by its initial Thursday lock; the final cut happens after the extended round.</li></ul></details></section>'+
