@@ -1,0 +1,32 @@
+name: Install playoff seed bonus UI
+
+on:
+  push:
+    paths:
+      - 'patch_playoff_seed_bonus.py'
+      - '.github/workflows/install-playoff-seed-bonus.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply playoff seed bonus UI
+        run: python patch_playoff_seed_bonus.py
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "4189824+github-actions[bot]@users.noreply.github.com"
+          git add postseason.js index.html app_update.js app-version.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Use compressed regular-season seed bonuses in playoffs"
+            git push
+          fi
