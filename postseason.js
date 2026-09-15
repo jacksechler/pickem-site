@@ -3,6 +3,7 @@
   const $=id=>document.getElementById(id), cache=new Map();
   let latest=null, preview=null, correction=null, rendering=null;
   const fmt=v=>Number(v||0).toFixed(1).replace(/\.0$/,'');
+  const seedBonus=seed=>({1:8,2:6,3:5,4:4,5:3,6:2,7:1,8:0}[Number(seed)]??0);
   const label={active:'Active',eliminated:'Eliminated',champion:'Champion',runner_up:'Runner-up',projected_advance:'Projected to advance',projected_out:'Projected out',tiebreaker_pending:'Tiebreaker pending'};
   const date=v=>v?new Date(v+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'}):'—';
   const stamp=v=>v?new Date(v).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'Review lock';
@@ -51,13 +52,13 @@
     const official=current.round.status==='finalized',cut=current.round.participants_after;
     let html='<section class="card ps-race"><div class="ps-heading"><div><div class="eyebrow">'+(official?'FINAL ROUND':'PLAYOFF RACE')+'</div><h2>'+esc(current.round.label)+'</h2></div><span class="ps-badge">'+current.round.participants_before+' → '+cut+'</span></div>';
     html+=(current.finalize_not_before?'<p class="ps-note">One extended semifinal card through '+date(current.ends_on)+'. The final cut opens '+stamp(current.finalize_not_before)+', after all scored results are entered.</p>':'');
-    html+='<div class="tablewrap"><table class="table ps-table"><caption class="ps-sr">Cumulative playoff standings. Frozen regular-season points plus correct playoff picks.</caption><thead><tr><th>Place / seed</th><th>Member</th><th>Reg. pts</th><th>This round</th><th>Playoff pts</th><th>Total</th><th>Status</th></tr></thead><tbody>';
+    html+='<div class="tablewrap"><table class="table ps-table"><caption class="ps-sr">Cumulative playoff standings. One-time seed bonus plus correct playoff picks.</caption><thead><tr><th>Place / seed</th><th>Member</th><th>Seed bonus</th><th>This round</th><th>Playoff pts</th><th>Total</th><th>Status</th></tr></thead><tbody>';
     current.rows.forEach((r,i)=>{
       if(i===cut)html+='<tr class="ps-cut"><td colspan="7">'+(official?'ADVANCEMENT CUT':'PROJECTED CUT LINE')+' · TOP '+cut+' '+(cut===1?'WINS':'ADVANCE')+'</td></tr>';
-      const e=member(data,r.user_id),points=Number(r.cumulative_after)-Number(e?.regular_season_points||0);
+      const e=member(data,r.user_id),points=Number(r.cumulative_after)-Number(e?.starting_bonus??seedBonus(r.seed));
       const text=official?(r.advanced?(r.status_after==='champion'?'Champion':'Advanced'):label[r.status_after]):!current.locked?'Awaiting lock':label[r.projected_status];
       const tb=current.locked?'<small>TB: '+(r.round_tiebreaker_answer==null?'No entry':fmt(r.round_tiebreaker_answer))+(r.round_tiebreaker_distance==null?'':' · '+fmt(r.round_tiebreaker_distance)+' away')+'</small>':'';
-      html+='<tr class="'+(r.user_id===session?.user?.id?'ps-my-row':'')+'"><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>'+fmt(e?.regular_season_points)+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><strong>'+fmt(r.cumulative_after)+'</strong></td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+tb+'</td></tr>';
+      html+='<tr class="'+(r.user_id===session?.user?.id?'ps-my-row':'')+'"><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>+'+fmt(e?.starting_bonus??seedBonus(r.seed))+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><strong>'+fmt(r.cumulative_after)+'</strong></td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+tb+'</td></tr>';
     });
     html+='</tbody></table></div><p class="ps-note">'+(official?'Saved official round results.':current.tiebreaker_pending?'Tiebreaker pending. Equal totals stay tied until the actual result is entered.':'Ties use this round’s tiebreaker distance, then the frozen regular-season seed.')+(!current.tiebreaker_pending?' Actual tiebreaker: '+fmt(current.week.tiebreaker_result)+'.':'')+' Every correct scored pick adds 1. No placement points or bonuses.</p></section>';
     return html;
@@ -73,7 +74,7 @@
       else if(r.sort_index<=c.round.participants_after&&below)margin=fmt(Number(r.cumulative_after)-Number(below.cumulative_after))+' points above the cut line';
       else if(above)margin=fmt(Number(above.cumulative_after)-Number(r.cumulative_after))+' points below the cut line';
     }
-    return '<section class="card ps-personal"><div><div class="eyebrow">'+(id===session?.user?.id?'YOUR POSTSEASON':'POSTSEASON')+'</div><h2>'+esc(e.display_name)+'</h2><p>'+esc(status(e,data))+'</p><p class="ps-note">'+esc(margin||'Starting seed #'+e.seed+' · '+fmt(e.regular_season_points)+' frozen regular-season points')+'</p></div><div class="ps-total">'+fmt(total)+'<span>championship points</span></div></section>';
+    return '<section class="card ps-personal"><div><div class="eyebrow">'+(id===session?.user?.id?'YOUR POSTSEASON':'POSTSEASON')+'</div><h2>'+esc(e.display_name)+'</h2><p>'+esc(status(e,data))+'</p><p class="ps-note">'+esc(margin||'Starting seed #'+e.seed+' · +'+fmt(e.starting_bonus??seedBonus(e.seed))+' one-time seed bonus')+'</p></div><div class="ps-total">'+fmt(total)+'<span>championship points</span></div></section>';
   }
   function eliminated(data) {
     const shown=new Set(data.current?.rows.map(r=>r.user_id)||[]);
@@ -89,13 +90,13 @@
   function champion(data) {
     const winner=data.entries.find(e=>e.status==='champion'),runner=data.entries.find(e=>e.status==='runner_up');
     if(!winner)return '';
-    return '<section class="card ps-champion"><div class="eyebrow">🏆 2026 PICK’EM CHAMPION</div><h2>'+esc(winner.display_name)+'</h2><div class="ps-champion-total">'+fmt(winner.current_total)+' <span>points</span></div><p>Seed #'+winner.seed+' · '+fmt(winner.regular_season_points)+' regular season + '+winner.playoff_points+' playoff correct</p>'+(runner?'<p class="muted">Runner-up: '+esc(runner.display_name)+' · '+fmt(runner.current_total)+'</p>':'')+'</section>';
+    return '<section class="card ps-champion"><div class="eyebrow">🏆 2026 PICK’EM CHAMPION</div><h2>'+esc(winner.display_name)+'</h2><div class="ps-champion-total">'+fmt(winner.current_total)+' <span>points</span></div><p>Seed #'+winner.seed+' · +'+fmt(winner.starting_bonus??seedBonus(winner.seed))+' seed bonus + '+winner.playoff_points+' playoff correct</p>'+(runner?'<p class="muted">Runner-up: '+esc(runner.display_name)+' · '+fmt(runner.current_total)+'</p>':'')+'</section>';
   }
   function formatAndSchedule(data) {
     const rounds=data.calendar.filter(c=>c.phase==='playoff').sort((a,b)=>a.round_number-b.round_number);
     const field=[[8,6],[6,4],[4,2],[2,1]];
-    return '<section class="card ps-format"><div class="eyebrow">HOW IT WORKS</div><h2>Eight members. Four rounds. One champion.</h2><p>Your regular-season points become your starting playoff total. Keep adding points and stay above the cut.</p><div class="ps-format-grid">'+
-      '<div><b>Bring your season points</b><p>Your final regular-season points and seeds are saved when playoffs start. Your total carries from round to round.</p></div>'+
+    return '<section class="card ps-format"><div class="eyebrow">HOW IT WORKS</div><h2>Eight members. Four rounds. One champion.</h2><p>Your regular-season finish becomes a one-time playoff starting bonus. Keep adding one point per correct playoff pick and stay above the cut.</p><div class="ps-format-grid">'+
+      '<div><b>Earn your starting bonus</b><p>Final regular-season finish sets a one-time bonus: 1st +8, 2nd +6, then +5, +4, +3, +2, +1, +0. The bonus is awarded once and your playoff total carries forward.</p></div>'+
       '<div><b>Every correct pick adds 1</b><p>Every scored sport counts equally. Playoff rounds award no placement points or bonuses.</p></div>'+
       '<div><b>Survive the cumulative cut</b><p>The top 6 advance, then 4, then 2. The finalist with the highest championship total wins.</p></div></div>'+
       '<details class="ps-rules"><summary>Ties, deadlines, and picking after elimination</summary><ul><li>Equal totals use this round’s tiebreaker distance, then the higher saved regular-season seed. Live ties stay tied while the actual result is pending.</li><li>A missing submission earns zero. A missing tiebreaker ranks behind a supplied answer.</li><li>Every card has one lock. It can lock early when all active contenders submit: 8, 6, 4, or 2 members.</li><li>Eliminated members can keep picking for fun until lock. Their championship total stays frozen, and their submissions do not trigger early lock.</li><li>The semifinal card spans both weeks. Submit all picks by its initial Thursday lock; the final cut happens after the extended round.</li></ul></details></section>'+
@@ -153,7 +154,7 @@
         if(heading?.textContent==='Submissions') card.innerHTML='<div class="muted">Contender submissions</div><div class="big">'+count+' / '+needed+'</div><p class="ps-note">All contenders submitting locks this card early. Eliminated entries do not count toward auto-lock.</p>';
       }
     }
-    let setup='<section class="card" id="postseasonSetup"><div class="eyebrow">SEASON PLAN</div><h2>'+(scheduled?'Postseason ready for January':'Postseason controls')+'</h2><p class="muted">'+(scheduled?'Regular-season scoring is active. Twenty regular-season cards lead into the 8 → 6 → 4 → 2 → 1 postseason.':'Starting points and seeds are frozen. Every correct playoff pick is worth one point.')+'</p><div class="ps-actions">'+button('Season calendar','calendar');
+    let setup='<section class="card" id="postseasonSetup"><div class="eyebrow">SEASON PLAN</div><h2>'+(scheduled?'Postseason ready for January':'Postseason controls')+'</h2><p class="muted">'+(scheduled?'Regular-season scoring is active. Twenty regular-season cards lead into the 8 → 6 → 4 → 2 → 1 postseason.':'Regular-season seeds and one-time starting bonuses are frozen. Every correct playoff pick is worth one point.')+'</p><div class="ps-actions">'+button('Season calendar','calendar');
     if(scheduled)setup+=button('Review starting standings','preview-start');
     if(scheduled&&week.status==='published'&&Number(week.number)<data.settings.regular_week_count)setup+=button('Create next week','create-regular');
     if(!scheduled&&data.current?.round.status==='finalized'&&data.current.round.round_number<4)setup+=button('Create '+(['','Playoff Week 1','Quarterfinals','Semifinals','Championship'][data.current.round.round_number+1]),'create-round');
@@ -170,7 +171,7 @@
   }
   function startPreviewHtml(p) {
     const ready=p.date_ready&&p.published_weeks===p.required_weeks&&p.rows.length===8;
-    return '<h3>Starting standings preview</h3><p class="ps-note">'+p.published_weeks+' / '+p.required_weeks+' regular-season weeks published. Starting points are saved only when you confirm.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Starting points</th></tr></thead><tbody>'+p.rows.map(r=>'<tr><td>#'+r.seed+'</td><td>'+esc(r.display_name)+'</td><td>'+fmt(r.points)+'</td></tr>').join('')+'</tbody></table></div><p class="ps-note">Seed ties: correct picks, weekly wins, final regular-season tiebreaker distance, then stable account ID. Available from '+stamp(p.start_not_before)+'. Confirm the Playoff Week 1 lock in the calendar first.</p>'+button('Lock Regular Season & Start Playoffs','start',ready?'':'disabled',false);
+    return '<h3>Starting standings preview</h3><p class="ps-note">'+p.published_weeks+' / '+p.required_weeks+' regular-season weeks published. Final season points determine the seeds; the playoff bonus is awarded once when you confirm.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Reg. pts</th><th>Playoff start</th></tr></thead><tbody>'+p.rows.map(r=>'<tr><td>#'+r.seed+'</td><td>'+esc(r.display_name)+'</td><td>'+fmt(r.points)+'</td><td><b>+'+fmt(seedBonus(r.seed))+'</b></td></tr>').join('')+'</tbody></table></div><p class="ps-note">Seed ties: correct picks, weekly wins, final regular-season tiebreaker distance, then stable account ID. Available from '+stamp(p.start_not_before)+'. Confirm the Playoff Week 1 lock in the calendar first.</p>'+button('Lock Regular Season & Start Playoffs','start',ready?'':'disabled',false);
   }
   async function beginCorrection(wid) {
     const data=await load(currentSeason(),wid,true),qs=await db('questions?week_id=eq.'+wid+'&select=*&order=position.asc');
@@ -182,7 +183,7 @@
   function copyText(data=latest) {
     const c=data?.current;if(!c)return 'Playoffs have not started.';
     const lines=['🏆 PICK’EM PLAYOFFS',c.round.label.toUpperCase(),c.round.participants_before+' ENTERED — TOP '+c.round.participants_after+' '+(c.round.participants_after===1?'WINS':'ADVANCE'),c.round.status==='finalized'?'FINAL':'PROVISIONAL',''];
-    c.rows.forEach((r,i)=>{if(i===c.round.participants_after)lines.push('— CUT LINE —');const e=member(data,r.user_id);lines.push((r.tied?'T':'#')+r.round_rank+' '+r.display_name+' — '+fmt(r.cumulative_after),'   Seed #'+r.seed+' • Reg: '+fmt(e?.regular_season_points)+' • Playoff: +'+fmt(Number(r.cumulative_after)-Number(e?.regular_season_points||0)));});
+    c.rows.forEach((r,i)=>{if(i===c.round.participants_after)lines.push('— CUT LINE —');const e=member(data,r.user_id);lines.push((r.tied?'T':'#')+r.round_rank+' '+r.display_name+' — '+fmt(r.cumulative_after),'   Seed #'+r.seed+' • Start: +'+fmt(e?.starting_bonus??seedBonus(r.seed))+' • Playoff picks: +'+fmt(Number(r.cumulative_after)-Number(e?.starting_bonus??seedBonus(r.seed))));});
     return lines.join('\n');
   }
   async function refreshAfterAction() {
@@ -197,7 +198,7 @@
     if(action==='refresh'){await renderPage();return;}
     if(action==='preview-start'){preview=await act('preview_start');$('postseasonStartPreview').innerHTML=startPreviewHtml(preview);return;}
     if(action==='start'){
-      if(!preview)return;if(!confirm('Freeze these regular-season points and seeds, then open Playoff Week 1?'))return;
+      if(!preview)return;if(!confirm('Freeze the final regular-season standings and award the 8/6/5/4/3/2/1/0 starting bonuses, then open Playoff Week 1?'))return;
       await act('start',{revision:preview.revision});preview=null;await refreshAfterAction();return;
     }
     if(action==='create-regular'||action==='create-round'){
