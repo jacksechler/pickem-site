@@ -1,0 +1,35 @@
+name: Install post-lock pick override
+
+on:
+  push:
+    paths:
+      - 'post_lock_override.js'
+      - 'patch_post_lock_override.py'
+      - '.github/workflows/install-post-lock-pick-override.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate override script
+        run: node --check post_lock_override.js
+      - name: Install override script and bump version
+        run: python patch_post_lock_override.py
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html app_update.js app-version.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Enable commissioner post-lock pick changes"
+            git push
+          fi
