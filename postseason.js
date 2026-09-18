@@ -198,7 +198,7 @@
     if(action==='refresh'){await renderPage();return;}
     if(action==='preview-start'){preview=await act('preview_start');$('postseasonStartPreview').innerHTML=startPreviewHtml(preview);return;}
     if(action==='start'){
-      if(!preview)return;if(!confirm('Freeze the final regular-season standings and award the 8/6/5/4/3/2/1/0 starting bonuses, then open Playoff Week 1?'))return;
+      if(!preview)return;if(!confirm('Freeze the final regular-season standings and award the 10/8/7/5/4/3/2/0 starting bonuses, then open Playoff Week 1?'))return;
       await act('start',{revision:preview.revision});preview=null;await refreshAfterAction();return;
     }
     if(action==='create-regular'||action==='create-round'){
