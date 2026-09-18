@@ -112,7 +112,8 @@ async function saveWeekSettings(){try{const lock=el('weekLock').value;if(!lock)r
 async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x.trim()).filter(Boolean);if(!el('qPrompt').value.trim()||opts.length<2)return alert('Enter a question and at least two choices.');try{await db('questions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({week_id:week.id,position:questions.length+1,sport:el('qSport').value,question_type:'Multiple Choice',prompt:el('qPrompt').value.trim(),answer_options:opts,counts_for_score:true})});await loadData();renderHome();renderCommissioner();}catch(e){alert('Could not add question.');}}
 if(session)boot();
 </script>
-<script src="commissioner_v2.js?v=4"></script>
+<script src="regular_scoring_core.js?v=1"></script>
+<script src="commissioner_v2.js?v=5"></script>
 <script src="stats_v2.js?v=8"></script>
 <script src="account_tools.js?v=1"></script>
 <script src="live_weekend.js?v=4"></script>
@@ -123,9 +124,9 @@ if(session)boot();
 <script src="history_profiles.js?v=4"></script>
 <script src="mobile_grid_fix.js?v=3"></script>
 <script src="potential_unicorn.js?v=3"></script>
-<script src="commissioner_admin_tools.js?v=2"></script>
-<script src="archived_week_editor.js?v=3"></script>
-<script src="app_update.js?v=17"></script>
+<script src="commissioner_admin_tools.js?v=3"></script>
+<script src="archived_week_editor.js?v=4"></script>
+<script src="app_update.js?v=18"></script>
 <script src="quality_fixes.js?v=4"></script>
 <script src="weekly_standings_v2.js?v=3"></script>
 <script src="copy_standings.js?v=4"></script>
