@@ -18,8 +18,8 @@ jobs:
           node-version: 22
       - name: Install isolated PostgreSQL test runtime
         run: npm install --prefix "$RUNNER_TEMP/postseason-test" --no-save --package-lock=false @electric-sql/pglite@0.5.8
-      - name: Check app assets and legacy installers
-        run: node tests/release_check.mjs
+      - name: Check app assets, mobile layout, and legacy installers
+        run: node --test tests/mobile_layout.test.cjs && node tests/release_check.mjs
       - name: Verify regular-season scoring and database behavior
         run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/regular_scoring.test.cjs tests/regular_db.test.mjs
       - name: Verify live scores, GameDay, and postseason behavior
