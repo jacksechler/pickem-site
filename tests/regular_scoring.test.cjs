@@ -77,6 +77,7 @@ function buildHarness({questionCount=8, choices, ties, resultOrders, previousSco
     renderHome:()=>{},
     renderStandings:()=>{},
     renderStats:()=>{},
+    renderCommissioner:async()=>{},
     window:{renderCommissioner:async()=>{}}
   };
   context.globalThis=context;
@@ -95,9 +96,9 @@ async function score(h) {
 test('regular placement slots are 8/7/6/5/4/3/2/0', async()=>{
   const h=buildHarness({questionCount:8});
   const rows=await score(h);
-  assert.deepEqual(rows.map(r=>r.correct_count),[8,7,6,5,4,3,2,1]);
-  assert.deepEqual(rows.map(r=>r.placement),[1,2,3,4,5,6,7,8]);
-  assert.deepEqual(rows.map(r=>r.placement_points),[8,7,6,5,4,3,2,0]);
+  assert.deepEqual(Array.from(rows,r=>r.correct_count),[8,7,6,5,4,3,2,1]);
+  assert.deepEqual(Array.from(rows,r=>r.placement),[1,2,3,4,5,6,7,8]);
+  assert.deepEqual(Array.from(rows,r=>r.placement_points),[8,7,6,5,4,3,2,0]);
 });
 
 test('exact finish ties split occupied placement slots golf-style', async()=>{
