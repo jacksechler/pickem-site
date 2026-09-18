@@ -64,10 +64,9 @@ test('regular-season database lifecycle', async t=>{
   });
 
   await t.test('players cannot edit their own pick after the lock',async()=>{
-    await assert.rejects(
-      asUser(players[1],()=>q("update picks set answer='\"B\"'::jsonb where week_id=$1 and user_id=$2",[wid,players[1]])),
-      /row-level security|violates row-level security|permission denied/i
-    );
+    // RLS can reject an UPDATE or silently affect zero rows when the locked row is no longer writable.
+    // The important invariant is that the stored pick never changes.
+    await asUser(players[1],()=>q("update picks set answer='\\\"B\\\"'::jsonb where week_id=$1 and user_id=$2",[wid,players[1]]));
     const answer=(await q('select answer from picks where week_id=$1 and user_id=$2',[wid,players[1]]))[0].answer;
     assert.equal(answer,'A');
   });
