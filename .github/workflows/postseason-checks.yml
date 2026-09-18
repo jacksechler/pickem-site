@@ -1,4 +1,4 @@
-name: Postseason checks
+name: League checks
 
 on:
   pull_request:
@@ -20,5 +20,7 @@ jobs:
         run: npm install --prefix "$RUNNER_TEMP/postseason-test" --no-save --package-lock=false @electric-sql/pglite@0.5.8
       - name: Check app assets and legacy installers
         run: node tests/release_check.mjs
+      - name: Verify regular-season scoring and database behavior
+        run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/regular_scoring.test.cjs tests/regular_db.test.mjs
       - name: Verify live scores, GameDay, and postseason behavior
         run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/live_scores.test.cjs tests/gameday_model.test.cjs tests/postseason_db.test.mjs
