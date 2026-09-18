@@ -1,9 +1,6 @@
 // Commissioner Week 2 workflow: results, scoring, publish, and create-next-week.
 (() => {
   const baseRenderCommissioner = window.renderCommissioner;
-  const placementPoints = [8,7,6,5,4,3,2,0];
-  const manualTieOrder = {};
-
   function sameAnswer(a,b){ return JSON.stringify(a) === JSON.stringify(b); }
   function fmtNum(v){
     const n=Number(v||0);
@@ -72,124 +69,39 @@
   async function buildScoreData(){
     if(!week) throw new Error('No active week.');
     if(week.phase==='playoff') throw new Error('Use Calculate playoff standings to finalize this round.');
-    const scored=questions.filter(q=>q.counts_for_score!==false).sort((a,b)=>{
-      const ao=a.result_order==null?999999:Number(a.result_order);
-      const bo=b.result_order==null?999999:Number(b.result_order);
-      return ao-bo || Number(a.position||0)-Number(b.position||0);
-    });
-    if(!scored.length) throw new Error('There are no scored questions.');
-    if(scored.some(q=>q.result===null || q.result===undefined)) throw new Error('Save every question result first.');
-    if(week.tiebreaker_result===null || week.tiebreaker_result===undefined) throw new Error('Save the actual tiebreaker result first.');
+    const core=window.RegularScoringCore;
+    if(!core) throw new Error('Regular scoring engine did not load.');
 
     const profiles=await db('profiles?select=id,display_name,role');
     const slots=await db('player_slots?select=slot,display_name,claimed_by&order=slot.asc');
     const commissioner=profiles.find(p=>p.role==='commissioner');
     const people=[];
     if(commissioner) people.push({id:commissioner.id,name:commissioner.display_name||'Commissioner'});
-    for(const s of slots){
-      if(!s.claimed_by) throw new Error('All 8 player accounts must be activated before publishing.');
-      const p=profiles.find(x=>x.id===s.claimed_by);
+    for(const slot of slots){
+      if(!slot.claimed_by) throw new Error('All 8 player accounts must be activated before publishing.');
+      const p=profiles.find(x=>x.id===slot.claimed_by);
       if(!p) throw new Error('A player account is missing its profile.');
-      people.push({id:p.id,name:p.display_name||s.display_name||('Player '+s.slot)});
+      people.push({id:p.id,name:p.display_name||slot.display_name||('Player '+slot.slot)});
     }
-    if(people.length!==8) throw new Error('Scoring requires exactly 8 players.');
 
-    const subs=await db('submissions?week_id=eq.'+week.id+'&select=user_id,tiebreaker_answer');
-    if(subs.length!==8) throw new Error('All 8 players must have a submitted entry before publishing.');
-    const subMap={}; subs.forEach(s=>subMap[s.user_id]=s);
-    for(const p of people){ if(!subMap[p.id]) throw new Error(p.name+' does not have a submitted entry.'); }
-
+    const submissions=await db('submissions?week_id=eq.'+week.id+'&select=user_id,tiebreaker_answer');
     const picks=await db('picks?week_id=eq.'+week.id+'&select=user_id,question_id,answer');
-    const pickMap={};
-    picks.forEach(p=>{ if(!pickMap[p.user_id]) pickMap[p.user_id]={}; pickMap[p.user_id][p.question_id]=p.answer; });
 
-    let prevScoreMap={};
-    const prevWeeks=await db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
-    if(prevWeeks[0]){
-      const prevScores=await db('week_scores?week_id=eq.'+prevWeeks[0].id+'&select=user_id,correct_count,question_count');
-      prevScores.forEach(s=>prevScoreMap[s.user_id]=s);
+    let previousScores=[];
+    const previousWeeks=await db('weeks?season_id=eq.'+week.season_id+'&number=lt.'+week.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
+    if(previousWeeks[0]){
+      previousScores=await db('week_scores?week_id=eq.'+previousWeeks[0].id+'&select=user_id,correct_count,question_count');
     }
 
-    const correctness={};
-    const correctUsersByQuestion={};
-    for(const p of people){
-      correctness[p.id]=[];
-      for(const q of scored){
-        const ok=sameAnswer(pickMap[p.id]?.[q.id],q.result);
-        correctness[p.id].push(ok);
-        if(ok){ (correctUsersByQuestion[q.id]??=[]).push(p.id); }
-      }
-    }
-
-    const rows=people.map(p=>{
-      const arr=correctness[p.id];
-      const correct=arr.filter(Boolean).length;
-      const questionCount=scored.length;
-      let baseOpening=0;
-      for(const ok of arr){ if(!ok) break; baseOpening++; }
-      const prev=prevScoreMap[p.id];
-      const prevPerfect=!!(prev && Number(prev.question_count)>0 && Number(prev.correct_count)===Number(prev.question_count));
-      const openingStreak=prevPerfect?baseOpening:0;
-      let unicornCount=0, upsetCount=0;
-      for(const q of scored){
-        if(!sameAnswer(pickMap[p.id]?.[q.id],q.result)) continue;
-        const winners=(correctUsersByQuestion[q.id]||[]).length;
-        if(winners===1) unicornCount++;
-        else if(winners===2) upsetCount++;
-      }
-      const tbAnswer=Number(subMap[p.id].tiebreaker_answer);
-      const tbDistance=Math.abs(tbAnswer-Number(week.tiebreaker_result));
-      return {
-        user_id:p.id,name:p.name,correct_count:correct,question_count:questionCount,
-        pick_percentage:questionCount?correct/questionCount*100:0,
-        tiebreaker_answer:tbAnswer,tb_distance:tbDistance,
-        perfect_bonus:correct===questionCount?5:0,
-        unicorn_count:unicornCount,unicorn_bonus:unicornCount*3,
-        upset_count:upsetCount,upset_bonus:upsetCount*0.5,
-        opening_streak:openingStreak,streak_bonus:openingStreak*0.5,
-        cold_bonus:correct===0?-5:0
-      };
+    return core.calculate({
+      people,
+      questions,
+      picks,
+      submissions,
+      tiebreakerResult:week.tiebreaker_result,
+      previousScores
     });
-
-    rows.sort((a,b)=>{
-      if(b.correct_count!==a.correct_count) return b.correct_count-a.correct_count;
-      if(a.tb_distance!==b.tb_distance) return a.tb_distance-b.tb_distance;
-      return a.name.localeCompare(b.name);
-    });
-
-    // Golf-style split for an exact tie after the tiebreaker. Everyone in the
-    // tie gets the same place, and the placement-point slots they occupy are averaged.
-    let i=0;
-    while(i<rows.length){
-      let j=i+1;
-      while(j<rows.length && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
-      const tieSize=j-i;
-      const splitPoints=placementPoints.slice(i,j).reduce((sum,v)=>sum+Number(v??0),0)/tieSize;
-      for(let k=i;k<j;k++){
-        const r=rows[k];
-        r.placement=i+1;
-        r.placement_points=splitPoints;
-        r.golf_tie=tieSize>1;
-        r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
-      }
-      i=j;
-    }
-    return {rows,unresolved:[]};
   }
-
-  function tieResolverHtml(unresolved){
-    if(!unresolved.length) return '';
-    return '<div class="notice"><b>Manual tiebreaker resolution needed</b><p class="muted">These players are exactly tied on correct picks and distance from the tiebreaker. Choose their order before publishing.</p>'+unresolved.map((u,gi)=>'<div style="margin-top:10px"><b>Tie group '+(gi+1)+'</b>'+u.group.map(r=>{
-      const selected=Number(manualTieOrder[u.key]?.[r.user_id]||0);
-      return '<div class="row" style="padding:7px 0"><span>'+esc(r.name)+'</span><select style="width:180px" data-key="'+esc(u.key)+'" data-user="'+r.user_id+'" onchange="setManualTieOrder(this.dataset.key,this.dataset.user,this.value)"><option value="">Choose order</option>'+u.group.map((_,idx)=>'<option value="'+(idx+1)+'" '+(selected===idx+1?'selected':'')+'>'+(idx+1)+(idx===0?'st':idx===1?'nd':idx===2?'rd':'th')+' among tied</option>').join('')+'</select></div>';
-    }).join('')+'</div>').join('')+'</div>';
-  }
-
-  window.setManualTieOrder = function(key,userId,value){
-    manualTieOrder[key]??={};
-    if(value==='') delete manualTieOrder[key][userId]; else manualTieOrder[key][userId]=Number(value);
-    previewWeekScores();
-  };
 
   window.previewWeekScores = async function(){
     const out=el('scorePreview');
@@ -220,13 +132,7 @@
       const data=await buildScoreData();
       if(data.unresolved.length) return alert('Resolve the exact tiebreaker tie before publishing.');
       if(!confirm('Publish '+week.name+'? Scores will become visible to the league.')) return;
-      const payload=data.rows.map(r=>({
-        week_id:week.id,user_id:r.user_id,placement:r.placement,correct_count:r.correct_count,question_count:r.question_count,
-        pick_percentage:r.pick_percentage,placement_points:r.placement_points,perfect_bonus:r.perfect_bonus,
-        unicorn_bonus:r.unicorn_bonus,upset_bonus:r.upset_bonus,streak_bonus:r.streak_bonus,cold_bonus:r.cold_bonus,
-        total_points:r.total_points,unicorn_count:r.unicorn_count,upset_count:r.upset_count,opening_streak:r.opening_streak,
-        tiebreaker_answer:r.tiebreaker_answer
-      }));
+      const payload=window.RegularScoringCore.scorePayload(week.id,data.rows);
       await db('week_scores?on_conflict=week_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});
       await db('weeks?id=eq.'+week.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:'published',published_at:new Date().toISOString()})});
       await loadData();
