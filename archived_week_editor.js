@@ -1,8 +1,7 @@
 // Commissioner editor for inactive published weeks.
 (() => {
   const baseRenderCommissioner = window.renderCommissioner;
-  const placementPoints = [8,7,6,5,4,3,2,0];
-  const archiveState = { weekId:null, week:null, questions:[], tieOrder:{}, preview:null };
+  const archiveState = { weekId:null, week:null, questions:[], preview:null };
 
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const fmt = v => Number(v||0).toFixed(1).replace(/\.0$/,'');
@@ -20,7 +19,6 @@
     archiveState.week=rows[0];
     archiveState.questions=qs;
     archiveState.preview=null;
-    archiveState.tieOrder[id] ??= {};
   }
 
   function archiveEditorHtml(){
@@ -128,90 +126,30 @@
 
   async function calculateArchivedWeek(overrides){
     const w=archiveState.week;
-    const scored=archiveState.questions.filter(q=>q.counts_for_score!==false).sort((a,b)=>{
-      const ao=a.result_order==null?999999:Number(a.result_order), bo=b.result_order==null?999999:Number(b.result_order);
-      return ao-bo || Number(a.position||0)-Number(b.position||0);
-    });
-    if(!w||!scored.length) throw new Error('This week has no scored questions.');
+    if(!w) throw new Error('That archived week is not loaded.');
     if(w.phase==='playoff') throw new Error('Use playoff corrections.');
+    const core=window.RegularScoringCore;
+    if(!core) throw new Error('Regular scoring engine did not load.');
+
     const people=await scoringPeople();
-    const subs=await db('submissions?week_id=eq.'+w.id+'&select=user_id,tiebreaker_answer');
-    if(subs.length!==8) throw new Error('This published week does not have all 8 submissions.');
-    const subMap={}; subs.forEach(s=>subMap[s.user_id]=s);
+    const submissions=await db('submissions?week_id=eq.'+w.id+'&select=user_id,tiebreaker_answer');
     const picks=await db('picks?week_id=eq.'+w.id+'&select=user_id,question_id,answer');
-    const pickMap={}; picks.forEach(p=>{(pickMap[p.user_id]??={})[p.question_id]=p.answer;});
-    const existingScores=await db('week_scores?week_id=eq.'+w.id+'&select=*');
-    const existingMap={}; existingScores.forEach(s=>existingMap[s.user_id]=s);
 
-    let prevScoreMap={};
-    const prevWeeks=await db('weeks?season_id=eq.'+w.season_id+'&number=lt.'+w.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
-    if(prevWeeks[0]){
-      const prevScores=await db('week_scores?week_id=eq.'+prevWeeks[0].id+'&select=user_id,correct_count,question_count');
-      prevScores.forEach(s=>prevScoreMap[s.user_id]=s);
+    let previousScores=[];
+    const previousWeeks=await db('weeks?season_id=eq.'+w.season_id+'&number=lt.'+w.number+'&phase=eq.regular&status=eq.published&select=id,number&order=number.desc&limit=1');
+    if(previousWeeks[0]){
+      previousScores=await db('week_scores?week_id=eq.'+previousWeeks[0].id+'&select=user_id,correct_count,question_count');
     }
 
-    const correctness={}, correctUsersByQuestion={};
-    for(const p of people){
-      correctness[p.id]=[];
-      for(const q of scored){
-        const result=overrides.results[q.id];
-        const ok=same(pickMap[p.id]?.[q.id],result);
-        correctness[p.id].push(ok);
-        if(ok) (correctUsersByQuestion[q.id]??=[]).push(p.id);
-      }
-    }
-
-    const rows=people.map(p=>{
-      const arr=correctness[p.id], correct=arr.filter(Boolean).length, questionCount=scored.length;
-      let baseOpening=0; for(const ok of arr){ if(!ok) break; baseOpening++; }
-      const prev=prevScoreMap[p.id];
-      const prevPerfect=!!(prev&&Number(prev.question_count)>0&&Number(prev.correct_count)===Number(prev.question_count));
-      const openingStreak=prevPerfect?baseOpening:0;
-      let unicornCount=0,upsetCount=0;
-      for(const q of scored){
-        if(!same(pickMap[p.id]?.[q.id],overrides.results[q.id])) continue;
-        const winners=(correctUsersByQuestion[q.id]||[]).length;
-        if(winners===1) unicornCount++; else if(winners===2) upsetCount++;
-      }
-      const tbAnswer=Number(subMap[p.id].tiebreaker_answer), tbDistance=Math.abs(tbAnswer-overrides.tiebreaker);
-      return {user_id:p.id,name:p.name,correct_count:correct,question_count:questionCount,pick_percentage:questionCount?correct/questionCount*100:0,
-        tiebreaker_answer:tbAnswer,tb_distance:tbDistance,perfect_bonus:correct===questionCount?5:0,
-        unicorn_count:unicornCount,unicorn_bonus:unicornCount*3,upset_count:upsetCount,upset_bonus:upsetCount*0.5,
-        opening_streak:openingStreak,streak_bonus:openingStreak*0.5,cold_bonus:correct===0?-5:0};
+    return core.calculate({
+      people,
+      questions:archiveState.questions,
+      picks,
+      submissions,
+      tiebreakerResult:overrides.tiebreaker,
+      previousScores,
+      results:overrides.results
     });
-
-    rows.sort((a,b)=>{
-      if(b.correct_count!==a.correct_count) return b.correct_count-a.correct_count;
-      if(a.tb_distance!==b.tb_distance) return a.tb_distance-b.tb_distance;
-      return a.name.localeCompare(b.name);
-    });
-
-    let i=0;
-    while(i<rows.length){
-      let j=i+1;
-      while(j<rows.length && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
-      const tieSize=j-i;
-      const splitPoints=placementPoints.slice(i,j).reduce((sum,v)=>sum+Number(v??0),0)/tieSize;
-      for(let k=i;k<j;k++){
-        const r=rows[k];
-        r.placement=i+1;
-        r.placement_points=splitPoints;
-        r.golf_tie=tieSize>1;
-        r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
-      }
-      i=j;
-    }
-    return {rows,unresolved:[],existingMap};
-  }
-
-  function tieResolverHtml(unresolved){
-    if(!unresolved.length) return '';
-    const w=archiveState.week, orderMap=archiveState.tieOrder[w.id]??={};
-    return '<div class="notice"><b>Exact tiebreaker tie needs your decision</b><div class="muted">The correction created an equal correct-pick count and equal tiebreaker distance. Choose the order; Pick\'em will not guess.</div>'+unresolved.map((u,gi)=>
-      '<div style="margin-top:10px"><b>Tie group '+(gi+1)+'</b>'+u.group.map(r=>{
-        const selected=Number(orderMap[u.key]?.[r.user_id]||0);
-        return '<div class="row" style="padding:7px 0"><span>'+esc(r.name)+'</span><select style="width:180px" data-key="'+esc(u.key)+'" data-user="'+r.user_id+'" onchange="setArchivedTieOrder(this.dataset.key,this.dataset.user,this.value)"><option value="">Choose order</option>'+u.group.map((_,idx)=>'<option value="'+(idx+1)+'" '+(selected===idx+1?'selected':'')+'>'+(idx+1)+(idx===0?'st':idx===1?'nd':idx===2?'rd':'th')+' among tied</option>').join('')+'</select></div>';
-      }).join('')+'</div>').join('')+'</div>';
   }
 
   function previewHtml(data){
@@ -241,28 +179,17 @@
     }
   };
 
-  window.setArchivedTieOrder=function(key,userId,value){
-    const w=archiveState.week; if(!w) return;
-    archiveState.tieOrder[w.id]??={}; archiveState.tieOrder[w.id][key]??={};
-    if(value==='') delete archiveState.tieOrder[w.id][key][userId]; else archiveState.tieOrder[w.id][key][userId]=Number(value);
-    previewArchivedCorrection();
-  };
-
   function scorePayload(w,rows){
-    return rows.map(r=>({week_id:w.id,user_id:r.user_id,placement:r.placement,correct_count:r.correct_count,question_count:r.question_count,
-      pick_percentage:r.pick_percentage,placement_points:r.placement_points,perfect_bonus:r.perfect_bonus,unicorn_bonus:r.unicorn_bonus,
-      upset_bonus:r.upset_bonus,streak_bonus:r.streak_bonus,cold_bonus:r.cold_bonus,total_points:r.total_points,
-      unicorn_count:r.unicorn_count,upset_count:r.upset_count,opening_streak:r.opening_streak,tiebreaker_answer:r.tiebreaker_answer}));
+    return window.RegularScoringCore.scorePayload(w.id,rows);
   }
 
   async function refreshNextPublishedStreak(targetWeek,targetRows){
     const next=await db('weeks?season_id=eq.'+targetWeek.season_id+'&number=gt.'+targetWeek.number+'&phase=eq.regular&status=eq.published&select=id,number,name&order=number.asc&limit=1');
     if(!next[0]) return null;
     const nw=next[0];
-    const qs=(await db('questions?week_id=eq.'+nw.id+'&counts_for_score=eq.true&select=id,result,position,result_order&order=position.asc')).sort((a,b)=>{
-      const ao=a.result_order==null?999999:Number(a.result_order),bo=b.result_order==null?999999:Number(b.result_order);
-      return ao-bo||Number(a.position||0)-Number(b.position||0);
-    });
+    const qs=window.RegularScoringCore.sortScoredQuestions(
+      await db('questions?week_id=eq.'+nw.id+'&counts_for_score=eq.true&select=id,result,position,result_order&order=position.asc')
+    );
     const picks=await db('picks?week_id=eq.'+nw.id+'&select=user_id,question_id,answer');
     const pickMap={}; picks.forEach(p=>{(pickMap[p.user_id]??={})[p.question_id]=p.answer;});
     const scores=await db('week_scores?week_id=eq.'+nw.id+'&select=*');
@@ -273,7 +200,7 @@
       const prevPerfect=!!(prev&&Number(prev.question_count)>0&&Number(prev.correct_count)===Number(prev.question_count));
       let opening=0;
       if(prevPerfect){
-        for(const q of qs){ if(same(pickMap[s.user_id]?.[q.id],q.result)) opening++; else break; }
+        for(const q of qs){ if(window.RegularScoringCore.sameAnswer(pickMap[s.user_id]?.[q.id],q.result)) opening++; else break; }
       }
       const newBonus=opening*0.5, oldBonus=Number(s.streak_bonus||0), total=Number(s.total_points||0)-oldBonus+newBonus;
       updates.push({week_id:nw.id,user_id:s.user_id,opening_streak:opening,streak_bonus:newBonus,total_points:total});
@@ -288,7 +215,6 @@
     try{
       const overrides=readArchiveOverrides();
       const data=await calculateArchivedWeek(overrides);
-      if(data.unresolved.length) return alert('Resolve the exact tiebreaker tie before applying the correction.');
       if(!confirm('Apply these corrected official results to '+w.name+'?')) return;
       for(const q of archiveState.questions.filter(q=>q.counts_for_score!==false)){
         await db('questions?id=eq.'+q.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({result:overrides.results[q.id]})});
