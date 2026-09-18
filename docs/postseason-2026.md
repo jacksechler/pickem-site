@@ -46,7 +46,7 @@ Tuesday setup dates are planning reminders. Regular cards can be created after t
 
 ## Activate and run playoffs
 
-During Tuesday setup on January 12, after all 20 regular cards are published and the Playoff Week 1 lock is confirmed, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds and starting points in one transaction and creates Playoff Week 1. No clock job performs this action.
+During Tuesday setup on January 12, after all 20 regular cards are published and the Playoff Week 1 lock is confirmed, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds, frozen regular-season totals, and one-time starting bonuses (10/8/7/5/4/3/2/0) in one transaction and creates Playoff Week 1. No clock job performs this action.
 
 Every correct scored playoff pick adds exactly one point. No regular-season bonuses or placement points carry into playoff scoring. Championship total equals frozen regular-season points plus playoff correct picks earned through elimination. Current-round tiebreaker distance resolves equal totals; frozen seed resolves exact distance ties. Live ties remain tied while the actual result is pending. A missing submission adds zero; a missing tiebreaker ranks behind a supplied one.
 

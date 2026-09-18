@@ -19,6 +19,9 @@ for(let i=0;i<8;i++) {
 }
 await db.exec(migration);
 await db.exec(await fs.readFile(new URL('../database/postseason_calendar_revision.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20260915142048_playoff_seed_starting_bonus.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20260915162406_playoff_seed_bonus_10_8_7_5_4_3_2_0.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20260918143825_align_playoff_seed_bonus_constraint.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_allow_week_creation_after_completion.sql',import.meta.url),'utf8'));
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
 async function asUser(id,fn) {
@@ -93,7 +96,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   await assert.rejects(action('start',{revision:'stale'}),/changed/);
   wildcard=(await action('start',{revision:preview.revision})).week_id;
   const s=await state(); assert.equal(s.entries.length,8); assert.deepEqual(s.entries.map(r=>r.seed),[1,2,3,4,5,6,7,8]);
-  assert.equal(s.entries[0].regular_season_points,104); assert.equal(s.settings.status,'live');
+  assert.equal(s.entries[0].regular_season_points,104); assert.deepEqual(s.entries.map(r=>Number(r.starting_bonus)),[10,8,7,5,4,3,2,0]); assert.deepEqual(s.entries.map(r=>Number(r.current_total)),[10,8,7,5,4,3,2,0]); assert.equal(s.settings.status,'live');
   await assert.rejects(action('start',{revision:preview.revision}),/already started/);
   await assert.rejects(action('create_round'),/Finalize the current round/);
  });
@@ -122,21 +125,21 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   }
   return questions;
  }
- const qs=await card(wildcard,[8,11,10,9,11,8,9,12]);
+ const qs=await card(wildcard,[8,9,8,8,8,8,8,8]);
  await t.test('all contenders trigger early lock and non-scored questions add zero',async()=>{
   assert.ok((await q('select auto_locked_at from weeks where id=$1',[wildcard]))[0].auto_locked_at);
   await q("update questions set result='\"A\"' where week_id=$1",[wildcard]);
   await q('update weeks set tiebreaker_result=48 where id=$1',[wildcard]);
   const p=await action('preview_round',{week_id:wildcard});
   assert.equal(p.ready,true); assert.equal(p.question_count,13);
-  assert.deepEqual(p.rows.map(r=>Number(r.cumulative_after)),[112,111,106,103,102,96,94,93]);
+  assert.deepEqual(p.rows.map(r=>Number(r.cumulative_after)),[18,17,15,13,12,11,10,8]);
  });
  await t.test('multi-way cut ties wait for the actual tiebreaker, then use distance and fixed seed',async()=>{
   await db.exec('begin');
   const rid=(await q('select id from playoff_rounds where week_id=$1',[wildcard]))[0].id;
   const project=async()=> (await q('select private.playoff_projection($1) value',[rid]))[0].value;
   const current=await project();
-  for(const row of current) await q('update playoff_entries set regular_season_points=$1 where user_id=$2',[100-row.round_correct,row.user_id]);
+  for(const row of current) await q('update playoff_entries set playoff_points=$1 where user_id=$2',[20-Number(row.cumulative_after),row.user_id]);
   await q('update weeks set tiebreaker_result=null where id=$1',[wildcard]);
   assert.ok((await project()).every(r=>r.round_rank===1 && r.cut_tie && r.projected_status==='tiebreaker_pending'));
   await q('update weeks set tiebreaker_result=44 where id=$1',[wildcard]);
@@ -155,7 +158,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal((await state()).entries.filter(e=>e.status==='active').length,8);
   await action('finalize',{week_id:wildcard,revision:p.revision});
   const s=await state(players[1]); assert.equal(s.entries.filter(e=>e.status==='active').length,6);
-  assert.equal(s.entries.find(e=>e.user_id===players[7]).current_total,93);
+  assert.equal(s.entries.find(e=>e.user_id===players[7]).current_total,8);
   const scores=await q('select * from week_scores where week_id=$1',[wildcard]);
   assert.equal(scores.length,8);
   assert.ok(scores.every(x=>Number(x.total_points)===x.correct_count && ['placement_points','perfect_bonus','unicorn_bonus','upset_bonus','streak_bonus','cold_bonus'].every(k=>Number(x[k])===0)));
@@ -182,7 +185,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   const p=await action('preview_round',{week_id:divisional});assert.equal(p.rows.length,6);
   await action('finalize',{week_id:divisional,revision:p.revision});
   const s=await state(); assert.equal(s.entries.filter(e=>e.status==='active').length,4);
-  assert.equal(s.entries.find(e=>e.user_id===players[7]).current_total,93);
+  assert.equal(s.entries.find(e=>e.user_id===players[7]).current_total,8);
   assert.equal(Number((await q('select total_points from week_scores where week_id=$1 and user_id=$2',[divisional,players[7]]))[0].total_points),13);
  });
  let conference=(await action('create_round')).week_id;
