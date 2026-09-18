@@ -18,6 +18,20 @@ for(const id of ['playoffs','playoffBox','playoffSync','playoffsNav','seasoncale
 const build=JSON.parse(await fs.readFile(new URL('app-version.json',root),'utf8')).version;
 assert.ok((await fs.readFile(new URL('app_update.js',root),'utf8')).includes("const BUILD_VERSION = '"+build+"'"));
 
+const coreIndex=modules.indexOf('regular_scoring_core.js');
+const commissionerIndex=modules.indexOf('commissioner_v2.js');
+assert.ok(coreIndex>=0 && commissionerIndex>coreIndex,'Shared scoring core must load before commissioner scoring');
+const commissionerSource=await fs.readFile(new URL('commissioner_v2.js',root),'utf8');
+const archivedSource=await fs.readFile(new URL('archived_week_editor.js',root),'utf8');
+const adminSource=await fs.readFile(new URL('commissioner_admin_tools.js',root),'utf8');
+for(const [name,source] of [['commissioner_v2.js',commissionerSource],['archived_week_editor.js',archivedSource]]){
+  assert.ok(source.includes('RegularScoringCore'),name+' must use the shared regular scoring engine');
+  for(const legacy of ['manualTieOrder','tieResolverHtml','setManualTieOrder','setArchivedTieOrder']){
+    assert.equal(source.includes(legacy),false,name+' still contains obsolete manual tie code: '+legacy);
+  }
+}
+assert.equal(adminSource.includes('resolve the order in the panel below'),false,'Final correction flow still references removed manual tie UI');
+
 // These existing push workflows must neither downgrade the build nor duplicate modules.
 const installers=['patch_weekly_standings.py','patch_potential_unicorn.py','patch_admin_reliability.py','patch_path_to_win.py','patch_archived_week_editor.py','patch_finish_week_controls.py','patch_copy_standings.py','patch_quality_fixes.py'];
 const temp=await fs.mkdtemp(path.join(os.tmpdir(),'pickem-release-'));
