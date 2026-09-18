@@ -1,0 +1,179 @@
+/* Final phone/iPhone pass. Presentation only; scoring and league behavior are unchanged. */
+html { max-width: 100%; overflow-x: hidden; }
+body.clean-ui { min-height: 100dvh; }
+.clean-ui .tablewrap {
+  max-width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+.clean-ui :is(button, .btn, .navbtn, summary) {
+  -webkit-tap-highlight-color: transparent;
+}
+.clean-ui :is(input, select, textarea) {
+  max-width: 100%;
+}
+
+@media (max-width: 820px) {
+  body.clean-ui { width: 100%; overflow-x: hidden; }
+
+  /* Keep iOS from zooming forms and respect notches/home indicators. */
+  .clean-ui :is(input, select, textarea) { font-size: 16px; }
+  .clean-ui .topbar { padding-top: env(safe-area-inset-top); }
+  .clean-ui .topinner {
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+  }
+  .clean-ui .topinner > nav {
+    grid-template-columns: repeat(6, minmax(48px, 1fr));
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .clean-ui main.wrap {
+    width: 100%;
+    max-width: 100%;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  /* Primary actions remain easy to hit with one thumb. */
+  .clean-ui :is(.btn, .answer, .navbtn, summary) { min-height: 44px; }
+  .clean-ui .controls { display: flex; gap: 10px; }
+  .clean-ui .controls .btn { flex: 1 1 0; }
+  .clean-ui .answer { font-size: 1rem; }
+
+  /* Tabs scroll instead of squeezing labels into unreadable widths. */
+  .clean-ui .clean-tabs {
+    width: 100%;
+    max-width: 100%;
+    gap: 18px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+  .clean-ui .clean-tab { scroll-snap-align: start; white-space: nowrap; }
+
+  /* Commissioner: prevent long controls/status rows from escaping the card. */
+  .clean-ui #commissionerBox,
+  .clean-ui #commissionerBox .card,
+  .clean-ui #commissionerBox .row { min-width: 0; max-width: 100%; }
+  .clean-ui #commissionerBox .row { flex-wrap: wrap; }
+  .clean-ui #commissionerBox :is(.ps-actions, .diag-actions, .ls-manager-actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .clean-ui #commissionerBox :is(.ps-actions, .diag-actions, .ls-manager-actions) > .btn {
+    flex: 1 1 150px;
+  }
+  .clean-ui #commissionerDiagnostics .diag-grid { grid-template-columns: 1fr !important; }
+  .clean-ui #questionManager .row > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .clean-ui #questionManager .row > div:last-child .btn { width: 100%; }
+  .clean-ui .player-row { min-width: 0; }
+  .clean-ui .player-row input { width: 100%; }
+
+  /* League pick grids keep their own two-axis scroll surface. */
+  .clean-ui #leagueBox .tablewrap,
+  .clean-ui #historyBox .tablewrap {
+    width: 100%;
+    max-width: calc(100vw - 32px);
+    overscroll-behavior: contain;
+  }
+  .clean-ui #leagueBox .table,
+  .clean-ui #historyBox .table { width: max-content; min-width: 100%; }
+  .clean-ui #leagueBox .table th:not(:first-child),
+  .clean-ui #leagueBox .table td:not(:first-child),
+  .clean-ui #historyBox .table th:not(:first-child),
+  .clean-ui #historyBox .table td:not(:first-child) { min-width: 88px; }
+  .clean-ui #standingsBox .table { min-width: 0; width: 100%; }
+  .clean-ui #standingsBox .table :is(th, td) { white-space: normal; }
+
+  /* GameDay stays single-column and avoids clipped toolbar/table content. */
+  .clean-ui #gameday { min-width: 0; }
+  .gd-toolbar, .gd-actions { flex-wrap: wrap; }
+  .gd-toolbar { align-items: flex-start; }
+  .gd-actions { margin-left: auto; }
+  .gd-columns { min-width: 0; }
+  .gd-table { min-width: 0; }
+  .gd-table th, .gd-table td { overflow-wrap: anywhere; }
+  .gd-your-pick, .gd-rival { min-width: 0; }
+  .gd-your-pick strong, .gd-rival strong { min-width: 0; }
+
+  /* Playoff funnel scrolls horizontally rather than crushing five stages. */
+  .ps-funnel {
+    grid-template-columns: repeat(5, minmax(88px, 1fr));
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .ps-funnel li { min-width: 88px; scroll-snap-align: start; }
+  .clean-ui .ps-personal {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .ps-total { min-width: 0; text-align: left; }
+  .ps-actions > .btn { flex: 1 1 145px; }
+  .ps-calendar-row summary { align-items: flex-start; }
+  .ps-calendar-row .ps-badge { flex-shrink: 0; }
+  #playoffBox .tablewrap,
+  #seasonCalendarBox .tablewrap { max-width: 100%; }
+
+  /* Live-score cards and manager controls wrap cleanly. */
+  .ls-game-bottom { flex-wrap: wrap; align-items: flex-start; }
+  .ls-status { max-width: 55%; }
+  .ls-connected-list > div { min-width: 0; }
+  .ls-connected-list > div > :first-child { min-width: 0; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+  .clean-ui main.wrap {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .clean-ui .card { padding: 16px; }
+  .clean-ui .hero { margin-bottom: 20px; }
+  .clean-ui .hero h1 { font-size: 1.65rem; }
+  .clean-ui .topinner { gap: 10px; }
+  .clean-ui #homePlayer { max-width: 78px; }
+  .clean-ui .navbtn { font-size: .6875rem; padding-left: 1px; padding-right: 1px; }
+  .clean-ui .home-week { padding: 18px; }
+  .clean-ui .pickbox { padding: 18px; min-height: 260px; }
+  .clean-ui .question h2 { font-size: 1.3rem; }
+  .clean-ui .answer { min-height: 60px; padding: 15px 12px; }
+
+  .clean-ui #questionManager .row > div:last-child { grid-template-columns: 1fr 1fr; }
+  .clean-ui #commissionerBox :is(.ps-actions, .diag-actions, .ls-manager-actions) > .btn { flex-basis: 100%; }
+
+  .gd-actions { width: 100%; margin-left: 0; }
+  .gd-actions .btn { flex: 1 1 0; }
+  .gd-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gd-table { font-size: .75rem; }
+  .gd-table th, .gd-table td { padding-left: 4px; padding-right: 4px; }
+  .gd-question > summary, .gd-all-picks > summary { padding-left: 16px; padding-right: 16px; }
+  .gd-answer-groups, .gd-tiebreaker { padding-left: 16px; padding-right: 16px; }
+
+  .ps-actions { gap: 8px; }
+  .ps-actions > .btn { flex-basis: 100%; }
+  .ps-table { min-width: 600px; }
+  .ps-funnel { margin-left: -4px; margin-right: -4px; }
+  .ps-champion { padding-left: 12px !important; padding-right: 12px !important; }
+
+  .ls-grid { grid-template-columns: 1fr; }
+  .ls-status { max-width: 50%; font-size: .75rem; }
+  .ls-team { grid-template-columns: 28px minmax(0,1fr) auto; gap: 8px; }
+  .ls-team img { width: 28px; height: 28px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+  .clean-ui main.wrap { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .clean-ui .topinner > nav { padding-top: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .clean-ui .navbtn { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+}
