@@ -138,13 +138,9 @@
   };
 
   function scorePayload(rows){
-    return rows.map(r=>({
-      week_id:week.id,user_id:r.user_id,placement:r.placement,correct_count:r.correct_count,question_count:r.question_count,
-      pick_percentage:r.pick_percentage,placement_points:r.placement_points,perfect_bonus:r.perfect_bonus,
-      unicorn_bonus:r.unicorn_bonus,upset_bonus:r.upset_bonus,streak_bonus:r.streak_bonus,cold_bonus:r.cold_bonus,
-      total_points:r.total_points,unicorn_count:r.unicorn_count,upset_count:r.upset_count,opening_streak:r.opening_streak,
-      tiebreaker_answer:r.tiebreaker_answer
-    }));
+    const core=window.RegularScoringCore;
+    if(!core) throw new Error('Regular scoring engine did not load.');
+    return core.scorePayload(week.id,rows);
   }
 
   window.saveFinalCorrections=async function(){
@@ -170,10 +166,6 @@
       await renderCommissioner();
       const preview=await window.previewWeekScores?.();
       if(!preview) throw new Error('Could not recalculate scores.');
-      if(preview.unresolved?.length){
-        alert('Corrections are saved. There is an exact tiebreaker tie — resolve the order in the panel below, then use the Publish button to apply the recalculated scores.');
-        return;
-      }
       await db('week_scores?on_conflict=week_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(scorePayload(preview.rows))});
       finalCorrectionMode=false;
       await loadData();
