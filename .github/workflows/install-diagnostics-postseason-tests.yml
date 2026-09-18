@@ -1,0 +1,37 @@
+name: Install diagnostics and postseason tests
+
+on:
+  push:
+    paths:
+      - 'commissioner_diagnostics.js'
+      - 'patch_diagnostics_postseason_tests.py'
+      - 'supabase/migrations/20260915142048_playoff_seed_starting_bonus.sql'
+      - 'supabase/migrations/20260915162406_playoff_seed_bonus_10_8_7_5_4_3_2_0.sql'
+      - 'supabase/migrations/20260918143529_commissioner_diagnostics.sql'
+      - 'supabase/migrations/20260918143825_align_playoff_seed_bonus_constraint.sql'
+      - '.github/workflows/install-diagnostics-postseason-tests.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply diagnostics and test updates
+        run: python patch_diagnostics_postseason_tests.py
+      - name: Commit installed files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html app_update.js app-version.json tests/postseason_db.test.mjs docs/postseason-2026.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add commissioner diagnostics and current postseason stress tests"
+            git push
+          fi
