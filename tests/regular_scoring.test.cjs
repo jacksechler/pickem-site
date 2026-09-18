@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
+const coreSource = fs.readFileSync(require('node:path').join(__dirname, '..', 'regular_scoring_core.js'), 'utf8');
 const source = fs.readFileSync(require('node:path').join(__dirname, '..', 'commissioner_v2.js'), 'utf8');
 
 function buildHarness({questionCount=8, choices, ties, resultOrders, previousScores} = {}) {
@@ -82,6 +83,7 @@ function buildHarness({questionCount=8, choices, ties, resultOrders, previousSco
   };
   context.globalThis=context;
   vm.createContext(context);
+  new vm.Script(coreSource,{filename:'regular_scoring_core.js'}).runInContext(context);
   new vm.Script(source,{filename:'commissioner_v2.js'}).runInContext(context);
 
   return {context,players,questions,picks,submissions,writes,alerts};
