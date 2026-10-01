@@ -146,7 +146,7 @@
     content.querySelectorAll('details[data-gd-key]').forEach(d => { d.open = open.has(d.dataset.gdKey); });
     if (focusedId) $(focusedId)?.focus({preventScroll: true});
     root.scrollTop = scroll.root;
-    if (window.scrollY !== scroll.page) window.scrollTo({top: scroll.page, behavior: 'instant'});
+    if (window.scrollY !== scroll.page) window.scrollTo({top: scroll.page, behavior: 'auto'});
   }
 
   function stop() {
