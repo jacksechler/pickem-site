@@ -76,6 +76,20 @@ body.clean-ui { min-height: 100dvh; }
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .clean-ui #questionManager .row > div:last-child .btn { width: 100%; }
+
+  /* The post-lock editor has two selects on desktop; stack them on phones. */
+  .clean-ui #postLockPickOverride > .grid { grid-template-columns: 1fr !important; }
+  .clean-ui #postLockPickOverride select,
+  .clean-ui #postLockPickOverride input { min-height: 44px; }
+
+  /* Keep the bottom navigation compact and native-feeling on iPhone. */
+  .clean-ui .topinner > nav { scrollbar-width: none; }
+  .clean-ui .topinner > nav::-webkit-scrollbar { display: none; }
+  .clean-ui .nav-secondary-panel {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
   .clean-ui .player-row { min-width: 0; }
   .clean-ui .player-row input { width: 100%; }
 
@@ -176,4 +190,11 @@ body.clean-ui { min-height: 100dvh; }
   .clean-ui main.wrap { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
   .clean-ui .topinner > nav { padding-top: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
   .clean-ui .navbtn { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+}
+
+@media (max-width: 390px) {
+  .clean-ui .topinner { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  .clean-ui .brand { font-size: 1.1rem; }
+  .clean-ui #homePlayer { max-width: 72px; }
+  .clean-ui .sidebar-footer { gap: 8px; }
 }
