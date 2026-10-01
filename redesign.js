@@ -294,7 +294,7 @@
     closeMore();
     updateNavigation(id);
     if (id !== previous) {
-      window.scrollTo({top: 0, behavior: 'instant'});
+      window.scrollTo({top: 0, behavior: 'auto'});
       $(id)?.querySelector('h1')?.focus({preventScroll: true});
     }
     return result;
