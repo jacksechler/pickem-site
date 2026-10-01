@@ -7,6 +7,8 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'mobile_polish.css'),'utf8');
 const postseason=fs.readFileSync(path.join(root,'postseason.js'),'utf8');
+const redesign=fs.readFileSync(path.join(root,'redesign.js'),'utf8');
+const gameday=fs.readFileSync(path.join(root,'gameday.js'),'utf8');
 
 test('mobile polish loads after core page styles',()=>{
   const live=html.indexOf('live_scores.css');
@@ -45,4 +47,19 @@ test('commissioner and GameDay controls wrap on narrow phones',()=>{
 test('playoff confirmation matches the current seed bonuses',()=>{
   assert.ok(postseason.includes('10/8/7/5/4/3/2/0 starting bonuses'));
   assert.equal(postseason.includes('8/6/5/4/3/2/1/0 starting bonuses'),false);
+});
+
+test('secondary mobile navigation keeps the eight-page app reachable',()=>{
+  assert.match(redesign,/more\.id = 'moreNav'/);
+  assert.match(redesign,/panel\.id = 'secondaryNavigation'/);
+  assert.match(redesign,/nav\.querySelectorAll\('\[data-page\]'\)/);
+  assert.match(css,/\.nav-secondary-panel/);
+  assert.match(css,/padding-bottom: max\(12px, env\(safe-area-inset-bottom\)\)/);
+});
+
+test('narrow-phone commissioner and Safari scrolling are hardened',()=>{
+  assert.match(css,/#postLockPickOverride > \.grid \{ grid-template-columns: 1fr !important; \}/);
+  assert.match(css,/@media \(max-width: 390px\)/);
+  assert.match(redesign,/behavior: 'auto'/);
+  assert.match(gameday,/behavior: 'auto'/);
 });
