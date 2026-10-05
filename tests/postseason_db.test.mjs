@@ -78,8 +78,8 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal((await state()).calendar.find(c=>c.slot===1).lock_confirmed,false,'Blueprint confirmation is informational only');
 
   await assert.rejects(
-    q('select commissioner_start_regular_week($1,$2,$3,$4)',
-      [sid,'Week 2 too soon',new Date(Date.now()+3*86400000).toISOString(),'Total points?']),
+    asUser(players[0],()=>q('select commissioner_start_regular_week($1,$2,$3,$4)',
+      [sid,'Week 2 too soon',new Date(Date.now()+3*86400000).toISOString(),'Total points?'])),
     /Finish or publish the current regular-season week first/
   );
 
