@@ -18,7 +18,7 @@
     const labels = {home: 'Home', picks: 'My picks', league: 'League picks', standings: 'Standings', playoffs: 'Playoffs', seasoncalendar: 'Season calendar', stats: 'Stats & records', history: 'Week history', commissioner: 'Commissioner', notificationstatus: 'Notification health'};
     document.querySelectorAll('nav [data-page]').forEach(button => {
       const page = button.dataset.page;
-      const label = mobile.matches ? ({picks: 'Picks', league: 'League'}[page] || labels[page]) : labels[page];
+      const label = mobile.matches ? ({picks: 'Picks', league: 'League', standings: 'Rank', playoffs: 'Playoffs'}[page] || labels[page]) : labels[page];
       if (label && button.textContent !== label) button.textContent = label;
       button.classList.toggle('active', page === navigationId);
       if (page === navigationId) button.setAttribute('aria-current', 'page');
