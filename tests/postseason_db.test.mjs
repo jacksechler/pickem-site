@@ -93,7 +93,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal((await q('select number from weeks where id=$1',[second]))[0].number,2);
   assert.equal((await q('select is_active from weeks where id=$1',[second]))[0].is_active,true);
   assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,false);
-  assert.equal((await q('select setup_date from season_calendar where season_id=$1 and slot=2',[sid]))[0].setup_date,(await q("select (current_date+30)::text as date"))[0].date);
+  assert.equal(new Date((await q('select setup_date from season_calendar where season_id=$1 and slot=2',[sid]))[0].setup_date).toISOString().slice(0,10),(await q("select (current_date+30)::text as date"))[0].date.slice(0,10));
 
   await assert.rejects(
     asUser(players[1],()=>q('select commissioner_start_regular_week($1,$2,$3,$4)',
