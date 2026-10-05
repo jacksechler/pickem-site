@@ -24,6 +24,9 @@ assert.ok(coreIndex>=0 && commissionerIndex>coreIndex,'Shared scoring core must 
 const commissionerSource=await fs.readFile(new URL('commissioner_v2.js',root),'utf8');
 const archivedSource=await fs.readFile(new URL('archived_week_editor.js',root),'utf8');
 const adminSource=await fs.readFile(new URL('commissioner_admin_tools.js',root),'utf8');
+assert.ok(commissionerSource.includes('START NEXT WEEK'));
+assert.ok(commissionerSource.includes('window.Postseason.createNext'));
+assert.ok(commissionerSource.includes('blueprint'));
 for(const [name,source] of [['commissioner_v2.js',commissionerSource],['archived_week_editor.js',archivedSource]]){
   assert.ok(source.includes('RegularScoringCore'),name+' must use the shared regular scoring engine');
   for(const legacy of ['manualTieOrder','tieResolverHtml','setManualTieOrder','setArchivedTieOrder']){
