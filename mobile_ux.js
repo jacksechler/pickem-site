@@ -58,6 +58,7 @@
 
     table.appendChild(holder);
     table.dataset.mobileCardsBuilt = 'true';
+    table.closest('.tablewrap')?.classList.add('mobile-picks-ready');
   }
 
   function enhancePickTables(root){
