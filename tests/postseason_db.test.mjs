@@ -25,6 +25,7 @@ await db.exec(await fs.readFile(new URL('../supabase/migrations/20260918143825_a
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_allow_week_creation_after_completion.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005080900_regular_schedule_blueprint_and_frozen_playoffs.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005081500_finalize_week_blueprint_and_freeze_playoffs.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005083000_restore_postseason_action_execution.sql',import.meta.url),'utf8'));
 await db.exec('grant usage on schema public to authenticated');
 await db.exec('grant execute on all functions in schema public to authenticated');
 await db.exec('grant execute on function public.postseason_action(text,jsonb) to authenticated');
