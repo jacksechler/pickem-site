@@ -71,7 +71,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   const first=(await asUser(players[0],()=>q(
     'select commissioner_start_regular_week($1,$2,$3,$4) value',
     [sid,'Week 1 — Commissioner Choice',new Date(Date.now()+2*86400000).toISOString(),'Total points?']
-  )))[0].value;
+  )))[0].value.week_id;
   assert.equal((await q('select number from weeks where id=$1',[first]))[0].number,1);
   assert.equal((await q('select name from weeks where id=$1',[first]))[0].name,'Week 1 — Commissioner Choice');
   assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,true);
@@ -89,7 +89,7 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   const second=(await asUser(players[0],()=>q(
     'select commissioner_start_regular_week($1,$2,$3,$4) value',
     [sid,'Week 2 — Started Early',new Date(Date.now()+4*86400000).toISOString(),'Total points?']
-  )))[0].value;
+  )))[0].value.week_id;
   assert.equal((await q('select number from weeks where id=$1',[second]))[0].number,2);
   assert.equal((await q('select is_active from weeks where id=$1',[second]))[0].is_active,true);
   assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,false);
