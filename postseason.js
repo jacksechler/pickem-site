@@ -123,10 +123,11 @@
   }
   function calendarHtml(data,existing) {
     const map=new Map(existing.map(w=>[w.number,w]));
-    return '<div class="card ps-calendar-intro"><h2>Weekly season schedule</h2><p>NFL and regular-season CFB share each card. College basketball joins in November; bowls and the CFP follow in December and January.</p><p class="ps-note">Tuesday setup, Thursday lock, and Monday finish are the planned schedule. You can create the next card on any day after the current one is finalized. All dates use Eastern Time. Locks marked “Review” are proposed until you confirm the selected games. Playoffs remain inactive until you start them in January. Semifinals run January 28–February 8 as one extended card. Championship runs February 11–14 and finishes Sunday. There is no off week.</p></div>'+data.calendar.map(c=>{
+    return '<div class="card ps-calendar-intro"><h2>Weekly season schedule</h2><p>NFL and regular-season CFB share each card. College basketball joins in November; bowls and the CFP follow in December and January.</p><p class="ps-note"><b>Regular season:</b> these dates are a blueprint only. You can start the next week whenever you choose and set that week’s own lock time. <b>Playoffs:</b> the four-round schedule and locks are fixed. All dates use Eastern Time. Semifinals run January 28–February 8 as one extended card. Championship runs February 11–14 and finishes Sunday. There is no off week.</p></div>'+data.calendar.map(c=>{
       const w=map.get(c.week_number),special=c.phase!=='regular'||[3,14,19,20].includes(c.week_number);
-      return '<details class="card ps-calendar-row '+(special?'ps-calendar-special':'')+'"><summary><span><b>'+esc(c.label)+'</b><small>'+date(c.starts_on)+'–'+date(c.ends_on)+' · '+esc(c.sports.join(' / ')||'No championship scoring')+'</small></span><span class="ps-badge">'+(w?w.status==='published'?'Final':w.is_active?'Current':'Created':c.phase==='break'?'Off week':c.lock_confirmed?'Ready':'Review')+'</span></summary><div class="ps-calendar-body"><dl><div><dt>Planned setup</dt><dd>Tue, '+date(c.setup_date)+'</dd></div><div><dt>'+(w?'Saved lock':'Proposed lock')+'</dt><dd>'+stamp(w?.lock_at||c.suggested_lock_at)+'</dd></div><div><dt>Card finishes</dt><dd>'+date(c.ends_on)+(c.round_number===4?' · Sunday':' · after Monday games')+'</dd></div></dl><p>'+esc(c.notes)+'</p>'+(c.source_url?'<a href="'+attr(c.source_url)+'" target="_blank" rel="noopener noreferrer">Schedule source</a>':'')+
-        (profile?.role==='commissioner'&&!w&&c.phase!=='break'?'<form class="ps-calendar-form" data-ps-calendar="'+c.slot+'"><label for="psLock'+c.slot+'">Confirm card lock (your device’s local time)</label><input id="psLock'+c.slot+'" name="lock" type="datetime-local" required value="'+attr(c.suggested_lock_at?toLocalInputValue(c.suggested_lock_at):'')+'"><button class="btn secondary" type="submit">Save confirmed lock</button></form>':'')+'</div></details>';
+      const badge=w?(w.status==='published'?'Final':w.is_active?'Current':'Created'):(c.phase==='playoff'?'Fixed':'Blueprint');
+      const lockLabel=c.phase==='playoff'?'Fixed lock':(w?'Saved lock':'Blueprint lock');
+      return '<details class="card ps-calendar-row '+(special?'ps-calendar-special':'')+'"><summary><span><b>'+esc(c.label)+'</b><small>'+date(c.starts_on)+'–'+date(c.ends_on)+' · '+esc(c.sports.join(' / ')||'No championship scoring')+'</small></span><span class="ps-badge">'+badge+'</span></summary><div class="ps-calendar-body"><dl><div><dt>Planned setup</dt><dd>Tue, '+date(c.setup_date)+'</dd></div><div><dt>'+lockLabel+'</dt><dd>'+stamp(w?.lock_at||c.suggested_lock_at)+'</dd></div><div><dt>Card finishes</dt><dd>'+date(c.ends_on)+(c.round_number===4?' · Sunday':' · after Monday games')+'</dd></div></dl><p>'+esc(c.notes)+'</p>'+(c.source_url?'<a href="'+attr(c.source_url)+'" target="_blank" rel="noopener noreferrer">Schedule source</a>':'')+'</div></details>';
     }).join('');
   }
   async function renderCalendar() {
@@ -156,7 +157,6 @@
     }
     let setup='<section class="card" id="postseasonSetup"><div class="eyebrow">SEASON PLAN</div><h2>'+(scheduled?'Postseason ready for January':'Postseason controls')+'</h2><p class="muted">'+(scheduled?'Regular-season scoring is active. Twenty regular-season cards lead into the 8 → 6 → 4 → 2 → 1 postseason.':'Regular-season seeds and one-time starting bonuses are frozen. Every correct playoff pick is worth one point.')+'</p><div class="ps-actions">'+button('Season calendar','calendar');
     if(scheduled)setup+=button('Review starting standings','preview-start');
-    if(scheduled&&week.status==='published'&&Number(week.number)<data.settings.regular_week_count)setup+=button('Create next week','create-regular');
     if(!scheduled&&data.current?.round.status==='finalized'&&data.current.round.round_number<4)setup+=button('Create '+(['','Playoff Week 1','Quarterfinals','Semifinals','Championship'][data.current.round.round_number+1]),'create-round');
     if(!scheduled)setup+=button('Open Playoffs','playoffs');
     setup+='</div><div id="postseasonStartPreview"></div>';
@@ -171,7 +171,7 @@
   }
   function startPreviewHtml(p) {
     const ready=p.date_ready&&p.published_weeks===p.required_weeks&&p.rows.length===8;
-    return '<h3>Starting standings preview</h3><p class="ps-note">'+p.published_weeks+' / '+p.required_weeks+' regular-season weeks published. Final season points determine the seeds; the playoff bonus is awarded once when you confirm.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Reg. pts</th><th>Playoff start</th></tr></thead><tbody>'+p.rows.map(r=>'<tr><td>#'+r.seed+'</td><td>'+esc(r.display_name)+'</td><td>'+fmt(r.points)+'</td><td><b>+'+fmt(seedBonus(r.seed))+'</b></td></tr>').join('')+'</tbody></table></div><p class="ps-note">Seed ties: correct picks, weekly wins, final regular-season tiebreaker distance, then stable account ID. Available from '+stamp(p.start_not_before)+'. Confirm the Playoff Week 1 lock in the calendar first.</p>'+button('Lock Regular Season & Start Playoffs','start',ready?'':'disabled',false);
+    return '<h3>Starting standings preview</h3><p class="ps-note">'+p.published_weeks+' / '+p.required_weeks+' regular-season weeks published. Final season points determine the seeds; the playoff bonus is awarded once when you confirm.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Reg. pts</th><th>Playoff start</th></tr></thead><tbody>'+p.rows.map(r=>'<tr><td>#'+r.seed+'</td><td>'+esc(r.display_name)+'</td><td>'+fmt(r.points)+'</td><td><b>+'+fmt(seedBonus(r.seed))+'</b></td></tr>').join('')+'</tbody></table></div><p class="ps-note">Seed ties: correct picks, weekly wins, final regular-season tiebreaker distance, then stable account ID. Playoff dates and locks are fixed by the season plan. Available from '+stamp(p.start_not_before)+'.</p>'+button('Lock Regular Season & Start Playoffs','start',ready?'':'disabled',false);
   }
   async function beginCorrection(wid) {
     const data=await load(currentSeason(),wid,true),qs=await db('questions?week_id=eq.'+wid+'&select=*&order=position.asc');
@@ -201,9 +201,9 @@
       if(!preview)return;if(!confirm('Freeze the final regular-season standings and award the 10/8/7/5/4/3/2/0 starting bonuses, then open Playoff Week 1?'))return;
       await act('start',{revision:preview.revision});preview=null;await refreshAfterAction();return;
     }
-    if(action==='create-regular'||action==='create-round'){
-      if(!confirm('Open the next card using its confirmed lock time?'))return;
-      await act(action==='create-round'?'create_round':'create_regular_week');step=0;await refreshAfterAction();return;
+    if(action==='create-round'){
+      if(!confirm('Open the next fixed playoff round using its fixed calendar lock?'))return;
+      await act('create_round');step=0;await refreshAfterAction();return;
     }
     if(action==='save-tiebreaker'){
       const value=$('psActual').value;if(value===''||!Number.isFinite(Number(value)))throw new Error('Enter the actual tiebreaker number.');
@@ -281,7 +281,21 @@
   const oldStats=window.renderStats;
   window.renderStats=async function(){const out=await oldStats.apply(this,arguments);try{const data=await load();$('postseasonStats')?.remove();if(data&&data.settings.status!=='scheduled')$('statsBox').insertAdjacentHTML('beforeend','<div id="postseasonStats">'+personal(data,$('statsViewSelect')?.value==='league'?session.user.id:$('statsViewSelect')?.value)+'</div>');}catch{}return out;};
   setInterval(()=>{if(!document.hidden&&session&&!$('playoffs').classList.contains('hidden')&&!correction)renderPage();},20000);
-  window.Postseason={load,raceTable,personal,badge,copyText,live,renderCommissioner,createNext:()=>handle('create-regular',{}),gamedayHtml:data=>personal(data)+raceTable(data)};
+  async function createRegularWeek(payload={}) {
+    if(profile?.role!=='commissioner') throw new Error('Commissioner access required.');
+    if(!payload.name || !payload.lock_at) throw new Error('Choose the new week name and lock time.');
+    const result=await rpc('commissioner_start_regular_week',{
+      p_season_id:currentSeason(),
+      p_name:payload.name,
+      p_lock_at:payload.lock_at,
+      p_tiebreaker_prompt:payload.tiebreaker_prompt||null
+    });
+    cache.clear();
+    await refreshAfterAction();
+    return result;
+  }
+
+  window.Postseason={load,raceTable,personal,badge,copyText,live,renderCommissioner,createNext:createRegularWeek,gamedayHtml:data=>personal(data)+raceTable(data)};
   // The original login boot may finish while the extension scripts are loading.
   if(session&&week) window.renderHome();
 })();
