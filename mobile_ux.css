@@ -1,0 +1,478 @@
+/* Mobile-first polish for an approachable, spacious Pick'em experience.
+   Inspired by friendly learning apps: clear hierarchy, chunky controls, and one task at a time.
+   Presentation only; league rules and data operations stay in the existing modules. */
+
+@media (max-width: 820px) {
+  body.clean-ui {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .clean-ui main.wrap {
+    padding: 20px 16px calc(104px + env(safe-area-inset-bottom));
+    max-width: 760px;
+  }
+
+  /* Keep the header useful without taking over the screen. */
+  .clean-ui .topinner {
+    padding: 11px 16px 9px;
+    gap: 10px;
+  }
+  .clean-ui .brand {
+    font-size: 1.28rem;
+    letter-spacing: -.045em;
+  }
+  .clean-ui .sidebar-footer {
+    gap: 6px;
+    margin-left: auto;
+  }
+  .clean-ui #homePlayer {
+    max-width: 118px;
+    font-size: .8rem;
+  }
+  .clean-ui .sidebar-footer .linkbtn {
+    min-height: 40px;
+    padding: 7px 9px;
+    border-radius: 12px;
+    background: #151e2b;
+    border: 1px solid var(--line);
+  }
+
+  /* Five destinations + More: large, calm targets instead of a cramped tab strip. */
+  .clean-ui .topinner > nav {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    padding: 7px 7px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(10, 15, 23, .98);
+    border-top: 1px solid #263447;
+    box-shadow: 0 -8px 28px rgba(0,0,0,.16);
+  }
+  .clean-ui .navbtn {
+    min-height: 50px;
+    padding: 7px 3px;
+    border-radius: 14px;
+    font-size: .69rem;
+    font-weight: 750;
+    line-height: 1.1;
+    color: #91a0b4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .clean-ui .navbtn.active {
+    background: #1b2c42;
+    color: var(--text);
+    box-shadow: none;
+  }
+  .clean-ui .navbtn:active {
+    transform: translateY(1px);
+  }
+  .clean-ui .nav-secondary-panel {
+    left: 10px;
+    right: 10px;
+    bottom: calc(100% + 9px);
+    padding: 10px;
+    gap: 6px;
+    border-radius: 18px;
+    background: #182231;
+    box-shadow: 0 18px 45px rgba(0,0,0,.34);
+  }
+  .clean-ui .nav-secondary-panel .navbtn {
+    min-height: 48px;
+    padding: 12px 14px;
+    text-align: left;
+    border-radius: 12px;
+    font-size: .82rem;
+  }
+
+  /* Spacious, rounded task cards. */
+  .clean-ui .card {
+    padding: 18px;
+    margin-bottom: 14px;
+    border-radius: 18px;
+  }
+  .clean-ui .hero {
+    margin-bottom: 20px;
+    gap: 10px;
+  }
+  .clean-ui .hero h1 {
+    font-size: 1.9rem;
+    line-height: 1.16;
+    margin: 4px 0 8px;
+  }
+  .clean-ui h2 {
+    font-size: 1.15rem;
+  }
+  .clean-ui .eyebrow {
+    font-size: .7rem;
+    letter-spacing: .11em;
+  }
+  .clean-ui .notice {
+    padding: 14px 15px;
+    border-radius: 14px;
+  }
+
+  /* Make every interaction feel like a primary, easy-to-hit action. */
+  .clean-ui :is(button, input, select, textarea) {
+    min-height: 48px;
+  }
+  .clean-ui .btn {
+    min-height: 50px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: .9rem;
+    font-weight: 800;
+  }
+  .clean-ui .linkbtn {
+    min-height: 44px;
+  }
+  .clean-ui :is(input, select, textarea) {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+  .clean-ui label {
+    margin-top: 16px;
+    font-size: .84rem;
+  }
+
+  /* Home: one obvious action, then two simple status tiles. */
+  .clean-ui .home-week {
+    padding: 20px;
+    border-top-width: 0;
+    border-radius: 20px;
+  }
+  .clean-ui .home-week .hero {
+    margin-bottom: 18px;
+  }
+  .clean-ui .home-week #homeAction {
+    width: 100%;
+    min-height: 54px;
+    border-radius: 16px;
+    font-size: .97rem;
+  }
+  .clean-ui .entry-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 14px;
+  }
+  .clean-ui .entry-strip > span {
+    display: block;
+    padding: 12px 13px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #151e2a;
+  }
+  .clean-ui .entry-strip b {
+    display: block;
+    margin: 2px 0 0;
+    font-size: .95rem;
+  }
+
+  /* Home stats: two relaxed columns; avoid tiny three-up tiles. */
+  .clean-ui #homeDashboardExtra > .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    border-radius: 16px;
+  }
+  .clean-ui #homeDashboardExtra > .grid > .card {
+    padding: 16px 14px;
+  }
+  .clean-ui #homeDashboardExtra > .grid > .card + .card {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .clean-ui #homeDashboardExtra > .grid > .card:nth-child(even) {
+    border-left: 1px solid var(--line);
+  }
+  .clean-ui #homeDashboardExtra > .grid .big {
+    font-size: 1.45rem;
+  }
+
+  /* Task tabs read as friendly segmented controls. */
+  .clean-ui .clean-tabs {
+    gap: 4px;
+    padding: 4px;
+    margin: 0 0 16px;
+    border: 0;
+    border-radius: 15px;
+    background: #141d29;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .clean-ui .clean-tabs::-webkit-scrollbar { display: none; }
+  .clean-ui .clean-tab {
+    min-height: 44px;
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 11px;
+    font-size: .78rem;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+  .clean-ui .clean-tab[aria-selected="true"] {
+    background: #26364b;
+    color: var(--text);
+    box-shadow: 0 1px 0 rgba(255,255,255,.04);
+  }
+  .clean-ui .clean-panel {
+    outline: none;
+  }
+
+  /* Picks: make each decision obvious and comfortable. */
+  .clean-ui #picks {
+    max-width: 680px;
+  }
+  .clean-ui #picks .hero {
+    margin-bottom: 12px;
+  }
+  .clean-ui #picks .hero .muted {
+    font-size: .86rem;
+  }
+  .clean-ui #picks .progress {
+    height: 8px;
+    margin: 0 0 16px;
+    border-radius: 999px;
+    background: #243043;
+  }
+  .clean-ui #picks .progress i {
+    border-radius: 999px;
+  }
+  .clean-ui .pickbox {
+    min-height: 0;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .clean-ui .question h2 {
+    font-size: 1.55rem;
+    line-height: 1.28;
+    margin: 8px 0 14px;
+  }
+  .clean-ui .answers {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    margin-top: 14px;
+  }
+  .clean-ui .answer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 62px;
+    padding: 16px 17px;
+    border-radius: 16px;
+    font-size: .98rem;
+    font-weight: 780;
+    text-align: left;
+  }
+  .clean-ui .answer.selected {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+  }
+  .clean-ui #picks .controls {
+    position: sticky;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    z-index: 20;
+    margin-top: 10px;
+    padding: 9px 0;
+    background: linear-gradient(to bottom, rgba(16,21,30,0), rgba(16,21,30,.96) 34%);
+  }
+  .clean-ui #picks .controls > .btn {
+    flex: 1;
+  }
+
+  /* League Pick grid becomes one question at a time on mobile. */
+  .clean-ui #leagueBox .tablewrap:has(.mobile-pick-cards) {
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+  .clean-ui #leagueBox .tablewrap:has(.mobile-pick-cards) > .table {
+    display: none;
+  }
+  .clean-ui .mobile-pick-cards {
+    display: grid;
+    gap: 12px;
+  }
+  .clean-ui .mobile-pick-card {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--panel);
+  }
+  .clean-ui .mobile-pick-question {
+    margin: 5px 0 13px;
+    font-weight: 800;
+    font-size: .98rem;
+    line-height: 1.4;
+  }
+  .clean-ui .mobile-pick-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+  }
+  .clean-ui .mobile-pick-row span {
+    color: var(--muted);
+    font-size: .82rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .clean-ui .mobile-pick-row b {
+    font-size: .9rem;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  /* Tables still scroll, but the surrounding page no longer feels compressed. */
+  .clean-ui .tablewrap {
+    border-radius: 16px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .clean-ui .table :is(th, td) {
+    padding: 11px 10px;
+  }
+
+  /* Standings/cards get breathing room and a clearer rank hierarchy. */
+  .clean-ui #standingsBox > .card {
+    padding: 17px;
+    border-radius: 17px;
+  }
+  .clean-ui #standingsBox .card [style*="font-size:27px"] {
+    font-size: 1.65rem !important;
+  }
+
+  /* GameDay controls and score cards stack cleanly. */
+  .clean-ui #gameday .gd-toolbar {
+    margin-bottom: 16px;
+  }
+  .clean-ui #gameday .gd-actions {
+    gap: 6px;
+  }
+  .clean-ui #gameday .gd-actions .btn {
+    min-width: 44px;
+    padding-inline: 11px;
+  }
+  .clean-ui #gameday .gd-overview {
+    padding: 20px 18px;
+    border-radius: 20px;
+  }
+  .clean-ui #gameday .gd-question {
+    border-radius: 16px;
+  }
+  .clean-ui #gameday .gd-question > summary {
+    min-height: 58px;
+    padding: 14px 15px;
+  }
+  .clean-ui #gameday .gd-answer {
+    min-height: 48px;
+    border-radius: 13px;
+  }
+
+  /* Playoffs: emphasize the current player and keep the funnel readable. */
+  .clean-ui #playoffs .hero {
+    margin-bottom: 16px;
+  }
+  .clean-ui .ps-heading {
+    gap: 8px;
+  }
+  .clean-ui .ps-personal {
+    padding: 17px;
+    border-radius: 18px;
+  }
+  .clean-ui .ps-total {
+    min-width: 0;
+    font-size: 1.75rem;
+  }
+  .clean-ui .ps-funnel {
+    gap: 7px;
+  }
+  .clean-ui .ps-funnel li {
+    min-height: 58px;
+    padding: 12px 6px;
+    border-radius: 14px;
+  }
+  .clean-ui .ps-funnel b {
+    font-size: 1.35rem;
+  }
+  .clean-ui .ps-schedule .tablewrap {
+    border-radius: 14px;
+  }
+
+  /* Commissioner pages are form-heavy: make each control feel like its own step. */
+  .clean-ui #commissioner .hero {
+    margin-bottom: 14px;
+  }
+  .clean-ui #commissionerBox .clean-panel > .card,
+  .clean-ui #commissionerBox > .card {
+    border-radius: 18px;
+  }
+  .clean-ui .player-row {
+    grid-template-columns: 32px minmax(0,1fr);
+    gap: 8px 12px;
+    padding: 17px 0;
+  }
+  .clean-ui .player-row .slot-status,
+  .clean-ui .player-row .slot-save {
+    grid-column: 2;
+  }
+  .clean-ui .player-row .slot-save .btn {
+    width: 100%;
+  }
+  .clean-ui .diag-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Avoid double-compressed layouts in feature cards. */
+  .clean-ui .feature-record-grid {
+    grid-template-columns: 1fr;
+  }
+  .clean-ui .feature-story-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .clean-ui main.wrap {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .clean-ui .topinner {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .clean-ui #homePlayer {
+    max-width: 92px;
+  }
+  .clean-ui .card {
+    padding: 16px;
+  }
+  .clean-ui .home-week {
+    padding: 17px;
+  }
+  .clean-ui .entry-strip {
+    grid-template-columns: 1fr;
+  }
+  .clean-ui #picks .pickbox {
+    padding: 17px;
+  }
+  .clean-ui .question h2 {
+    font-size: 1.4rem;
+  }
+  .clean-ui .navbtn {
+    font-size: .65rem;
+    min-height: 49px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clean-ui .navbtn:active {
+    transform: none;
+  }
+}
