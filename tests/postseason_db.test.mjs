@@ -25,6 +25,9 @@ await db.exec(await fs.readFile(new URL('../supabase/migrations/20260918143825_a
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_allow_week_creation_after_completion.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005080900_regular_schedule_blueprint_and_frozen_playoffs.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005081500_finalize_week_blueprint_and_freeze_playoffs.sql',import.meta.url),'utf8'));
+await db.exec('grant usage on schema public to authenticated');
+await db.exec('grant execute on function public.postseason_action(text,jsonb) to authenticated');
+await db.exec('grant execute on function public.commissioner_start_regular_week(uuid,text,timestamptz,text) to authenticated');
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
 async function asUser(id,fn) {
  await db.exec('begin; set local role authenticated;');
@@ -63,10 +66,10 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
  await t.test('regular-season schedule is only a blueprint and weeks can start whenever the commissioner chooses',async()=>{
   // The blueprint may still be unconfirmed or already stale; it must not gate regular-week creation.
   await q("update season_calendar set setup_date=current_date+20,starts_on=current_date+22,ends_on=current_date+26,suggested_lock_at=now()-interval '2 days',lock_confirmed=false where season_id=$1 and slot=1",[sid]);
-  const first=(await q(
+  const first=(await asUser(players[0],()=>q(
     'select commissioner_start_regular_week($1,$2,$3,$4) value',
     [sid,'Week 1 — Commissioner Choice',new Date(Date.now()+2*86400000).toISOString(),'Total points?']
-  ))[0].value;
+  )))[0].value;
   assert.equal((await q('select number from weeks where id=$1',[first]))[0].number,1);
   assert.equal((await q('select name from weeks where id=$1',[first]))[0].name,'Week 1 — Commissioner Choice');
   assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,true);
@@ -81,10 +84,10 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   await q("update weeks set status='published',published_at=now() where id=$1",[first]);
   await q("update season_calendar set setup_date=current_date+30,starts_on=current_date+32,ends_on=current_date+36,suggested_lock_at=now()-interval '1 day',lock_confirmed=false where season_id=$1 and slot=2",[sid]);
 
-  const second=(await q(
+  const second=(await asUser(players[0],()=>q(
     'select commissioner_start_regular_week($1,$2,$3,$4) value',
     [sid,'Week 2 — Started Early',new Date(Date.now()+4*86400000).toISOString(),'Total points?']
-  ))[0].value;
+  )))[0].value;
   assert.equal((await q('select number from weeks where id=$1',[second]))[0].number,2);
   assert.equal((await q('select is_active from weeks where id=$1',[second]))[0].is_active,true);
   assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,false);
