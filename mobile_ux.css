@@ -284,7 +284,7 @@
   }
 
   /* League Pick grid becomes one question at a time on mobile. */
-  .clean-ui #leagueBox .tablewrap:has(.mobile-pick-cards) {
+  .clean-ui #leagueBox .tablewrap.mobile-picks-ready {
     overflow: visible !important;
     background: transparent !important;
     border: 0 !important;
