@@ -28,8 +28,7 @@
     return '<div class="card"><div class="eyebrow">COMMISSIONER RESULTS</div><h2>Enter Results</h2><p class="muted">Choose the correct answer for every scored question, then enter the actual tiebreaker result.</p>'+rows+'<label>Actual tiebreaker result</label><input id="actualTiebreaker" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'" placeholder="Final number"><div class="row" style="margin-top:14px;justify-content:flex-start;flex-wrap:wrap"><button class="btn" onclick="saveWeekResults()">Save Results</button><button class="btn secondary" onclick="previewWeekScores()">Calculate Scores</button></div><div id="scorePreview"></div></div>';
   }
   function nextWeekHtml(next){
-    if(window.Postseason) return ''; // The season calendar owns new cards.
-    return '<div class="card"><div class="eyebrow">NEXT WEEK</div><h2>Create Week '+next+'</h2><p class="muted">This archives '+esc(week.name)+' and makes the new week the active week. Old picks and scores stay saved.</p><label>Week number</label><input id="nextWeekNumber" type="number" value="'+next+'"><label>Name</label><input id="nextWeekName" value="Week '+next+'"><label>Lock date & time</label><input id="nextWeekLock" type="datetime-local"><label>Tiebreaker prompt</label><input id="nextWeekTie" value="Total points in the final game?"><button class="btn full" onclick="createNextWeek()">Create & Open Week '+next+'</button></div>';
+    return '<div class="card" id="nextWeekLauncher"><div class="eyebrow">START NEXT WEEK</div><h2>Week '+next+' — whenever you’re ready</h2><p class="muted">The weekly schedule is only a blueprint. Start this next card on any day you choose. The playoff schedule is fixed and is not changed by this.</p><div class="pill">Next regular-season week · '+next+'</div><label>Week name</label><input id="nextWeekName" value="Week '+next+'" placeholder="Week '+next+'"><label>Pick lock date & time</label><input id="nextWeekLock" type="datetime-local"><label>Tiebreaker prompt</label><input id="nextWeekTie" value="Total points in the final game?"><button class="btn full" onclick="createNextWeek()">Start Week '+next+'</button></div>';
   }
 
   window.renderCommissioner = async function(){
@@ -148,34 +147,32 @@
   };
 
   window.createNextWeek = async function(){
-    if(window.Postseason) return window.Postseason.createNext();
     if(!week || week.status!=='published') return alert('Publish the current week first.');
-    const number=Number(el('nextWeekNumber')?.value);
+    const number=Number(week.number)+1;
     const name=(el('nextWeekName')?.value||'').trim();
     const lock=el('nextWeekLock')?.value;
     const tie=(el('nextWeekTie')?.value||'').trim();
-    if(!Number.isInteger(number)||number<1) return alert('Enter a valid week number.');
-    if(!name) return alert('Enter a week name.');
+
+    if(!Number.isInteger(number)||number<1) return alert('Could not determine the next week number.');
+    if(!name) return alert('Enter a name for the new week.');
     if(!lock) return alert('Choose the new week lock date and time.');
-    if(new Date(lock).getTime()<=Date.now()) return alert('The new week lock must be in the future.');
+    const lockDate=new Date(lock);
+    if(!Number.isFinite(lockDate.getTime()) || lockDate.getTime()<=Date.now()) return alert('The new week lock must be in the future.');
     if(!tie) return alert('Enter a tiebreaker prompt.');
-    const oldId=week.id;
+
+    if(!window.Postseason?.createNext) return alert('Please refresh Pick’em and try again.');
+    if(!confirm('Start '+name+' now? The current published week will remain in the history and this will become the active week.')) return;
+
     try{
-      await db('weeks?id=eq.'+oldId,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({is_active:false})});
-      try{
-        await db('weeks',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({season_id:week.season_id,number,name,lock_at:new Date(lock).toISOString(),status:'draft',is_active:true,tiebreaker_prompt:tie})});
-      }catch(inner){
-        await db('weeks?id=eq.'+oldId,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({is_active:true})});
-        throw inner;
-      }
-      step=0;
-      await loadData();
-      renderHome();
-      await renderCommissioner();
-      alert(week.name+' is now open.');
+      await window.Postseason.createNext({
+        name,
+        lock_at:lockDate.toISOString(),
+        tiebreaker_prompt:tie
+      });
+      alert(name+' is now open.');
     }catch(e){
       console.error(e);
-      alert('Could not create the next week. Check that the week number is not already used.');
+      alert(e.message||'Could not start the next week.');
     }
-  };
+  };;
 })();
