@@ -26,6 +26,7 @@ await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_a
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005080900_regular_schedule_blueprint_and_frozen_playoffs.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005081500_finalize_week_blueprint_and_freeze_playoffs.sql',import.meta.url),'utf8'));
 await db.exec('grant usage on schema public to authenticated');
+await db.exec('grant execute on all functions in schema public to authenticated');
 await db.exec('grant execute on function public.postseason_action(text,jsonb) to authenticated');
 await db.exec('grant execute on function public.commissioner_start_regular_week(uuid,text,timestamptz,text) to authenticated');
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
