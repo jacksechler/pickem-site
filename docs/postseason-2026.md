@@ -4,7 +4,7 @@ This release deploys the calendar and playoff code in **scheduled** mode. It doe
 
 The league has 20 regular-season cards because its first two cards preceded NFL Week 1. All dates below are Eastern Time. January and February dates are in 2027.
 
-| Card | Planned Tuesday setup | Games window | Sports | Deadline / exception |
+| Card | Planned Tuesday setup | Games window | Sports | Blueprint deadline / exception |
 |---|---|---|---|---|
 | Week 1 | Aug 25 | Aug 27–Aug 31 | CFB | Existing card and deadline preserved. |
 | Week 2 | Sep 01 | Sep 03–Sep 07 | CFB | Existing card and deadline preserved. |
@@ -26,10 +26,10 @@ The league has 20 regular-season cards because its first two cards preceded NFL 
 | Week 18 | Dec 22 | Dec 24–Dec 28 | NFL, CBB, bowls, CFP | Christmas games and bowls; review start times. |
 | Week 19 | Dec 29 | Dec 30–Jan 04 | NFL, CBB, bowls, CFP | Proposed Wednesday 7:30 p.m. ET lock for Fiesta and Jan 1 CFP quarterfinals. |
 | Week 20 | Jan 05 | Jan 07–Jan 11 | NFL, CBB | NFL Week 18; no TNF/MNF. CBB can use the Thu–Mon window. |
-| Playoff Week 1 · 8 → 6 | Jan 12 | Jan 14–18 | NFL, CFB/CFP, CBB | Proposed Thu 7:30 p.m. ET lock includes CFP semifinals. NFL games Jan 16–18. |
-| Quarterfinals · 6 → 4 | Jan 19 | Jan 21–25 | NFL, CFB/CFP, CBB | NFL Jan 23–24; CFP final Monday Jan 25. Review Thursday CBB lock. |
-| Semifinals · 4 → 2 | Jan 26 | Jan 28–Feb 08 | NFL, CBB | One extended card: initial Thursday lock covers both weeks; final cut Tuesday Feb 9. |
-| Championship · 2 → 1 | Feb 09 | Feb 11–14 | NFL, CBB | Ends Sunday Feb 14. Review Thursday CBB lock; target 15–25 scored questions. |
+| Playoff Week 1 · 8 → 6 | Jan 12 | Jan 14–18 | NFL, CFB/CFP, CBB | **Fixed** Thu 7:30 p.m. ET lock; includes CFP semifinals. NFL games Jan 16–18. |
+| Quarterfinals · 6 → 4 | Jan 19 | Jan 21–25 | NFL, CFB/CFP, CBB | **Fixed** lock; NFL Jan 23–24; CFP final Monday Jan 25. |
+| Semifinals · 4 → 2 | Jan 26 | Jan 28–Feb 08 | NFL, CBB | **Fixed** initial Thursday lock covers both weeks; final cut Tuesday Feb 9. |
+| Championship · 2 → 1 | Feb 09 | Feb 11–14 | NFL, CBB | **Fixed** lock; ends Sunday Feb 14; target 15–25 scored questions. |
 
 ## The member Playoffs tab
 
