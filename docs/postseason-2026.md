@@ -33,22 +33,22 @@ The league has 20 regular-season cards because its first two cards preceded NFL 
 
 ## The member Playoffs tab
 
-Every signed-in member can open **Playoffs** from the main navigation now. Before activation, it explains scoring, cuts, ties, deadlines, and picking for fun, alongside all four round dates and proposed locks. Once competition starts, the same page leads with the live race and keeps the format and schedule available below it. CFB/CFP fits the early rounds; the CFP ends January 25, so the later scheduled windows combine NFL and CBB. The commissioner can still select CFB for any real game within a card.
+Every signed-in member can open **Playoffs** from the main navigation now. Before activation, it explains scoring, cuts, ties, deadlines, and picking for fun, alongside all four fixed round dates and locks. Once competition starts, the same page leads with the live race and keeps the format and fixed schedule available below it. CFB/CFP fits the early rounds; the CFP ends January 25, so the later scheduled windows combine NFL and CBB. The commissioner can still select CFB for any real game within a card.
 
 ## Weekly workflow
 
 1. Publish the current card as soon as its results are complete, on any day of the week.
-2. Open **More → Season calendar**, review the games you want, and confirm the next card's lock. Most cards lock at TNF. College games before that lock are excluded unless you explicitly choose an earlier exception.
-3. In Commissioner, choose **Create next week**. The server requires the preceding card to be published and the next lock to be confirmed and in the future. Calendar setup dates do not delay creation. Add that card's questions and tiebreaker prompt normally.
-4. Scored games normally run through Monday night. Basketball and bowl games on Tuesday or Wednesday belong outside that card, apart from an explicitly reviewed exception such as Fiesta.
+2. When you are ready to start the next regular-season card, open **Commissioner → Start Next Week**. The regular-season calendar is only a blueprint; its setup dates, game windows, suggested locks, and confirmation flags do not gate creation.
+3. Choose the new card's name, its actual pick-lock time, and its tiebreaker prompt. The preceding regular-season card must be published first. The new card immediately becomes active.
+4. Build that card with whatever games and questions you want. The published weekly schedule can be used as a planning reference, not as a required timetable.
 
-Tuesday setup dates are planning reminders. Regular cards can be created after the previous card is published; playoff cards can be created after the previous round is finalized. The calendar is a plan, not a live event feed. Times are proposed until confirmed for the selected questions. Existing Weeks 1–3 keep their saved deadlines. Semifinals continue through February 8 as one card, with every pick due at its initial Thursday lock. February 2 continues that round; do not create another card. Its final cut opens February 9 at 8 a.m. Eastern, after all scored results. Championship ends Sunday, February 14. There is no off week.
+Regular-season cards are launched manually and can start whenever the commissioner chooses. Playoff cards are different: the four playoff rounds and their dates/locks are fixed by the postseason plan and cannot be changed through the commissioner calendar controls. Existing published weeks keep their saved deadlines. Semifinals continue through February 8 as one card, with every pick due at its fixed initial Thursday lock. February 2 continues that round; do not create another card. Its final cut opens February 9 at 8 a.m. Eastern, after all scored results. Championship ends Sunday, February 14. There is no off week.
 
 ## Activate and run playoffs
 
-During Tuesday setup on January 12, after all 20 regular cards are published and the Playoff Week 1 lock is confirmed, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds, frozen regular-season totals, and one-time starting bonuses (10/8/7/5/4/3/2/0) in one transaction and creates Playoff Week 1. No clock job performs this action.
+During the fixed postseason start window on January 12, after all 20 regular cards are published, review the starting standings. **Lock Regular Season & Start Playoffs** saves the eight seeds, frozen regular-season totals, and one-time starting bonuses (10/8/7/5/4/3/2/0) in one transaction and creates Playoff Week 1. No clock job performs this action.
 
-Every correct scored playoff pick adds exactly one point. No regular-season bonuses or placement points carry into playoff scoring. Championship total equals frozen regular-season points plus playoff correct picks earned through elimination. Current-round tiebreaker distance resolves equal totals; frozen seed resolves exact distance ties. Live ties remain tied while the actual result is pending. A missing submission adds zero; a missing tiebreaker ranks behind a supplied one.
+Every correct scored playoff pick adds exactly one point. No regular-season bonuses or placement points carry into playoff scoring. Championship total equals the one-time seed bonus plus playoff correct picks earned while active. Current-round tiebreaker distance resolves equal totals; frozen seed resolves exact distance ties. Live ties remain tied while the actual result is pending. A missing submission adds zero; a missing tiebreaker ranks behind a supplied one.
 
 At the end of each round, enter every scored result and the actual tiebreaker, choose **Calculate playoff standings**, review the cut, and confirm **Finalize round**. The database saves the round, freezes eliminated totals, and advances 6, then 4, then 2, then one champion. Eliminated members can submit for fun until lock. Only the current 8/6/4/2 contenders count toward early auto-lock.
 
