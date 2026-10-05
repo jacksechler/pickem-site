@@ -23,6 +23,8 @@ await db.exec(await fs.readFile(new URL('../supabase/migrations/20260915142048_p
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260915162406_playoff_seed_bonus_10_8_7_5_4_3_2_0.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260918143825_align_playoff_seed_bonus_constraint.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_allow_week_creation_after_completion.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005080900_regular_schedule_blueprint_and_frozen_playoffs.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005081500_finalize_week_blueprint_and_freeze_playoffs.sql',import.meta.url),'utf8'));
 await db.exec('create trigger submissions_auto_lock_week after insert or update on submissions for each row execute function private.auto_lock_week_if_full();');
 async function asUser(id,fn) {
  await db.exec('begin; set local role authenticated;');
@@ -58,24 +60,48 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   await assert.rejects(action('start'),/cannot start yet/);
   assert.equal((await state()).entries.length,0);
  });
- await t.test('regular cards open before planned setup once the previous card is published',async()=>{
-  await assert.rejects(action('create_regular_week'),/Confirm this week/);
-  await q("update season_calendar set setup_date=current_date,starts_on=current_date+2,ends_on=current_date+6 where season_id=$1 and slot=4",[sid]);
-  await action('save_calendar',{slot:4,lock_at:new Date(Date.now()+2*86400000).toISOString()});
-  assert.equal((await state()).calendar.find(c=>c.slot===4).lock_confirmed,true);
-  await q("update season_calendar set setup_date=current_date+2,starts_on=current_date+3,ends_on=current_date+7,suggested_lock_at=now()+interval '3 days',lock_confirmed=true where season_id=$1 and slot=1",[sid]);
-  const first=(await action('create_regular_week')).week_id;
+ await t.test('regular-season schedule is only a blueprint and weeks can start whenever the commissioner chooses',async()=>{
+  // The blueprint may still be unconfirmed or already stale; it must not gate regular-week creation.
+  await q("update season_calendar set setup_date=current_date+20,starts_on=current_date+22,ends_on=current_date+26,suggested_lock_at=now()-interval '2 days',lock_confirmed=false where season_id=$1 and slot=1",[sid]);
+  const first=(await q(
+    'select commissioner_start_regular_week($1,$2,$3,$4) value',
+    [sid,'Week 1 — Commissioner Choice',new Date(Date.now()+2*86400000).toISOString(),'Total points?']
+  ))[0].value;
   assert.equal((await q('select number from weeks where id=$1',[first]))[0].number,1);
-  await assert.rejects(action('create_regular_week'),/Publish the current week/);
+  assert.equal((await q('select name from weeks where id=$1',[first]))[0].name,'Week 1 — Commissioner Choice');
+  assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,true);
+  assert.equal((await state()).calendar.find(c=>c.slot===1).lock_confirmed,false,'Blueprint confirmation is informational only');
+
+  await assert.rejects(
+    q('select commissioner_start_regular_week($1,$2,$3,$4)',
+      [sid,'Week 2 too soon',new Date(Date.now()+3*86400000).toISOString(),'Total points?']),
+    /Finish or publish the current regular-season week first/
+  );
+
   await q("update weeks set status='published',published_at=now() where id=$1",[first]);
-  await q("update season_calendar set setup_date=current_date+9,starts_on=current_date+10,ends_on=current_date+14,suggested_lock_at=now()-interval '1 day',lock_confirmed=true where season_id=$1 and slot=2",[sid]);
-  await assert.rejects(action('create_regular_week'),/Confirm this week/);
-  await q("update season_calendar set suggested_lock_at=now()+interval '10 days' where season_id=$1 and slot=2",[sid]);
-  const second=(await action('create_regular_week')).week_id;
-  const created=await q('select id,number,status,is_active from weeks order by number');
-  assert.deepEqual(created,[{id:first,number:1,status:'published',is_active:false},{id:second,number:2,status:'draft',is_active:true}]);
-  assert.equal((await state()).calendar.find(c=>c.slot===2).setup_date,(await q("select (current_date+9)::text as date"))[0].date);
-  await assert.rejects(asUser(players[0],()=>q("insert into weeks(season_id,number,name,lock_at) values($1,21,'Wrong path',now()+interval '1 day')",[sid])),/season calendar/);
+  await q("update season_calendar set setup_date=current_date+30,starts_on=current_date+32,ends_on=current_date+36,suggested_lock_at=now()-interval '1 day',lock_confirmed=false where season_id=$1 and slot=2",[sid]);
+
+  const second=(await q(
+    'select commissioner_start_regular_week($1,$2,$3,$4) value',
+    [sid,'Week 2 — Started Early',new Date(Date.now()+4*86400000).toISOString(),'Total points?']
+  ))[0].value;
+  assert.equal((await q('select number from weeks where id=$1',[second]))[0].number,2);
+  assert.equal((await q('select is_active from weeks where id=$1',[second]))[0].is_active,true);
+  assert.equal((await q('select is_active from weeks where id=$1',[first]))[0].is_active,false);
+  assert.equal((await q('select setup_date from season_calendar where season_id=$1 and slot=2',[sid]))[0].setup_date,(await q("select (current_date+30)::text as date"))[0].date);
+
+  await assert.rejects(
+    asUser(players[1],()=>q('select commissioner_start_regular_week($1,$2,$3,$4)',
+      [sid,'Member cannot start',new Date(Date.now()+5*86400000).toISOString(),'Total points?'])),
+    /Commissioner/
+  );
+
+  // Playoff calendar rows are fixed; the same save path cannot alter them.
+  await assert.rejects(
+    action('save_calendar',{slot:21,lock_at:new Date(Date.now()+7*86400000).toISOString()}),
+    /Playoff schedule is fixed/
+  );
+
   await q('delete from weeks where id in ($1,$2)',[first,second]);
   assert.equal((await q('select count(*)::integer n from weeks'))[0].n,0);
  });
