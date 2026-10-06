@@ -145,7 +145,7 @@
     },
     leagueBox: {
       label: 'League views',
-      tabs: [['results', 'Weekly standings'], ['picks', 'Pick grid'], ['paths', 'Path to the win'], ['details', 'Details & sharing']],
+      tabs: [['results', 'Weekly standings'], ['picks', 'Pick grid'], ['share', 'Share Grid']],
       initial: () => 'results',
       classify: node => {
         if (node.querySelector('select[onchange*="setLeagueHistoryWeek"]')) return 'toolbar';
@@ -155,7 +155,7 @@
         if (['LIVE WEEK', 'FINAL WEEK'].includes(eyebrow)) return 'context';
         if (node.matches('.notice')) return 'context';
         if (node.querySelector('table th')?.textContent.trim() === 'Question') return 'picks';
-        if (node.matches('.quality-tie-card') || /SCREENSHOT GRID|WHAT JUST HAPPENED/.test(eyebrow || '')) return 'details';
+        if (node.id === 'screenshotGridCard' || /^SCREENSHOT GRID$/.test(eyebrow || '')) return 'share';
         return 'results';
       }
     },
