@@ -24,7 +24,7 @@ test('iPhone form zoom and safe areas are handled',()=>{
 });
 
 test('phone navigation and touch targets stay usable',()=>{
-  assert.match(css,/grid-template-columns: repeat\(6, minmax\(48px, 1fr\)\)/);
+  assert.match(css,/grid-template-columns: repeat\(7, minmax\(44px, 1fr\)/);
   assert.match(css,/:is\(\.btn, \.answer, \.navbtn, summary\) \{ min-height: 44px; \}/);
   assert.match(css,/padding-bottom: calc\(104px \+ env\(safe-area-inset-bottom\)\)/);
 });
