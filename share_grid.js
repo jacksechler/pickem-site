@@ -133,14 +133,22 @@
       b.textContent='Share';
       b.onclick=()=>showPage('sharegrid',b);
       const morePanel=$('secondaryNavigation');
-      if(morePanel) morePanel.appendChild(b); else nav.appendChild(b);
+      const moreButton=$('moreNav');
+      if(moreButton) nav.insertBefore(b,moreButton);
+      else if(morePanel) nav.insertBefore(b,morePanel);
+      else nav.appendChild(b);
     }
+  }
+
+  function markShareActive(){
+    document.querySelectorAll('nav [data-page="sharegrid"]').forEach(b=>b.classList.toggle('active',document.querySelector('.page:not(.hidden)')?.id==='sharegrid'));
   }
 
   const oldShowPage=window.showPage;
   window.showPage=function(id,btn){
     const result=oldShowPage.apply(this,arguments);
     if(id==='sharegrid') renderShare();
+    markShareActive();
     return result;
   };
 
