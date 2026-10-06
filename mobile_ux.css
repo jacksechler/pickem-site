@@ -283,50 +283,28 @@
     flex: 1;
   }
 
-  /* League Pick grid becomes one question at a time on mobile. */
-  .clean-ui #leagueBox .tablewrap.mobile-picks-ready {
-    overflow: visible !important;
-    background: transparent !important;
-    border: 0 !important;
-    padding: 0 !important;
+  /* League Picks is always the full question-by-player matrix on mobile.
+     Never collapse it into one game/player card per question. */
+  .clean-ui #leagueBox .tablewrap,
+  .clean-ui #historyBox .tablewrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
   }
-  .clean-ui #leagueBox .tablewrap:has(.mobile-pick-cards) > .table {
-    display: none;
+  .clean-ui #leagueBox .tablewrap > .table,
+  .clean-ui #historyBox .tablewrap > .table {
+    display: table !important;
+    width: max-content !important;
+    min-width: 1100px !important;
   }
-  .clean-ui .mobile-pick-cards {
-    display: grid;
-    gap: 12px;
-  }
-  .clean-ui .mobile-pick-card {
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: 17px;
-    background: var(--panel);
-  }
-  .clean-ui .mobile-pick-question {
-    margin: 5px 0 13px;
-    font-weight: 800;
-    font-size: .98rem;
-    line-height: 1.4;
-  }
-  .clean-ui .mobile-pick-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: 12px;
-    align-items: center;
-    padding: 10px 0;
-    border-top: 1px solid var(--line);
-  }
-  .clean-ui .mobile-pick-row span {
-    color: var(--muted);
-    font-size: .82rem;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-  .clean-ui .mobile-pick-row b {
-    font-size: .9rem;
-    overflow-wrap: anywhere;
-    text-align: right;
+  .clean-ui #leagueBox .mobile-pick-cards,
+  .clean-ui #historyBox .mobile-pick-cards,
+  .clean-ui #leagueBox .mobile-pick-card,
+  .clean-ui #historyBox .mobile-pick-card {
+    display: none !important;
   }
 
   /* Tables still scroll, but the surrounding page no longer feels compressed. */
