@@ -56,13 +56,15 @@
       holder.appendChild(card);
     });
 
-    table.appendChild(holder);
+    const wrap = table.closest('.tablewrap');
+    if (!wrap) return;
+    wrap.appendChild(holder);
     table.dataset.mobileCardsBuilt = 'true';
-    table.closest('.tablewrap')?.classList.add('mobile-picks-ready');
+    wrap.classList.add('mobile-picks-ready');
   }
 
   function enhancePickTables(root){
-    if(!root) return;
+    if(!root || !mobile.matches) return;
     root.querySelectorAll('.tablewrap > table').forEach(table => {
       buildMobilePickCards(table);
     });
