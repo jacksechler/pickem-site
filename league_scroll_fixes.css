@@ -1,0 +1,55 @@
+/* Final League-page scroll isolation.
+   Weekly standings is a normal document section; only the wide pick matrix gets an inner scroller. */
+
+.clean-ui #leagueBox,
+.clean-ui #leagueBox > .clean-panelset,
+.clean-ui #leagueBox > .clean-panelset > .clean-panel {
+  min-width: 0;
+  overflow: visible !important;
+}
+
+.clean-ui #leagueBox #weeklyStandingsV2 {
+  width: 100%;
+  max-width: 100%;
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: auto !important;
+}
+
+.clean-ui #leagueBox #weeklyStandingsV2 .weekly-standing-desktop,
+.clean-ui #leagueBox #weeklyStandingsV2 .weekly-standing-mobile {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.clean-ui #leagueBox .pick-grid-tablewrap {
+  max-width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.league-page-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 820px) {
+  .clean-ui #leagueBox #weeklyStandingsV2 {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .league-page-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .league-page-actions .btn {
+    flex: 1 1 160px;
+  }
+}
