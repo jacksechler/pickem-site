@@ -136,14 +136,22 @@
     const decidedCount=d.scoredDecided.length;
     const status=isFinal?'Final':'Live';
     let h='<div class="card tablewrap" id="weeklyStandingsV2"><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><div class="eyebrow">WEEKLY STANDINGS</div><h2 style="margin:4px 0">'+esc(d.w?.name||'Week')+' · '+status+'</h2><div class="muted">'+(hasActual?'Ties are broken by closest tiebreaker answer. Actual: <b>'+esc(fmt(actual))+'</b>.':'Tied records stay tied until the actual tiebreaker is entered.')+'</div></div><div class="pill">'+decidedCount+'/'+d.scored.length+' decided</div></div>';
-    h+='<table class="table" style="min-width:720px;margin-top:10px"><thead><tr><th>Place</th><th>Player</th><th>Correct</th><th>Pick Streak</th><th>Tiebreaker</th>'+(isFinal?'<th>Points</th>':'')+'</tr></thead><tbody>';
+    h+='<div class="weekly-standing-desktop"><table class="table" style="min-width:720px;margin-top:10px"><thead><tr><th>Place</th><th>Player</th><th>Correct</th><th>Pick Streak</th><th>Tiebreaker</th>'+(isFinal?'<th>Points</th>':'')+'</tr></thead><tbody>';
     h+=out.rows.map(r=>{
       const place=r.rank>=999?'—':(r.exactTbTie?'T':'#')+r.rank;
       const correct=isFinal?r.correct+'/'+r.questionCount:r.correct+'/'+r.decided;
       const tieNote=r.exactTbTie?'<div class="mini" style="color:var(--gold)">Golf-style tie · placement points split</div>':'';
       return '<tr><td><b>'+place+'</b></td><td><button onclick="openPlayerProfile(\''+r.id+'\')" style="border:0;background:transparent;color:inherit;padding:0;font:inherit;font-weight:950;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(56,189,248,.45);text-underline-offset:3px">'+esc(r.name)+'</button></td><td><b>'+correct+'</b></td><td><b>'+streakLabel(r.streak)+'</b></td><td><b>'+esc(r.tb.label)+'</b>'+tieNote+'</td>'+(isFinal?'<td><b>'+fmt(r.points)+'</b></td>':'')+'</tr>';
     }).join('');
-    h+='</tbody></table><div class="mini" style="margin-top:8px">Pick Streak = consecutive correct picks ending with the most recently decided result.</div></div>';
+    h+='</tbody></table></div>';
+    h+='<div class="weekly-standing-mobile">';
+    h+=out.rows.map(r=>{
+      const place=r.rank>=999?'—':(r.exactTbTie?'T':'#')+r.rank;
+      const correct=isFinal?r.correct+'/'+r.questionCount:r.correct+'/'+r.decided;
+      const tieNote=r.exactTbTie?'<div class="mini" style="color:var(--gold);margin-top:3px">Golf-style tie · points split</div>':'';
+      return '<div class="weekly-standing-row"><div class="weekly-standing-top"><div><span class="weekly-standing-place">'+esc(place)+'</span> <button onclick="openPlayerProfile(\''+r.id+'\')" class="weekly-standing-name">'+esc(r.name)+'</button></div>'+(isFinal?'<b class="weekly-standing-points">'+fmt(r.points)+' pts</b>':'')+'</div><div class="weekly-standing-metrics"><div><span>Correct</span><b>'+esc(correct)+'</b></div><div><span>Pick streak</span><b>'+esc(streakLabel(r.streak))+'</b></div><div><span>Tiebreaker</span><b>'+esc(r.tb.label)+'</b>'+tieNote+'</div></div></div>';
+    }).join('');
+    h+='</div><div class="mini" style="margin-top:8px">Pick Streak = consecutive correct picks ending with the most recently decided result.</div></div>';
     return h;
   }
 
