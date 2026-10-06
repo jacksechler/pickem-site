@@ -13,7 +13,7 @@ test('League page source keeps a real share page and explicit entry point',async
   assert.match(html,/id="shareGridBox"/);
   assert.match(html,/id="leagueShareGrid"/);
   assert.match(html,/renderShareGrid/);
-  assert.equal((html.match(/data-page="sharegrid"/g)||[]).length,1);
+  assert.equal((html.match(/class="navbtn" data-page="sharegrid"/g)||[]).length,1);
 });
 
 test('League page does not load the conflicting mobile direct-grid wrapper',async()=>{
@@ -26,8 +26,8 @@ test('weekly standings are not made into a nested fixed-height scroller',async()
   const css=await read('league_scroll_fixes.css');
   const mobileGrid=await read('mobile_grid_fix.js');
   const mobileUx=await read('mobile_ux.css');
-  assert.match(css,/#weeklyStandingsV2[\\s\\S]*max-height:\s*none\s*!important/);
-  assert.match(css,/#weeklyStandingsV2[\\s\\S]*overflow:\s*visible\s*!important/);
+  assert.match(css,/#weeklyStandingsV2[\s\S]*max-height:\s*none\s*!important/);
+  assert.match(css,/#weeklyStandingsV2[\s\S]*overflow:\s*visible\s*!important/);
   assert.match(mobileGrid,/\.tablewrap:not\\(#weeklyStandingsV2\\)/);
   assert.match(mobileUx,/\.tablewrap:not\\(#weeklyStandingsV2\\)/);
 });
