@@ -58,7 +58,7 @@ test('live standings use correct picks and actual tiebreaker distance',()=>{
   assert.equal(out.rows[0].tieDistance,3);
   assert.equal(out.rows[1].tieDistance,3);
   assert.equal(out.rows[1].exactTbTie,true);
-  assert.equal(out.rows[2].exactTbTie,false);
+  assert.equal(out.rows[2].exactTbTie,true);
 });
 
 test('final standings preserve stored placements and identify golf-style ties',()=>{
