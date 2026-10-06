@@ -4,7 +4,7 @@
   style.textContent = `
     /* Give the full pick grids their own scroll area so sticky player headers work
        on both desktop and mobile. */
-    #leagueBox .tablewrap,
+    #leagueBox .tablewrap:not(#weeklyStandingsV2),
     #historyBox .tablewrap {
       max-height: 72vh;
       overflow: auto !important;
@@ -12,8 +12,8 @@
     }
 
     /* Questions should always scroll normally — never freeze on the left. */
-    #leagueBox .table th:first-child,
-    #leagueBox .table td:first-child,
+    #leagueBox .tablewrap:not(#weeklyStandingsV2) .table th:first-child,
+    #leagueBox .tablewrap:not(#weeklyStandingsV2) .table td:first-child,
     #historyBox .table th:first-child,
     #historyBox .table td:first-child {
       position: static !important;
@@ -23,7 +23,7 @@
     }
 
     /* Keep player names visible at the top on computer and phone. */
-    #leagueBox .table thead th:not(:first-child),
+    #leagueBox .tablewrap:not(#weeklyStandingsV2) .table thead th:not(:first-child),
     #historyBox .table thead th:not(:first-child) {
       position: sticky !important;
       top: 0;
