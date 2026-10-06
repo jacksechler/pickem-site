@@ -61,6 +61,6 @@ test('share text includes the same week and final question row',()=>{
   };
   const text=hooks.gridText(d);
   assert.match(text,/Week 7 Picks/);
-  assert.match(text,/Q30 \| B \|assert.match(text,/Q2 \\| B \\| A/);
+  assert.match(text,/Q2 \| B \| A/);
   assert.match(text,/TB \| 90 \| 100/);
 });
