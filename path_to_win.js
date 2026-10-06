@@ -1,4 +1,6 @@
 // Late-week "Path to the Win" scenario calculator for League Picks.
+// It is intentionally exact, not probabilistic: once four or fewer scored results remain,
+// every possible remaining result combination is evaluated.
 (() => {
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const decided=q=>q.result!==null&&q.result!==undefined;
@@ -43,6 +45,7 @@
       db('picks?week_id=eq.'+id+'&select=user_id,question_id,answer')
     ]);
     const w=wr[0];
+    if(!w) throw new Error('That week could not be found.');
     const pmap=Object.fromEntries(profiles.map(p=>[p.id,p]));
     const subMap=Object.fromEntries(subs.map(s=>[s.user_id,s]));
     const pickMap={};
@@ -93,17 +96,25 @@
         d.remaining.forEach(q=>{ if(same(d.pickMap[id]?.[q.id],s[q.id])) c++; });
         totals[id]=c;
       });
+
       const high=Math.max(...Object.values(totals));
       const top=d.users.filter(id=>totals[id]===high);
+
       if(top.length===1) return {scenario:s,totals,definite:[top[0]],unresolved:[]};
+
       if(hasActual){
         const ds=top.map(id=>[id,tbDistance(d.subMap[id],actual)]);
         const best=Math.min(...ds.map(x=>x[1]));
         const winners=ds.filter(x=>x[1]===best).map(x=>x[0]);
-        return {scenario:s,totals,definite:winners,unresolved:[]};
+        // An exact tiebreaker-distance tie is still unresolved. Do not count both
+        // players as definite scenario winners.
+        if(winners.length===1) return {scenario:s,totals,definite:winners,unresolved:[]};
+        return {scenario:s,totals,definite:[],unresolved:winners};
       }
+
       return {scenario:s,totals,definite:[],unresolved:top};
     });
+
     return {results,base,hasActual,actual};
   }
 
@@ -116,11 +127,18 @@
     const out=[];
     for(const q of remaining){
       const first=opportunities[0].scenario[q.id];
-      if(opportunities.every(x=>same(x.scenario[q.id],first))){
-        out.push({q,value:first});
-      }
+      if(opportunities.every(x=>same(x.scenario[q.id],first))) out.push({q,value:first});
     }
     return out;
+  }
+
+  function waitingHtml(d){
+    return '<div class="card" id="pathToWinCard" style="margin-top:12px">'+
+      '<div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap">'+
+        '<div><div class="eyebrow">PATH TO THE WIN</div><h2 style="margin:4px 0">Path to the Win</h2>'+
+        '<div class="muted">'+esc(String(d.remaining.length))+' scored results remain. Exact scenario checking opens when 4 or fewer remain so the app can evaluate every possible outcome without guessing or using probabilities.</div></div>'+
+        '<div class="pill">Waiting · '+d.remaining.length+' left</div>'+
+      '</div></div>';
   }
 
   function playerCard(d,e,id){
@@ -177,9 +195,13 @@
   function screenHtml(d){
     if(d.w?.phase==='playoff') return '';
     if(!d.w||d.w.status==='published') return '';
-    if(d.remaining.length<1||d.remaining.length>MAX_REMAINING) return '';
+    if(d.remaining.length<1) return '';
+    if(d.remaining.length>MAX_REMAINING) return waitingHtml(d);
+
     const scenarios=buildScenarios(d.remaining);
-    if(!scenarios||!scenarios.length) return '';
+    if(scenarios===null) return waitingHtml(d);
+    if(!scenarios.length) return '';
+
     const e=evaluate(d,scenarios);
     const order=[...d.users].sort((a,b)=>(e.base[b]||0)-(e.base[a]||0)||firstName(d.pmap[a]).localeCompare(firstName(d.pmap[b])));
     const tbNote=e.hasActual
@@ -192,7 +214,7 @@
         '<div class="pill">'+d.remaining.length+' left · '+scenarios.length+' scenario'+(scenarios.length===1?'':'s')+'</div>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:9px;margin-top:13px">'+order.map(id=>playerCard(d,e,id)).join('')+'</div>'+
-      '<div class="mini" style="margin-top:10px">Paths are possible outcome combinations, not probabilities. The screen appears automatically with '+MAX_REMAINING+' or fewer scored results remaining.</div>'+
+      '<div class="mini" style="margin-top:10px">Paths are possible outcome combinations, not probabilities. The screen checks every remaining combination exactly once the late-week threshold is reached.</div>'+
     '</div>';
   }
 
@@ -212,7 +234,7 @@
       const node=temp.firstElementChild;
       if(anchor) anchor.insertAdjacentElement('afterend',node);
       else box.insertAdjacentElement('afterbegin',node);
-    }catch(e){ console.debug('Path to win skipped',e); }
+    }catch(e){ console.error('Path to win',e); }
   }
 
   const baseRenderLeague=window.renderLeague;
@@ -232,6 +254,8 @@
       return v;
     };
   }
+
+  window.PathToWinTestHooks={buildScenarios, tbDistance, evaluate, commonNeeds, screenHtml};
 
   setTimeout(installPathToWin,1800);
 })();
