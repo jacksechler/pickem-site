@@ -57,8 +57,8 @@ test('declares a unique sole winner when a remaining scenario produces one',()=>
     remaining:[{id:'q1'}]
   };
   const result=hooks.evaluate(d,[{q1:'A'}]);
-  assert.deepEqual(result.results[0].definite,['a']);
-  assert.deepEqual(result.results[0].unresolved,[]);
+  assert.deepEqual(Array.from(result.results[0].definite),['a']);
+  assert.deepEqual(Array.from(result.results[0].unresolved),[]);
 });
 
 test('uses the actual tiebreaker to resolve a scenario tie to one player',()=>{
@@ -72,8 +72,8 @@ test('uses the actual tiebreaker to resolve a scenario tie to one player',()=>{
     remaining:[]
   };
   const result=hooks.evaluate(d,[{}]);
-  assert.deepEqual(result.results[0].definite,['b']);
-  assert.deepEqual(result.results[0].unresolved,[]);
+  assert.deepEqual(Array.from(result.results[0].definite),['b']);
+  assert.deepEqual(Array.from(result.results[0].unresolved),[]);
 });
 
 test('does not call an exact tiebreaker-distance tie a definite win',()=>{
@@ -87,8 +87,8 @@ test('does not call an exact tiebreaker-distance tie a definite win',()=>{
     remaining:[]
   };
   const result=hooks.evaluate(d,[{}]);
-  assert.deepEqual(result.results[0].definite,[]);
-  assert.deepEqual(result.results[0].unresolved,['a','b']);
+  assert.deepEqual(Array.from(result.results[0].definite),[]);
+  assert.deepEqual(Array.from(result.results[0].unresolved),['a','b']);
 });
 
 test('without an actual tiebreaker, a tied scenario remains unresolved',()=>{
@@ -102,8 +102,8 @@ test('without an actual tiebreaker, a tied scenario remains unresolved',()=>{
     remaining:[]
   };
   const result=hooks.evaluate(d,[{}]);
-  assert.deepEqual(result.results[0].definite,[]);
-  assert.deepEqual(result.results[0].unresolved,['a','b']);
+  assert.deepEqual(Array.from(result.results[0].definite),[]);
+  assert.deepEqual(Array.from(result.results[0].unresolved),['a','b']);
 });
 
 test('commonNeeds identifies results required in every surviving path',()=>{
@@ -112,7 +112,7 @@ test('commonNeeds identifies results required in every surviving path',()=>{
     {scenario:{q1:'A',q2:'B'}},
     {scenario:{q1:'A',q2:'A'}},
   ];
-  assert.deepEqual(hooks.commonNeeds(opportunities,[q1,q2]),[{q:q1,value:'A'}]);
+  assert.equal(JSON.stringify(hooks.commonNeeds(opportunities,[q1,q2])),JSON.stringify([{q:q1,value:'A'}]));
 });
 
 test('the UI explains the late-week threshold instead of disappearing',()=>{
