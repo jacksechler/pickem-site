@@ -14,6 +14,12 @@ body.clean-ui { min-height: 100dvh; }
   max-width: 100%;
 }
 
+
+/* League Picks stays the full player-by-question matrix on phones. */
+.clean-ui #leagueBox .mobile-pick-cards,
+.clean-ui #historyBox .mobile-pick-cards { display: none !important; }
+.clean-ui #leagueBox .tablewrap.mobile-picks-ready > .table,
+.clean-ui #historyBox .tablewrap.mobile-picks-ready > .table { display: table !important; }
 @media (max-width: 820px) {
   body.clean-ui { width: 100%; overflow-x: hidden; }
 
