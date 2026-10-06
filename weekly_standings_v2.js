@@ -219,4 +219,5 @@
     }catch(e){ console.debug('Tiebreaker change check skipped',e); }
     finally{ watchBusy=false; }
   },5000);
+  window.WeeklyStandingsTestHooks={tbInfo,currentPickStreak,liveRows,finalRows,standingsHtml};
 })();
