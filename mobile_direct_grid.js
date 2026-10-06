@@ -27,7 +27,7 @@
 
     const newWrap = document.createElement('div');
     newWrap.className = 'card tablewrap mobile-direct-grid';
-    newWrap.style.cssText = 'padding:0;width:100%;max-width:100%;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;';
+    newWrap.style.cssText = 'padding:0;width:100%;max-width:100%;overflow:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-height:68vh;touch-action:pan-x pan-y;';
     newWrap.appendChild(matrix.firstElementChild === table ? table : matrix.querySelector('table'));
 
     // Keep only the week selector + actual matrix on phones.
@@ -41,6 +41,9 @@
       finalTable.style.display = 'table';
       finalTable.style.width = 'max-content';
       finalTable.style.minWidth = '1100px';
+      finalTable.style.margin = '0';
+      finalTable.style.borderCollapse = 'separate';
+      finalTable.style.borderSpacing = '0';
     }
   }
 
