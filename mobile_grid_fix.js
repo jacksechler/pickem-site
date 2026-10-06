@@ -33,13 +33,13 @@
     }
 
     @media (max-width: 760px) {
-      #leagueBox .tablewrap,
+      #leagueBox .tablewrap:not(#weeklyStandingsV2),
       #historyBox .tablewrap {
         max-height: 68vh;
       }
 
-      #leagueBox .table th:first-child,
-      #leagueBox .table td:first-child,
+      #leagueBox .tablewrap:not(#weeklyStandingsV2) .table th:first-child,
+      #leagueBox .tablewrap:not(#weeklyStandingsV2) .table td:first-child,
       #historyBox .table th:first-child,
       #historyBox .table td:first-child {
         min-width: 150px;
