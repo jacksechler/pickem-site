@@ -23,7 +23,7 @@
       db('weeks?id=eq.'+id+'&select=*&limit=1'),
       profiles(),
       db('questions?week_id=eq.'+id+'&select=*&order=position.asc'),
-      db('submissions?week_id=eq.'+id+'&select=user_id'),
+      db('submissions?week_id=eq.'+id+'&select=user_id,tiebreaker_answer'),
       db('picks?week_id=eq.'+id+'&select=user_id,question_id,answer')
     ]);
     const w=wr[0];
@@ -31,9 +31,10 @@
     const users=subs.map(s=>s.user_id).filter(id=>pmap[id]).sort((a,b)=>
       String(pmap[a]?.display_name||pmap[a]?.username||'').localeCompare(String(pmap[b]?.display_name||pmap[b]?.username||''))
     ).slice(0,8);
+    const subMap=Object.fromEntries(subs.map(s=>[s.user_id,s]));
     const pickMap={};
     picks.forEach(p => { (pickMap[p.user_id]??={})[p.question_id]=p.answer; });
-    return {week:w,profiles:ps,pmap,questions:qs,users,pickMap};
+    return {week:w,profiles:ps,pmap,questions:qs,users,pickMap,subMap};
   }
 
   function firstName(p){
