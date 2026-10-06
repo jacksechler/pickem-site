@@ -285,7 +285,7 @@
 
   /* League Picks is always the full question-by-player matrix on mobile.
      Never collapse it into one game/player card per question. */
-  .clean-ui #leagueBox .tablewrap,
+  .clean-ui #leagueBox .tablewrap:not(#weeklyStandingsV2),
   .clean-ui #historyBox .tablewrap {
     width: 100%;
     max-width: 100%;
@@ -294,7 +294,7 @@
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
   }
-  .clean-ui #leagueBox .tablewrap > .table,
+  .clean-ui #leagueBox .tablewrap:not(#weeklyStandingsV2) > .table,
   .clean-ui #historyBox .tablewrap > .table {
     display: table !important;
     width: max-content !important;
