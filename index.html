@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="live_scores.css?v=1">\n<link rel="stylesheet" href="mobile_ux.css?v=3">
 <link rel="stylesheet" href="mobile_polish.css?v=2">
 <link rel="stylesheet" href="share_grid.css?v=3">
+<link rel="stylesheet" href="league_scroll_fixes.css?v=1">
 </head>
 <body class="clean-ui">
 <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -56,8 +57,8 @@
   </div>
 </section>
 <section id="picks" class="page hidden"><div class="hero"><div><div id="picksWeek" class="eyebrow">CURRENT WEEK</div><h1>Make Picks</h1><div class="muted">Your picks stay private until the week locks.</div></div></div><div class="progress"><i id="progressBar"></i></div><div id="pickBox" class="card pickbox"></div><div class="row controls"><button class="btn secondary" onclick="previousPick()">← Back</button><button id="nextPickBtn" class="btn secondary" onclick="nextPick()">Next →</button></div></section>
-<section id="league" class="page hidden"><div class="hero"><div><div class="eyebrow">YOUR LEAGUE</div><h1>League picks</h1></div><button id="openGameDay" class="btn" type="button" hidden>Open GameDay</button></div><div id="leagueBox"></div></section>
-<section id="sharegrid" class="page hidden" aria-labelledby="shareGridTitle"><div class="hero"><div><div class="eyebrow">SHARE WITH THE LEAGUE</div><h1 id="shareGridTitle">Share Grid</h1><div class="muted">The compact screenshot-friendly picks board.</div></div></div><div id="shareGridBox"></div></section>
+<section id="league" class="page hidden"><div class="hero"><div><div class="eyebrow">YOUR LEAGUE</div><h1>League picks</h1></div><div class="league-page-actions"><button id="leagueShareGrid" class="btn secondary" type="button" onclick="showPage('sharegrid',document.querySelector('[data-page="sharegrid"]'))">Share Grid</button><button id="openGameDay" class="btn" type="button" hidden>Open GameDay</button></div></div><div id="leagueBox"></div></section>
+<section id="sharegrid" class="page hidden" aria-labelledby="shareGridTitle"><div class="hero"><div><div class="eyebrow">SHARE WITH THE LEAGUE</div><h1 id="shareGridTitle">Share Grid</h1><div class="muted">The compact screenshot-friendly picks board.</div></div></div><div id="shareGridBox"><div class="card muted">Loading Share Grid…</div></div></section>
 <section id="gameday" class="page hidden" aria-labelledby="gameDayTitle">
   <div class="gd-toolbar"><button class="linkbtn" type="button" data-gd-action="back">← League picks</button><div class="gd-actions"><button id="gdRefresh" class="btn secondary" type="button" data-gd-action="refresh">Refresh</button><button id="gdFullscreen" class="btn secondary" type="button" data-gd-action="fullscreen" aria-pressed="false">Full screen</button></div></div>
   <div class="gd-heading"><div><div id="gdWeek" class="eyebrow">YOUR LEAGUE</div><h1 id="gameDayTitle" tabindex="-1">GameDay</h1></div><p id="gdSync" class="gd-sync" role="status">Loading…</p></div>
@@ -144,7 +145,6 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="live_scores.js?v=3"></script>
 <script src="post_lock_override.js?v=1"></script>
 <script src="commissioner_diagnostics.js?v=1"></script>\n<script src="mobile_ux.js?v=4"></script>
-<script src="mobile_direct_grid.js?v=2"></script>
 <script src="share_grid.js?v=4"></script>
 </body>
 </html>
