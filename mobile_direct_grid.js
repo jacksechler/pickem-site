@@ -10,6 +10,7 @@
     if (!mobile.matches) return;
     const box = document.getElementById('leagueBox');
     if (!box) return;
+    if (box.querySelector('.mobile-direct-grid')) return;
 
     const tables = [...box.querySelectorAll('table')];
     const table = tables.find(t => (t.querySelector('thead th')?.textContent || '').trim() === 'Question');
