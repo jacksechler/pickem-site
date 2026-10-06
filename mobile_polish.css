@@ -31,7 +31,7 @@ body.clean-ui { min-height: 100dvh; }
     padding-right: max(14px, env(safe-area-inset-right));
   }
   .clean-ui .topinner > nav {
-    grid-template-columns: repeat(6, minmax(48px, 1fr));
+    grid-template-columns: repeat(7, minmax(44px, 1fr));
     padding-left: max(6px, env(safe-area-inset-left));
     padding-right: max(6px, env(safe-area-inset-right));
     padding-bottom: max(8px, env(safe-area-inset-bottom));
