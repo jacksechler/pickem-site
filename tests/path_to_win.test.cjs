@@ -52,7 +52,7 @@ test('declares a unique sole winner when a remaining scenario produces one',()=>
     users:['a','b'],
     pmap:{a:{display_name:'Alice'},b:{display_name:'Bob'}},
     subMap:{a:{tiebreaker_answer:90},b:{tiebreaker_answer:110}},
-    pickMap:{a:{},b:{}},
+    pickMap:{a:{q1:'A'},b:{q1:'B'}},
     done:[],
     remaining:[{id:'q1'}]
   };
