@@ -24,7 +24,7 @@
       if (page === navigationId) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     });
-    const secondary = !['home', 'picks', 'league', 'standings', 'playoffs', 'player'].includes(navigationId);
+    const secondary = !['home', 'picks', 'league', 'standings', 'playoffs', 'sharegrid', 'player'].includes(navigationId);
     $('moreNav')?.classList.toggle('active', secondary);
     const page = $(id);
     page?.querySelectorAll('h1').forEach(heading => { heading.tabIndex = -1; });
@@ -45,7 +45,7 @@
     panel.id = 'secondaryNavigation';
     panel.className = 'nav-secondary-panel';
     nav.querySelectorAll('[data-page]').forEach(button => {
-      if (!['home', 'picks', 'league', 'standings', 'playoffs'].includes(button.dataset.page)) panel.appendChild(button);
+      if (!['home', 'picks', 'league', 'standings', 'playoffs', 'sharegrid'].includes(button.dataset.page)) panel.appendChild(button);
     });
     nav.append(more, panel);
     more.addEventListener('click', () => {
