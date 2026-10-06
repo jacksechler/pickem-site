@@ -81,7 +81,7 @@
       h+='</tr>';
     });
     h+='<tr class="tb"><th>TB</th>';
-    users.forEach(id=>h+='<td>'+escShare('—')+'</td>');
+    users.forEach(id=>h+='<td>'+escShare(compactValue(d.subMap?.[id]?.tiebreaker_answer))+'</td>');
     h+='</tr></tbody></table></div>';
     h+='<div class="share-grid-legend"><span>✓ Correct</span><span>✕ Wrong</span><span>Neutral = undecided</span></div>';
     h+='</div>';
