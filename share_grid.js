@@ -194,17 +194,6 @@
 
   window.renderShareGrid=renderShare;
 
-  // Render the standalone Share Grid when the user navigates to its page.
-  // The core showPage() function only changes visibility; without this hook the
-  // page opens to an empty shareGridBox because the renderer runs only at load time.
-  const originalShowPage=window.showPage;
-  if(typeof originalShowPage==='function'){
-    window.showPage=function(id,btn){
-      const result=originalShowPage.apply(this,arguments);
-      if(id==='sharegrid') requestAnimationFrame(() => renderShare());
-      return result;
-    };
-  }
   window.ShareGridTestHooks={compactValue,gridText,renderGrid};
 
   ensureSharePage();
