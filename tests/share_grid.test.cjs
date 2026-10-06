@@ -36,7 +36,7 @@ const hooks=loadHooks();
 test('share grid renders all eight players and a long weekly grid',()=>{
   const users=Array.from({length:8},(_,i)=>'p'+i);
   const pmap=Object.fromEntries(users.map((id,i)=>[id,{display_name:['Jack','Cade','Brody','Chase','Evan','Jackson','Klay','Lincoln'][i]}]));
-  const questions=Array.from({length:30},(_,i)=>({id:'q'+(i+1),position:i+1,counts_for_score:true,result:i===0?'A':null,answer_options:['A','B']}));
+  const questions=Array.from({length:30},(_,i)=>({id:'q'+(i+1),position:i+1,counts_for_score:true,result:i<2?'A':null,answer_options:['A','B']}));
   const pickMap=Object.fromEntries(users.map(id=>[id,Object.fromEntries(questions.map(q=>[q.id,q.id==='q1'?'A':'B']))]));
   const subMap=Object.fromEntries(users.map((id,i)=>[id,{tiebreaker_answer:100+i}]));
   const html=hooks.renderGrid({week:{name:'Week 7'},users,pmap,questions,pickMap,subMap});
