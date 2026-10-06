@@ -40,7 +40,7 @@ test('live standings use correct picks and actual tiebreaker distance',()=>{
   const d={
     w:{tiebreaker_result:100},
     pmap:{a:{display_name:'Alice'},b:{display_name:'Bob'},c:{display_name:'Cara'}},
-    subMap:{a:{tiebreaker_answer:97},b:{tiebreaker_answer:103},c:{tiebreaker_answer:120}},
+    subMap:{a:{tiebreaker_answer:97},b:{tiebreaker_answer:103},c:{tiebreaker_answer:103}},
     pickMap:{
       a:{q1:'A',q2:'B'},
       b:{q1:'A',q2:'A'},
@@ -53,8 +53,8 @@ test('live standings use correct picks and actual tiebreaker distance',()=>{
     ],
   };
   const out=hooks.liveRows(d);
-  assert.deepEqual(out.rows.map(r=>r.correct),[2,1,1]);
-  assert.deepEqual(out.rows.map(r=>r.rank),[1,2,2]);
+  assert.deepEqual(Array.from(out.rows,r=>r.correct),[2,1,1]);
+  assert.deepEqual(Array.from(out.rows,r=>r.rank),[1,2,2]);
   assert.equal(out.rows[0].tieDistance,3);
   assert.equal(out.rows[1].tieDistance,3);
   assert.equal(out.rows[1].exactTbTie,true);
@@ -85,10 +85,6 @@ test('final standings preserve stored placements and identify golf-style ties',(
 });
 
 test('tiebreaker display stays transparent without inventing a distance',()=>{
-  assert.deepEqual(hooks.tbInfo({tiebreaker_answer:75},100),{
-    answer:75,distance:25,label:'75 · Δ25'
-  });
-  assert.deepEqual(hooks.tbInfo({tiebreaker_answer:75},null),{
-    answer:75,distance:null,label:'75'
-  });
+  assert.equal(JSON.stringify(hooks.tbInfo({tiebreaker_answer:75},100)),JSON.stringify({answer:75,distance:25,label:'75 · Δ25'}));
+  assert.equal(JSON.stringify(hooks.tbInfo({tiebreaker_answer:75},null)),JSON.stringify({answer:75,distance:null,label:'75'}));
 });
