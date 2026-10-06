@@ -40,7 +40,7 @@ test('enumerates every outcome for up to four binary remaining results',()=>{
 });
 
 test('stops exact scenario enumeration when more than 128 combinations exist',()=>{
-  const qs=Array.from({length:5},(_,i)=>({id:'q'+i,answer_options:['A','B']}));
+  const qs=Array.from({length:8},(_,i)=>({id:'q'+i,answer_options:['A','B']}));
   assert.equal(hooks.buildScenarios(qs),null);
   const fourChoice=Array.from({length:4},(_,i)=>({id:'q'+i,answer_options:['A','B','C','D']}));
   assert.equal(hooks.buildScenarios(fourChoice),null);
