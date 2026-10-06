@@ -204,3 +204,23 @@ body.clean-ui { min-height: 100dvh; }
   .clean-ui #homePlayer { max-width: 72px; }
   .clean-ui .sidebar-footer { gap: 8px; }
 }
+
+
+/* Weekly standings: use compact stacked rows on phones so every field is visible
+   without sideways scrolling. */
+.weekly-standing-mobile{display:none}
+@media(max-width:700px){
+  .clean-ui #weeklyStandingsV2{overflow:visible!important}
+  .clean-ui #weeklyStandingsV2 .weekly-standing-desktop{display:none}
+  .clean-ui #weeklyStandingsV2 .weekly-standing-mobile{display:grid;gap:9px}
+  .clean-ui .weekly-standing-row{padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
+  .clean-ui .weekly-standing-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .clean-ui .weekly-standing-place{display:inline-flex;min-width:38px;justify-content:center;font-weight:950}
+  .clean-ui .weekly-standing-name{border:0;background:transparent;color:var(--text);padding:0;font:inherit;font-weight:950;text-decoration:underline;text-decoration-color:rgba(56,189,248,.45);text-underline-offset:3px;cursor:pointer}
+  .clean-ui .weekly-standing-points{white-space:nowrap;color:var(--accent)}
+  .clean-ui .weekly-standing-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px}
+  .clean-ui .weekly-standing-metrics>div{min-width:0;padding:8px;border:1px solid var(--line);border-radius:10px;background:#111b29}
+  .clean-ui .weekly-standing-metrics span{display:block;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-bottom:2px}
+  .clean-ui .weekly-standing-metrics b{display:block;overflow-wrap:anywhere}
+  .clean-ui .weekly-standing-metrics>div:last-child{grid-column:1/-1}
+}
