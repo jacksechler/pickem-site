@@ -28,8 +28,8 @@ test('weekly standings are not made into a nested fixed-height scroller',async()
   const mobileUx=await read('mobile_ux.css');
   assert.match(css,/#weeklyStandingsV2[\s\S]*max-height:\s*none\s*!important/);
   assert.match(css,/#weeklyStandingsV2[\s\S]*overflow:\s*visible\s*!important/);
-  assert.match(mobileGrid,/\.tablewrap:not\\(#weeklyStandingsV2\\)/);
-  assert.match(mobileUx,/\.tablewrap:not\\(#weeklyStandingsV2\\)/);
+  assert.ok(mobileGrid.includes('#leagueBox .tablewrap:not(#weeklyStandingsV2)'));
+  assert.ok(mobileUx.includes('#leagueBox .tablewrap:not(#weeklyStandingsV2)'));
 });
 
 test('League uses the full pick matrix while weekly standings remain separate',async()=>{
