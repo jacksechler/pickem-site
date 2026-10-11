@@ -10,6 +10,8 @@
     const opts=Array.isArray(q.answer_options)?q.answer_options:[];
     return opts.findIndex(v=>sameAnswer(v,q.result));
   }
+  function tieResultValue(){ return window.RegularScoringCore?.tieResult || 'Tie / no winner'; }
+  function tieSentinelValue(){ return window.RegularScoringCore?.tieSentinel || '__pickem_tie_result__'; }
   function resultPanelHtml(){
     if(!week || week.phase==='playoff') return '';
     if(week.status==='published'){
@@ -22,8 +24,9 @@
     const rows=questions.map((q,i)=>{
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
       const selected=resultIndex(q);
-      const options=['<option value="">Select winner / result</option>'].concat(opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===selected?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>')).join('');
-      return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="mini">'+esc(q.sport||'Other')+' · Question '+(i+1)+'</div><b>'+esc(q.prompt)+'</b><select id="result_'+q.id+'" style="margin-top:8px">'+options+'</select></div>';
+      const options=['<option value="">Select winner / result</option>'].concat(opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===selected?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>'));
+      if(!opts.some(v=>sameAnswer(v,tieResultValue()))) options.push('<option value="'+tieSentinelValue()+'" '+(sameAnswer(q.result,tieResultValue())?'selected':'')+'>Tie / no winner (neither team gets credit)</option>');
+      return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="mini">'+esc(q.sport||'Other')+' · Question '+(i+1)+'</div><b>'+esc(q.prompt)+'</b><select id="result_'+q.id+'" style="margin-top:8px">'+options.join('')+'</select></div>';
     }).join('');
     return '<div class="card"><div class="eyebrow">COMMISSIONER RESULTS</div><h2>Enter Results</h2><p class="muted">Choose the correct answer for every scored question, then enter the actual tiebreaker result.</p>'+rows+'<label>Actual tiebreaker result</label><input id="actualTiebreaker" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'" placeholder="Final number"><div class="row" style="margin-top:14px;justify-content:flex-start;flex-wrap:wrap"><button class="btn" onclick="saveWeekResults()">Save Results</button><button class="btn secondary" onclick="previewWeekScores()">Calculate Scores</button></div><div id="scorePreview"></div></div>';
   }
@@ -47,7 +50,8 @@
       const sel=el('result_'+q.id);
       if(!sel || sel.value==='') return alert('Choose a result for every scored question.');
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
-      updates.push([q.id,opts[Number(sel.value)]]);
+      const result=sel.value===tieSentinelValue()?tieResultValue():opts[Number(sel.value)];
+      updates.push([q.id,result]);
     }
     const tb=el('actualTiebreaker')?.value;
     if(tb==='' || tb==null) return alert('Enter the actual tiebreaker result.');
