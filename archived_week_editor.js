@@ -12,8 +12,8 @@
     const sport=String(q?.sport||'').trim().toUpperCase();
     if(sport!=='NFL' || !Array.isArray(opts) || opts.length!==2 || opts.some(v=>typeof v!=='string')) return false;
     const text=[q?.prompt,...opts].join(' ');
-    if(/\\bspread\\b/i.test(text) || opts.some(v=>/\\b(?:yes|no|over|under|both|neither)\\b/i.test(v))) return false;
-    if(opts.some(v=>/[+-]\\s*\\d+(?:\\.\\d+)?\\s*$/.test(v))) return false;
+    if(/\bspread\b/i.test(text) || opts.some(v=>/\b(?:yes|no|over|under|both|neither)\b/i.test(v))) return false;
+    if(opts.some(v=>/[+-]\s*\d+(?:\.\d+)?\s*$/.test(v))) return false;
     return true;
   }
 
