@@ -118,6 +118,17 @@
     }
   };
 
+  function tieResultValue(){ return window.RegularScoringCore?.tieResult || 'Tie / no winner'; }
+  function tieSentinelValue(){ return window.RegularScoringCore?.tieSentinel || '__pickem_tie_result__'; }
+  function tieEligible(q,opts){
+    const sport=String(q?.sport||'').trim().toUpperCase();
+    if(sport!=='NFL' || !Array.isArray(opts) || opts.length!==2 || opts.some(v=>typeof v!=='string')) return false;
+    const text=[q?.prompt,...opts].join(' ');
+    if(/\\bspread\\b/i.test(text) || opts.some(v=>/\\b(?:yes|no|over|under|both|neither)\\b/i.test(v))) return false;
+    if(opts.some(v=>/[+-]\\s*\\d+(?:\\.\\d+)?\\s*$/.test(v))) return false;
+    return true;
+  }
+
   function liveResultsPanel(){
     if(!week || profile?.role!=='commissioner' || week.status==='published' || !locked()) return '';
     const scored=[...questions].filter(q=>q.counts_for_score!==false).sort((a,b)=>Number(a.position||0)-Number(b.position||0));
@@ -126,8 +137,11 @@
     scored.forEach((q,i)=>{
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
       const current=opts.findIndex(v=>same(v,q.result));
+      const tieOption=tieEligible(q,opts) && !opts.some(v=>same(v,tieResultValue()))
+        ? '<option value="'+tieSentinelValue()+'" '+(same(q.result,tieResultValue())?'selected':'')+'>Tie / no winner (neither team gets credit)</option>'
+        : (same(q.result,tieResultValue())?'<option value="'+tieSentinelValue()+'" selected>Tie / no winner (neither team gets credit)</option>':'');
       const order=q.result_order?'<span class="pill good">Result #'+q.result_order+'</span>':'<span class="pill">Pending</span>';
-      h+='<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="gap:12px;align-items:center"><div style="min-width:0"><div class="mini">'+esc(q.sport||'Other')+' · Q'+(i+1)+'</div><b>'+esc(q.prompt)+'</b></div>'+order+'</div><div style="display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:8px"><select id="live_result_'+q.id+'"><option value="">Select result</option>'+opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===current?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>').join('')+'</select><button class="btn" onclick="saveSingleResult(\''+q.id+'\')">Save</button></div></div>';
+      h+='<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="gap:12px;align-items:center"><div style="min-width:0"><div class="mini">'+esc(q.sport||'Other')+' · Q'+(i+1)+'</div><b>'+esc(q.prompt)+'</b></div>'+order+'</div><div style="display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:8px"><select id="live_result_'+q.id+'"><option value="">Select result</option>'+opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===current?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>').join('')+tieOption+'</select><button class="btn" onclick="saveSingleResult(\''+q.id+'\')">Save</button></div></div>';
     });
     h+='<div style="margin-top:14px"><label>Actual tiebreaker result <span class="muted">(can be saved whenever it is known)</span></label><div style="display:grid;grid-template-columns:1fr auto;gap:9px"><input id="liveActualTiebreaker" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'" placeholder="Final number"><button class="btn secondary" onclick="saveLiveTiebreaker()">Save</button></div></div></div>';
     return h;
@@ -139,7 +153,8 @@
     const sel=el('live_result_'+questionId);
     if(!q || !sel || sel.value==='') return alert('Choose the result first.');
     const opts=Array.isArray(q.answer_options)?q.answer_options:[];
-    const result=opts[Number(sel.value)];
+    const result=sel.value===tieSentinelValue()?tieResultValue():opts[Number(sel.value)];
+    if(sel.value===tieSentinelValue() && !tieEligible(q,opts)) return alert('Tie / no winner is only available for straight-up NFL team-winner questions.');
     const existingOrder=q.result_order==null?null:Number(q.result_order);
     let order=existingOrder;
     if(order==null){
