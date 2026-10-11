@@ -12,6 +12,14 @@
   }
   function tieResultValue(){ return window.RegularScoringCore?.tieResult || 'Tie / no winner'; }
   function tieSentinelValue(){ return window.RegularScoringCore?.tieSentinel || '__pickem_tie_result__'; }
+  function tieEligible(q,opts){
+    const sport=String(q?.sport||'').trim().toUpperCase();
+    if(sport!=='NFL' || !Array.isArray(opts) || opts.length!==2 || opts.some(v=>typeof v!=='string')) return false;
+    const text=[q?.prompt,...opts].join(' ');
+    if(/\\bspread\\b/i.test(text) || opts.some(v=>/\\b(?:yes|no|over|under|both|neither)\\b/i.test(v))) return false;
+    if(opts.some(v=>/[+-]\\s*\\d+(?:\\.\\d+)?\\s*$/.test(v))) return false;
+    return true;
+  }
   function resultPanelHtml(){
     if(!week || week.phase==='playoff') return '';
     if(week.status==='published'){
@@ -25,7 +33,7 @@
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
       const selected=resultIndex(q);
       const options=['<option value="">Select winner / result</option>'].concat(opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===selected?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>'));
-      if(!opts.some(v=>sameAnswer(v,tieResultValue()))) options.push('<option value="'+tieSentinelValue()+'" '+(sameAnswer(q.result,tieResultValue())?'selected':'')+'>Tie / no winner (neither team gets credit)</option>');
+      if(tieEligible(q,opts) && !opts.some(v=>sameAnswer(v,tieResultValue()))) options.push('<option value="'+tieSentinelValue()+'" '+(sameAnswer(q.result,tieResultValue())?'selected':'')+'>Tie / no winner (neither team gets credit)</option>');
       return '<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="mini">'+esc(q.sport||'Other')+' · Question '+(i+1)+'</div><b>'+esc(q.prompt)+'</b><select id="result_'+q.id+'" style="margin-top:8px">'+options.join('')+'</select></div>';
     }).join('');
     return '<div class="card"><div class="eyebrow">COMMISSIONER RESULTS</div><h2>Enter Results</h2><p class="muted">Choose the correct answer for every scored question, then enter the actual tiebreaker result.</p>'+rows+'<label>Actual tiebreaker result</label><input id="actualTiebreaker" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'" placeholder="Final number"><div class="row" style="margin-top:14px;justify-content:flex-start;flex-wrap:wrap"><button class="btn" onclick="saveWeekResults()">Save Results</button><button class="btn secondary" onclick="previewWeekScores()">Calculate Scores</button></div><div id="scorePreview"></div></div>';
