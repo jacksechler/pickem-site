@@ -9,6 +9,7 @@ const css=fs.readFileSync(path.join(root,'mobile_polish.css'),'utf8');
 const postseason=fs.readFileSync(path.join(root,'postseason.js'),'utf8');
 const redesign=fs.readFileSync(path.join(root,'redesign.js'),'utf8');
 const gameday=fs.readFileSync(path.join(root,'gameday.js'),'utf8');
+const liveResults=fs.readFileSync(path.join(root,'live_weekend.js'),'utf8');
 
 test('mobile polish loads after core page styles',()=>{
   const live=html.indexOf('live_scores.css');
@@ -62,4 +63,18 @@ test('narrow-phone commissioner and Safari scrolling are hardened',()=>{
   assert.match(css,/@media \(max-width: 390px\)/);
   assert.match(redesign,/behavior: 'auto'/);
   assert.match(gameday,/behavior: 'auto'/);
+});
+
+test('live result entry supports tied NFL games without using betting lines',()=>{
+  assert.match(liveResults,/Tie \/ no winner \(neither team gets credit\)/);
+  assert.match(liveResults,/sport!=='NFL'/);
+  assert.match(liveResults,/spread/);
+  assert.match(liveResults,/tieSentinelValue\(\)\?tieResultValue\(\)/);
+});
+
+test('live result controls stack and matchup names wrap on narrow phones',()=>{
+  assert.match(css,/#liveResultEntry \[style\*="grid-template-columns:1fr auto"\]/);
+  assert.match(css,/grid-template-columns: minmax\(0, 1fr\) !important/);
+  assert.match(css,/#liveResultEntry b,[\s\S]*overflow-wrap: anywhere/);
+  assert.match(css,/#commissionerBox \.tablewrap/);
 });
