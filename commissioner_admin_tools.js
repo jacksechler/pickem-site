@@ -5,6 +5,16 @@
 
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const fmt = v => Number(v||0).toFixed(1).replace(/\.0$/,'');
+  const tieResultValue = () => window.RegularScoringCore?.tieResult || 'Tie / no winner';
+  const tieSentinelValue = () => window.RegularScoringCore?.tieSentinel || '__pickem_tie_result__';
+  function tieEligible(q,opts){
+    const sport=String(q?.sport||'').trim().toUpperCase();
+    if(sport!=='NFL' || !Array.isArray(opts) || opts.length!==2 || opts.some(v=>typeof v!=='string')) return false;
+    const text=[q?.prompt,...opts].join(' ');
+    if(/\\bspread\\b/i.test(text) || opts.some(v=>/\\b(?:yes|no|over|under|both|neither)\\b/i.test(v))) return false;
+    if(opts.some(v=>/[+-]\\s*\\d+(?:\\.\\d+)?\\s*$/.test(v))) return false;
+    return true;
+  }
 
   async function rpc(name,body){
     return await db('rpc/'+name,{method:'POST',body:JSON.stringify(body)});
@@ -39,8 +49,10 @@
     const rows=scored.map((q,i)=>{
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
       const selected=opts.findIndex(v=>same(v,q.result));
-      const choices='<option value="">Choose corrected result</option>'+opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===selected?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>').join('');
-      return '<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="mini">Question '+(i+1)+'</div><b>'+esc(q.prompt)+'</b><select id="finalResult_'+q.id+'" style="margin-top:7px">'+choices+'</select></div>';
+      const choices=['<option value="">Choose corrected result</option>'].concat(opts.map((v,idx)=>'<option value="'+idx+'" '+(idx===selected?'selected':'')+'>'+esc(typeof v==='string'?v:JSON.stringify(v))+'</option>'));
+      if(tieEligible(q,opts) && !opts.some(v=>same(v,tieResultValue()))) choices.push('<option value="'+tieSentinelValue()+'" '+(same(q.result,tieResultValue())?'selected':'')+'>Tie / no winner (neither team gets credit)</option>');
+      else if(same(q.result,tieResultValue())) choices.push('<option value="'+tieSentinelValue()+'" selected>Tie / no winner (neither team gets credit)</option>');
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="mini">Question '+(i+1)+'</div><b>'+esc(q.prompt)+'</b><select id="finalResult_'+q.id+'" style="margin-top:7px">'+choices.join('')+'</select></div>';
     }).join('');
     return '<div class="card" id="finalCorrectionCard"><div class="eyebrow">FINAL CORRECTIONS</div><h2 style="margin:4px 0">Correct '+esc(week.name)+'</h2><div class="notice"><b>This changes official results.</b><div class="muted">The app will recalculate placements, bonuses, season standings, and stats from the corrected results.</div></div>'+rows+'<label>Actual tiebreaker result</label><input id="finalTieResult" type="number" step="any" value="'+esc(week.tiebreaker_result??'')+'"><div class="row" style="justify-content:flex-start;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="saveFinalCorrections()">Save & Recalculate</button><button class="btn secondary" onclick="toggleFinalCorrectionMode(false)">Cancel</button></div><div id="scorePreview"></div></div>';
   }
@@ -152,7 +164,9 @@
       const sel=el('finalResult_'+q.id);
       if(!sel || sel.value==='') return alert('Choose a result for every scored question.');
       const opts=Array.isArray(q.answer_options)?q.answer_options:[];
-      updates.push([q.id,opts[Number(sel.value)]]);
+      const result=sel.value===tieSentinelValue()?tieResultValue():opts[Number(sel.value)];
+      if(sel.value===tieSentinelValue() && !tieEligible(q,opts)) return alert('Tie / no winner is only available for straight-up NFL team-winner questions.');
+      updates.push([q.id,result]);
     }
     const tb=el('finalTieResult')?.value;
     if(tb===''||tb==null) return alert('Enter the actual tiebreaker result.');
