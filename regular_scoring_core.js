@@ -1,6 +1,8 @@
 // Shared regular-season scoring rules used by live scoring and archived corrections.
 (() => {
   const placementPoints = [8,7,6,5,4,3,2,0];
+  const tieResult = 'Tie / no winner';
+  const tieSentinel = '__pickem_tie_result__';
   const sameAnswer = (a,b) => JSON.stringify(a) === JSON.stringify(b);
 
   function sortScoredQuestions(questions){
@@ -143,6 +145,8 @@
 
   window.RegularScoringCore={
     placementPoints:[...placementPoints],
+    tieResult,
+    tieSentinel,
     sameAnswer,
     sortScoredQuestions,
     calculate,
