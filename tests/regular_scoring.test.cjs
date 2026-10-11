@@ -215,3 +215,23 @@ test('publishing writes eight official score rows and publishes the week', async
   assert.equal(body.status,'published');
   assert.ok(body.published_at);
 });
+
+test('a tied NFL game gives neither team pick credit and earns no pick-based bonus', async()=>{
+  const h=buildHarness({questionCount:1});
+  h.questions[0].sport='NFL';
+  h.questions[0].prompt='Giants, Commanders';
+  h.questions[0].answer_options=['Giants','Commanders'];
+  h.questions[0].result='Tie / no winner';
+
+  const rows=await score(h);
+  assert.equal(rows.length,8);
+  for(const r of rows){
+    assert.equal(r.correct_count,0);
+    assert.equal(r.perfect_bonus,0);
+    assert.equal(r.unicorn_count,0);
+    assert.equal(r.unicorn_bonus,0);
+    assert.equal(r.upset_count,0);
+    assert.equal(r.upset_bonus,0);
+    assert.equal(r.cold_bonus,-5);
+  }
+});
