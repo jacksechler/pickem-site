@@ -63,7 +63,7 @@ test('login page defaults to remembering the device and loads session manager be
   assert.match(html,/id="rememberDevice"[^>]*checked/);
   assert.match(html,/Keep me signed in on this device/);
   assert.match(html,/Face ID, Touch ID, or your device unlock/);
-  assert.ok(html.indexOf('auth_session.js?v=1')<html.indexOf('regular_scoring_core.js?v=1'));
+  assert.ok(html.indexOf('auth_session.js?v=1')<html.indexOf('regular_scoring_core.js?v=2'));
   assert.equal(html.includes('if(session)boot();'),false);
 });
 
