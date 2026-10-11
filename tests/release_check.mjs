@@ -17,6 +17,23 @@ assert.equal(new Set(ids).size,ids.length,'Duplicate static page IDs');
 for(const id of ['playoffs','playoffBox','playoffSync','playoffsNav','seasoncalendar','seasonCalendarBox'])assert.ok(ids.includes(id));
 const build=JSON.parse(await fs.readFile(new URL('app-version.json',root),'utf8')).version;
 assert.ok((await fs.readFile(new URL('app_update.js',root),'utf8')).includes("const BUILD_VERSION = '"+build+"'"));
+assert.equal(html.includes('\\\\n'),false,'index.html must use real newlines, not literal backslash-n text');
+const mobileCss=await fs.readFile(new URL('mobile_polish.css',root),'utf8');
+assert.ok(html.includes('mobile_polish.css'), 'mobile polish stylesheet must load');
+assert.ok(html.includes('mobile_ux.css'), 'mobile UX stylesheet must load');
+assert.ok(html.includes('league_scroll_fixes.css'), 'League Picks scroll fixes must load');
+assert.ok(mobileCss.includes('#liveResultEntry [style*="grid-template-columns:1fr auto"]'));
+assert.ok(mobileCss.includes('#commissionerBox .tablewrap'));
+
+const coreSource=await fs.readFile(new URL('regular_scoring_core.js',root),'utf8');
+const liveResultSource=await fs.readFile(new URL('live_weekend.js',root),'utf8');
+const archiveSource=await fs.readFile(new URL('archived_week_editor.js',root),'utf8');
+const tieAdminSource=await fs.readFile(new URL('commissioner_admin_tools.js',root),'utf8');
+assert.ok(coreSource.includes("const tieResult = 'Tie / no winner'"));
+for(const [name,source] of [['live_weekend.js',liveResultSource],['commissioner_v2.js',commissionerSource],['archived_week_editor.js',archiveSource],['commissioner_admin_tools.js',tieAdminSource]]){
+  assert.ok(source.includes('tieEligible(q,opts)'),name+' must restrict tie results to eligible questions');
+  assert.ok(source.includes('Tie / no winner'),name+' must offer the tied-game result');
+}
 
 const coreIndex=modules.indexOf('regular_scoring_core.js');
 const commissionerIndex=modules.indexOf('commissioner_v2.js');
