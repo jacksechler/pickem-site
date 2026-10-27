@@ -7,6 +7,7 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'mobile_polish.css'),'utf8');
 const postseason=fs.readFileSync(path.join(root,'postseason.js'),'utf8');
+const postseasonCss=fs.readFileSync(path.join(root,'postseason.css'),'utf8');
 const redesign=fs.readFileSync(path.join(root,'redesign.js'),'utf8');
 const gameday=fs.readFileSync(path.join(root,'gameday.js'),'utf8');
 const liveResults=fs.readFileSync(path.join(root,'live_weekend.js'),'utf8');
@@ -78,3 +79,15 @@ test('live result controls stack and matchup names wrap on narrow phones',()=>{
   assert.match(css,/#liveResultEntry b,[\s\S]*overflow-wrap: anywhere/);
   assert.match(css,/#commissionerBox \.tablewrap/);
 });
+
+test('projected playoff cut line is urgent and rows below the line are flagged',()=>{
+  assert.match(postseason,/ps-projected-cut/);
+  assert.match(postseason,/BELOW THIS LINE = PROJECTED ELIMINATION/);
+  assert.match(postseason,/belowCut\?\x27ps-below-cut\x27/);
+  assert.match(postseason,/ps-cut-tag.*AT RISK/);
+  assert.match(postseasonCss,/\.ps-cut\.ps-projected-cut/);
+  assert.match(postseasonCss,/background: linear-gradient\(100deg, #641c29/);
+  assert.match(postseasonCss,/\.ps-table \.ps-below-cut > \.ps-total-col/);
+  assert.match(postseasonCss,/@media \(prefers-reduced-motion: no-preference\)/);
+});
+
