@@ -54,11 +54,18 @@
     html+=(current.finalize_not_before?'<p class="ps-note">One extended semifinal card through '+date(current.ends_on)+'. The final cut opens '+stamp(current.finalize_not_before)+', after all scored results are entered.</p>':'');
     html+='<div class="tablewrap"><table class="table ps-table"><caption class="ps-sr">Cumulative playoff standings. One-time seed bonus plus correct playoff picks.</caption><thead><tr><th class="ps-total-col">Total</th><th>Place / seed</th><th>Member</th><th>Seed bonus</th><th>This round</th><th>Playoff pts</th><th>Status</th></tr></thead><tbody>';
     current.rows.forEach((r,i)=>{
-      if(i===cut)html+='<tr class="ps-cut"><td colspan="7">'+(official?'ADVANCEMENT CUT':'PROJECTED CUT LINE')+' · TOP '+cut+' '+(cut===1?'WINS':'ADVANCE')+'</td></tr>';
+      if(i===cut){
+        const cutMode=official?'ps-official-cut':current.locked?'ps-projected-cut':'ps-pending-cut';
+        const cutTitle=official?'OFFICIAL ADVANCEMENT CUT':current.locked?'⚠ DANGER ZONE · PROJECTED CUT LINE':'CUT LINE · PENDING LOCK';
+        const cutDetail=official?'TOP '+cut+' '+(cut===1?'WON THE TITLE':'OFFICIALLY ADVANCED'):current.locked?'BELOW THIS LINE = PROJECTED ELIMINATION · TOP '+cut+' ADVANCE':'TOP '+cut+' ADVANCE · PROJECTION WAITS FOR THE CARD TO LOCK';
+        html+='<tr class="ps-cut '+cutMode+'"><td colspan="7"><div class="ps-cut-banner"><span class="ps-cut-alert">'+cutTitle+'</span><strong>'+cutDetail+'</strong></div></td></tr>';
+      }
       const e=member(data,r.user_id),points=Number(r.cumulative_after)-Number(e?.starting_bonus??seedBonus(r.seed));
       const text=official?(r.advanced?(r.status_after==='champion'?'Champion':'Advanced'):label[r.status_after]):!current.locked?'Awaiting lock':label[r.projected_status];
+      const belowCut=!official&&current.locked&&i>=cut;
       const tb=current.locked?'<small>TB: '+(r.round_tiebreaker_answer==null?'No entry':fmt(r.round_tiebreaker_answer))+(r.round_tiebreaker_distance==null?'':' · '+fmt(r.round_tiebreaker_distance)+' away')+'</small>':'';
-      html+='<tr class="'+(r.user_id===session?.user?.id?'ps-my-row':'')+'"><td class="ps-total-col"><strong>'+fmt(r.cumulative_after)+'</strong></td><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>+'+fmt(e?.starting_bonus??seedBonus(r.seed))+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+tb+'</td></tr>';
+      const rowClass=[r.user_id===session?.user?.id?'ps-my-row':'',belowCut?'ps-below-cut':''].filter(Boolean).join(' ');
+      html+='<tr class="'+rowClass+'"><td class="ps-total-col"><strong>'+fmt(r.cumulative_after)+'</strong></td><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>+'+fmt(e?.starting_bonus??seedBonus(r.seed))+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+(belowCut?'<span class="ps-cut-tag">AT RISK</span>':'')+tb+'</td></tr>';
     });
     html+='</tbody></table></div><p class="ps-note">'+(official?'Saved official round results.':current.tiebreaker_pending?'Tiebreaker pending. Equal totals stay tied until the actual result is entered.':'Ties use this round’s tiebreaker distance, then the frozen regular-season seed.')+(!current.tiebreaker_pending?' Actual tiebreaker: '+fmt(current.week.tiebreaker_result)+'.':'')+' Every correct scored pick adds 1. No placement points or bonuses.</p></section>';
     return html;
