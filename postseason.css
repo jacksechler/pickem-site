@@ -196,3 +196,95 @@
   .clean-ui #playoffBox .ps-total-col { min-width: 76px; }
 }
 
+/* Projected playoff cut: clear danger-zone treatment without confusing it with the official cut. */
+#playoffBox .ps-cut.ps-projected-cut td {
+  padding: 0 !important;
+  border: 0;
+  background: transparent !important;
+}
+#playoffBox .ps-cut-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  padding: 12px 14px;
+  border: 1px solid #a83343;
+  border-left: 5px solid #ff5265;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #641c29 0%, #471821 58%, #30161d 100%);
+  color: #ffe6e9;
+  box-shadow: inset 0 0 0 1px #ff52651c, 0 4px 18px #5a101d30;
+}
+#playoffBox .ps-cut-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px;
+  background: #f04458;
+  padding: 4px 8px;
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .09em;
+  line-height: 1.4;
+}
+#playoffBox .ps-cut-banner strong {
+  font-size: .75rem;
+  font-weight: 850;
+  letter-spacing: .055em;
+  line-height: 1.5;
+}
+#playoffBox .ps-cut.ps-pending-cut td {
+  color: var(--gold);
+  background: #f3ce7b09;
+}
+#playoffBox .ps-cut.ps-official-cut td {
+  color: var(--gold);
+  background: #f3ce7b10;
+}
+#playoffBox .ps-table .ps-below-cut > td,
+#playoffBox .ps-table .ps-below-cut > th {
+  background: #391820 !important;
+  border-bottom-color: #6d2c38 !important;
+}
+#playoffBox .ps-table .ps-below-cut > .ps-total-col {
+  z-index: 3;
+  color: #ffb2bb !important;
+  background: #4c1924 !important;
+  box-shadow: inset 4px 0 #ff5265, 1px 0 0 #873443;
+}
+#playoffBox .ps-table .ps-below-cut > .ps-total-col strong {
+  color: #ffc0c7;
+}
+#playoffBox .ps-table .ps-below-cut th[scope="row"] {
+  color: #ffe1e5;
+}
+#playoffBox .ps-table .ps-below-cut .ps-state.bad {
+  display: inline-block;
+  color: #ff8795;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .015em;
+}
+#playoffBox .ps-cut-tag {
+  display: table;
+  margin-top: 5px;
+  padding: 2px 6px;
+  border: 1px solid #a83a49;
+  border-radius: 4px;
+  background: #6b1c29;
+  color: #ffc1c8;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #playoffBox .ps-cut.ps-projected-cut .ps-cut-banner {
+    animation: ps-danger-glow 3.2s ease-in-out infinite;
+  }
+  @keyframes ps-danger-glow {
+    0%, 100% { box-shadow: inset 0 0 0 1px #ff52651c, 0 4px 18px #5a101d25; }
+    50% { box-shadow: inset 0 0 0 1px #ff52654a, 0 4px 21px #9a1d2d4a; }
+  }
+}
+
