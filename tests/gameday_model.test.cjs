@@ -89,7 +89,7 @@ test('Unicorn, Upset, and previous-perfect opening streak match commissioner rul
   assert.equal(M.build(data, 'p0').bonuses.some(b => b.label === 'Opening streak'), false);
 });
 
-test('playoff cards do not use regular-season bonuses or weekly rank projections', async () => {
+test('playoff cards never calculate regular-season bonuses or weekly rank projections, even after publication', async () => {
   const data = fixture();
   data.week.phase = 'playoff';
   data.questions[0].result = 'A';
@@ -101,6 +101,13 @@ test('playoff cards do not use regular-season bonuses or weekly rank projections
   const paths=[];
   await M.loadBundle(async path=>{paths.push(path);return path.startsWith('weeks?id=')?[data.week]:[];},data.week.id);
   assert.equal(paths.some(path=>path.includes('number=lt.')), false);
+
+  // Defensive case: even if legacy playoff score rows contain bonus columns, don't surface them.
+  data.week.status = 'published';
+  data.scores = [{user_id:'p0',placement:1,correct_count:1,question_count:3,total_points:1,unicorn_bonus:3,upset_bonus:0.5,streak_bonus:1,perfect_bonus:5,cold_bonus:-5}];
+  const finalModel = M.build(data, 'p0');
+  assert.deepEqual(finalModel.bonuses, []);
+  assert.equal(finalModel.me.score.total_points, 1);
 });
 
 test('perfect and cold bonuses wait for every scored result', () => {
