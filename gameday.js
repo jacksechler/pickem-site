@@ -70,7 +70,7 @@
     else body = m.keyPicks.slice(0, 3).map(item => {
       const q = m.questions.find(q => q.id === item.questionId);
       const rivals = item.opponents.slice(0, 2).map(id => m.rows.find(r => r.id === id));
-      const solo = m.bonusReady && m.rows.filter(r => r.entered && M.same(r.answers[q.id], m.me.answers[q.id])).length === 1;
+      const solo = m.week.phase !== 'playoff' && m.bonusReady && m.rows.filter(r => r.entered && M.same(r.answers[q.id], m.me.answers[q.id])).length === 1;
       return '<article class="gd-matchup"><div class="gd-question-meta">' + esc(q.sport || 'PICK') + (solo ? ' <span>Potential Unicorn · +3</span>' : '') + '</div><h3>' + esc(q.prompt) + '</h3><div class="gd-your-pick"><span>Your pick</span><strong>' + answer(m.me.answers[q.id]) + '</strong></div>' +
         rivals.map(r => '<div class="gd-rival"><span>' + esc(r.name) + ' <small>' + M.rankLabel(r) + '</small></span><strong>' + answer(r.answers[q.id]) + '</strong></div>').join('') +
         '<p class="gd-scenario">If your pick is correct, you gain one on ' + rivals.map(r => esc(r.name)).join(' and ') + (item.opponents.length > 2 ? ' and ' + plural(item.opponents.length - 2, 'other member') : '') + '. You’d be <b>' + item.projectedRank + '</b> on current results.</p></article>';
@@ -105,7 +105,7 @@
       const known = M.decided(q), ownAnswer = m.me?.answers[q.id], correct = known && ownAnswer !== undefined && M.same(ownAnswer, q.result);
       const outcome = !known ? 'Result cleared' : q.counts_for_score === false ? 'Not scored' : ownAnswer === undefined ? 'No pick' : correct ? 'You got it' : 'Your pick missed';
       const winners = m.rows.filter(r => r.entered && known && M.same(r.answers[q.id], q.result));
-      const bonus = correct && q.counts_for_score !== false && m.bonusReady && !m.published ? winners.length === 1 ? ' · Unicorn +3' : winners.length === 2 ? ' · Upset +0.5' : '' : '';
+      const bonus = m.week.phase !== 'playoff' && correct && q.counts_for_score !== false && m.bonusReady && !m.published ? winners.length === 1 ? ' · Unicorn +3' : winners.length === 2 ? ' · Upset +0.5' : '' : '';
       return '<li><div class="gd-result-mark ' + (correct && q.counts_for_score !== false ? 'good' : 'muted') + '" aria-hidden="true">' + (correct ? '✓' : '•') + '</div><div><h3>' + esc(q.prompt) + '</h3><p>' + (known ? answer(q.result) : 'Waiting for a new result') + '</p><small class="' + (correct ? 'good' : 'muted') + '">' + (q.corrected ? 'Updated · ' : '') + outcome + bonus + '</small></div></li>';
     }).join('') + '</ul>';
     return '<section class="card gd-recent-panel" aria-labelledby="gdRecentTitle"><h2 id="gdRecentTitle">' + (updates.length ? 'Just updated' : 'Latest results') + '</h2>' + body + '</section>';
