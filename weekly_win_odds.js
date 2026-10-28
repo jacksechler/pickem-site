@@ -89,9 +89,7 @@
     const id=weekId();
     if(!id){remove();return;}
     const call=++sequence;
-    const node=insert();
-    if(!node)return;
-    if(node.dataset.week!==id){node.dataset.week=id;node.innerHTML='<div class="wo-head"><div><div class="eyebrow">WEEKLY RACE</div><h2>Top 3 Chances to Win</h2></div></div><p class="wo-pending">Checking this week’s lock and results…</p>';}
+    // Check the selected week's lock before creating an odds card or reading picks.
     try{
       const data=await loadBundle(id);
       if(call!==sequence||weekId()!==id||!visible())return;
