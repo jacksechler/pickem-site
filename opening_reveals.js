@@ -59,10 +59,10 @@
     const status = me.status || 'active';
     const eliminated = status==='eliminated';
     const champion = status==='champion';
-    const projectedOut = row?.status==='projected_out' || (!eliminated && !champion && row?.projected_status==='projected_out');
+    const projectedOut = !eliminated && !champion && data.current?.locked && row?.projected_status==='projected_out';
     const title = champion?'LEAGUE CHAMPION':eliminated?'ELIMINATED':projectedOut?'DANGER ZONE':'CHAMPIONSHIP CHASE';
     const detail = champion?'You won the championship.':eliminated?'Your postseason run has ended.':projectedOut?'You are currently projected below the advancement cut. This is not final.':'You are still in the championship race. Check the live standings for your advancement outlook.';
-    show({eyebrow:'Road to the Crown • Playoff status',headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[String(row?.cumulative_after ?? me.cumulative_points ?? '—'),'Total points'],[String(data.current?.round?.name||'Playoffs'),'Current round']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
+    show({eyebrow:'Road to the Crown • Playoff status',headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[String(row?.cumulative_after ?? me.current_total ?? '—'),'Total points'],[String(data.current?.round?.label||'Playoffs'),'Current round']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
     return true;
   }
   async function check() {
