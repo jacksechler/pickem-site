@@ -105,7 +105,7 @@
   function fullGridHtml(d){
     if(!d.users.length) return '<div class="card muted">No submitted picks for this week.</div>';
     const qs=[...d.questions].sort((a,b)=>num(a.position)-num(b.position));
-    let h='<div class="card tablewrap" style="padding:0"><table class="table" style="min-width:1100px"><thead><tr><th style="position:sticky;left:0;background:var(--panel);z-index:3">Question</th>'+d.users.map(id=>'<th>'+profileButton(id,prettyName(d.pmap[id]))+(d.postseason?window.Postseason.badge(d.postseason,id):'')+'</th>').join('')+'</tr></thead><tbody>';
+    let h='<div class="card tablewrap pick-grid-tablewrap" tabindex="0" role="region" aria-label="Pick grid: scroll horizontally for players and vertically for all questions" style="padding:0"><table class="table" style="min-width:1100px"><thead><tr><th style="position:sticky;left:0;background:var(--panel);z-index:3">Question</th>'+d.users.map(id=>'<th>'+profileButton(id,prettyName(d.pmap[id]))+(d.postseason?window.Postseason.badge(d.postseason,id):'')+'</th>').join('')+'</tr></thead><tbody>';
     qs.forEach(q=>{
       const done=decided(q);
       const result=done?'<div class="mini good">✓ '+esc(typeof q.result==='string'?q.result:JSON.stringify(q.result))+(q.result_order?' · Result #'+q.result_order:'')+'</div>':'';
