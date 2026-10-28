@@ -91,7 +91,7 @@
     const roundToSimulate=roundNumber?(finalized?roundNumber+1:roundNumber):1;
     if(roundToSimulate>4)return {kind:'unavailable',reason:'Waiting for the championship to be finalized.'};
     const active=entries.filter(e=>!e.status||e.status==='active');
-    if(active.length!==[8,8,6,4,2][roundToSimulate-1] && !(roundNumber&&!finalized&&active.length===current?.round?.participants_before)){
+    if(active.length!==[8,6,4,2][roundToSimulate-1] && !(roundNumber&&!finalized&&active.length===current?.round?.participants_before)){
       return {kind:'unavailable',reason:'The playoff field is being updated.'};
     }
     const rates=skillRates(knownIds,history);
