@@ -71,7 +71,15 @@
         if(Number.isFinite(chance)) advance=chance.toFixed(estimate.kind==='official'?0:1)+'%';
       } catch {}
     }
-    show({eyebrow:'Road to the Crown • '+String(data.current?.round?.label||'Playoff status'),headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[String(row?.cumulative_after ?? me.current_total ?? '—'),'Total points'],[advance,'Chance to advance']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
+    let championship=champion?'100%':eliminated||runnerUp?'0%':'—';
+    if(window.PlayoffAdvancement?.getChampionship){
+      try {
+        const forecast=await window.PlayoffAdvancement.getChampionship(data);
+        const chance=forecast.titleOdds?.[session.user.id];
+        if(Number.isFinite(chance))championship=chance.toFixed(forecast.kind==='official'?0:1)+'%';
+      } catch {}
+    }
+    show({eyebrow:'Road to the Crown • '+String(data.current?.round?.label||'Playoff status'),headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[advance,'Chance to advance'],[championship,'Win it all']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
     return true;
   }
   async function check() {
