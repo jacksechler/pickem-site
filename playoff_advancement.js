@@ -49,9 +49,9 @@
         return M.result(data,questions,picks);
       }catch(e){return msg('unavailable','Advancement odds cannot be loaded right now. Official standings are unaffected.');}
     })();
-    cache.set(key,promise);
+    cache.set(key,promise.then(value=>{if(value.kind==='unavailable')cache.delete(key);return value;}));
     if(cache.size>8) cache.delete(cache.keys().next().value);
-    return promise;
+    return cache.get(key);
   }
   const description = result => result.kind==='official'?'Official results · advancement finalized':
     result.kind==='estimate' ? result.remaining+' undecided scored question'+(result.remaining===1?'':'s')+' · '+result.samples.toLocaleString()+' simulations' :
