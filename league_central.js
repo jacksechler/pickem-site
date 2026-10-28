@@ -55,7 +55,15 @@
       players:rank,history:scores,remainingWeeks,samples:3000,
       seedKey:JSON.stringify([week?.season_id||'2026',scores.map(x=>[x.week_id,x.user_id,x.total_points]),remainingWeeks])
     })||{kind:'unavailable',reason:'Championship forecast is loading.'};
-    return {weeks,scoredWeeks,byWeek,names,rank,scores,forecast,regularWeekCount};
+    let playoffForecast=null;
+    if(window.Postseason?.load&&window.PlayoffAdvancement?.getChampionship){
+      try {
+        const playoffState=await window.Postseason.load();
+        if(['live','complete'].includes(playoffState?.settings?.status))
+          playoffForecast=await window.PlayoffAdvancement.getChampionship(playoffState);
+      } catch(e) { console.debug('Playoff home forecast temporarily unavailable',e); }
+    }
+    return {weeks,scoredWeeks,byWeek,names,rank,scores,forecast,playoffForecast,regularWeekCount};
   }
   function probabilityModel(d){
     // Deterministic bootstrap of remaining regular-season cards using each player's historical weekly scores.
@@ -75,15 +83,19 @@
   }
   const item=(left,right,sub='')=>'<div class="lc-item"><div><b>'+esc2(left)+'</b>'+(sub?'<div class="lc-sub">'+esc2(sub)+'</div>':'')+'</div><strong>'+esc2(right)+'</strong></div>';
   function crownHtml(d){
-    const f=d.forecast;
-    let html='<section class="lc-section lc-crown"><div class="lc-crown-top"><div><div class="lc-kicker">THE ROAD TO THE CROWN</div><h3>🏆 Chance to Win It All</h3></div><span class="lc-crown-pill">CHAMPIONSHIP FORECAST</span></div>';
-    if(f.kind!=='estimate')return html+'<p class="lc-crown-note">'+esc2(f.reason||'Waiting for league data.')+'</p></section>';
+    const playoff=!!d.playoffForecast;
+    const f=d.playoffForecast||d.forecast;
+    let html='<section class="lc-section lc-crown"><div class="lc-crown-top"><div><div class="lc-kicker">THE ROAD TO THE CROWN</div><h3>🏆 Chance to Win It All</h3></div><span class="lc-crown-pill">'+(playoff?(f.kind==='official'?'OFFICIAL CHAMPION':'LIVE PLAYOFF ODDS'):'SEASON FORECAST')+'</span></div>';
+    if(f.kind!=='estimate'&&f.kind!=='official')return html+'<p class="lc-crown-note">'+esc2(f.reason||'Waiting for league data.')+'</p></section>';
     const ranked=d.rank.slice().sort((a,b)=>f.titleOdds[b.id]-f.titleOdds[a.id]||a.name.localeCompare(b.name));
     html+='<div class="lc-crown-grid">'+ranked.map((x,i)=>{
       const pct=Number(f.titleOdds[x.id]||0);
-      return '<div class="lc-crown-row'+(x.id===session?.user?.id?' mine':'')+'"><div class="lc-crown-line"><b>#'+(i+1)+' '+esc2(x.name)+(x.id===session?.user?.id?' · YOU':'')+'</b><strong class="lc-crown-rate">'+pct.toFixed(1)+'%</strong></div><div class="lc-bar"><span style="width:'+Math.max(0,Math.min(100,pct))+'%"></span></div></div>';
-    }).join('')+'</div><p class="lc-crown-note"><strong>'+f.samples.toLocaleString()+' simulated seasons.</strong> All eight reach the playoffs. Each simulation projects the remaining '+f.weeksRemaining+' regular-season card'+(f.weeksRemaining===1?'':'s')+', awards seed bonuses (10/8/7/5/4/3/2/0), then plays out the 8 → 6 → 4 → 2 → 1 championship. Future games and pick accuracy are estimates.</p></section>';
-    return html;
+      return '<div class="lc-crown-row'+(x.id===session?.user?.id?' mine':'')+'"><div class="lc-crown-line"><b>#'+(i+1)+' '+esc2(x.name)+(x.id===session?.user?.id?' · YOU':'')+'</b><strong class="lc-crown-rate">'+pct.toFixed(f.kind==='official'?0:1)+'%</strong></div><div class="lc-bar"><span style="width:'+Math.max(0,Math.min(100,pct))+'%"></span></div></div>';
+    }).join('')+'</div>';
+    if(f.kind==='official')html+='<p class="lc-crown-note">The championship is official. The winner has a 100% chance because the title has been awarded.</p>';
+    else if(playoff)html+='<p class="lc-crown-note"><strong>'+f.samples.toLocaleString()+' simulated playoff finishes.</strong> Based on the current playoff totals, completed results, locked picks when available, and the remaining elimination rounds. Future results are estimates.</p>';
+    else html+='<p class="lc-crown-note"><strong>'+f.samples.toLocaleString()+' simulated seasons.</strong> All eight reach the playoffs. Each simulation projects the remaining '+f.weeksRemaining+' regular-season card'+(f.weeksRemaining===1?'':'s')+', awards seed bonuses (10/8/7/5/4/3/2/0), then plays out the 8 → 6 → 4 → 2 → 1 championship. Future games and pick accuracy are estimates.</p>';
+    return html+'</section>';
   }
   function render(d){
     const root=$('leagueCentral');if(!root)return;
@@ -148,4 +160,8 @@
   const previousShow=window.showPage;
   window.showPage=function(id){const result=previousShow.apply(this,arguments);if(id==='home')load();return result;};
   if(isLogged())load();
+  // Update championship chances while the home page stays open.
+  setInterval(()=>{
+    if(isLogged()&&!document.hidden&&!$('home')?.classList.contains('hidden'))load(true);
+  },60000);
 })();
