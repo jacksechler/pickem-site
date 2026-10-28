@@ -122,6 +122,7 @@
         box.querySelectorAll('details').forEach(d=>{d.open=open.has(d.querySelector('summary')?.textContent);});
         box.dataset.fingerprint=fingerprint;
       }
+      if(data.settings.status!=='scheduled') window.PlayoffAdvancement?.render(data);
       $('playoffSync').textContent='Checked '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · Refreshes every 20 seconds';
     } catch { $('playoffSync').textContent='Couldn’t refresh. Showing the last loaded standings; retrying automatically.'; }
     finally {rendering=null;}
