@@ -56,6 +56,7 @@
     <div id="homeLock" class="notice">Loading your week…</div>
     <div class="entry-strip"><span>Your entry <b id="homeSubmitted">—</b></span><span>Questions <b id="homeQuestionCount">—</b></span></div>
   </div>
+  <div id="leagueCentral" aria-live="polite"></div>
 </section>
 <section id="picks" class="page hidden"><div class="hero"><div><div id="picksWeek" class="eyebrow">CURRENT WEEK</div><h1>Make Picks</h1><div class="muted">Your picks stay private until the week locks.</div></div></div><div class="progress"><i id="progressBar"></i></div><div id="pickBox" class="card pickbox"></div><div class="row controls"><button class="btn secondary" onclick="previousPick()">← Back</button><button id="nextPickBtn" class="btn secondary" onclick="nextPick()">Next →</button></div></section>
 <section id="league" class="page hidden"><div class="hero"><div><div class="eyebrow">YOUR LEAGUE</div><h1>League picks</h1></div><div class="league-page-actions"><button id="leagueShareGrid" class="btn secondary" type="button" onclick="showPage('sharegrid',document.querySelector('[data-page="sharegrid"]'))">Share Grid</button><button id="openGameDay" class="btn" type="button" hidden>Open GameDay</button></div></div><div id="leagueBox"></div></section>
@@ -149,5 +150,6 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="mobile_ux.js?v=4"></script>
 <script src="share_grid.js?v=4"></script>
 <script src="opening_reveals.js?v=1"></script>
+<script src="league_central.js?v=1"></script>
 </body>
 </html>
