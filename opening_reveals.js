@@ -59,10 +59,19 @@
     const status = me.status || 'active';
     const eliminated = status==='eliminated';
     const champion = status==='champion';
-    const projectedOut = !eliminated && !champion && data.current?.locked && row?.projected_status==='projected_out';
-    const title = champion?'LEAGUE CHAMPION':eliminated?'ELIMINATED':projectedOut?'DANGER ZONE':'CHAMPIONSHIP CHASE';
-    const detail = champion?'You won the championship.':eliminated?'Your postseason run has ended.':projectedOut?'You are currently projected below the advancement cut. This is not final.':'You are still in the championship race. Check the live standings for your advancement outlook.';
-    show({eyebrow:'Road to the Crown • Playoff status',headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[String(row?.cumulative_after ?? me.current_total ?? '—'),'Total points'],[String(data.current?.round?.label||'Playoffs'),'Current round']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
+    const runnerUp = status==='runner_up';
+    const projectedOut = !eliminated && !champion && !runnerUp && data.current?.locked && row?.projected_status==='projected_out';
+    const title = champion?'LEAGUE CHAMPION':runnerUp?'RUNNER-UP':eliminated?'ELIMINATED':projectedOut?'DANGER ZONE':'CHAMPIONSHIP CHASE';
+    const detail = champion?'You won the championship.':runnerUp?'You finished second in the championship.':eliminated?'Your postseason run has ended.':projectedOut?'You are currently projected below the advancement cut. This is not final.':'You are still in the championship race. Check the live standings for your advancement outlook.';
+    let advance=champion?'100%':eliminated||runnerUp?'0%':'—';
+    if(row && window.PlayoffAdvancement?.getOdds) {
+      try {
+        const estimate=await window.PlayoffAdvancement.getOdds(data);
+        const chance=estimate.odds?.[session.user.id];
+        if(Number.isFinite(chance)) advance=chance.toFixed(estimate.kind==='official'?0:1)+'%';
+      } catch {}
+    }
+    show({eyebrow:'Road to the Crown • '+String(data.current?.round?.label||'Playoff status'),headline:title,summary:detail,danger:eliminated||projectedOut,stats:[['#'+me.seed,'Your seed'],[String(row?.cumulative_after ?? me.current_total ?? '—'),'Total points'],[advance,'Chance to advance']],cta:'Open Playoff Central',onOpen:()=>window.showPage?.('playoffs')});
     return true;
   }
   async function check() {
