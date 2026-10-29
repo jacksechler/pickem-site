@@ -69,8 +69,8 @@ test('News navigation and home preview are included in the published page',()=>{
   assert.match(html,/id="leagueNewsPreview"/);
   assert.match(html,/id="leagueNewsBox"/);
   assert.match(html,/league_news\.css\?v=3/);
-  assert.ok(html.indexOf('league_news_model.js?v=1')<html.indexOf('league_news.js?v=3'));
-  assert.ok(html.indexOf('league_news_model.js?v=1')>0);
+  assert.ok(html.indexOf('league_news_model.js?v=2')<html.indexOf('league_news.js?v=3'));
+  assert.ok(html.indexOf('league_news_model.js?v=2')>0);
 });
 test('official latest week produces a home feature, without exposing private picks',async()=>{
   const h=harness();
