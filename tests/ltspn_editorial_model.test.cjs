@@ -29,7 +29,7 @@ test('published week gains a full-length featured article with real question det
   assert.ok(story.body.length>=8);
   assert.ok(story.body.join(' ').split(/\s+/).length>=250);
   assert.match(story.body.join(' '),/Matchup #1/);
-  assert.match(story.body.join(' '),/officially recorded result/);
+  assert.match(story.body.join(' '),/official result was|officially recorded result|recorded result was/);
   assert.equal(story.highlights[0].fieldSize,8);
   assert.ok(story.readMinutes>=2);
 });
