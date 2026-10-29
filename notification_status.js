@@ -89,7 +89,7 @@
         const uid=testDetails(t).target_user_id;
         if(uid && !latestTest[uid]) latestTest[uid]=t;
       });
-      const people=[...profiles].sort((a,b)=>(a.display_name||a.username||'').localeCompare(b.display_name||b.username||''));
+      const people=[...profiles].sort((a,b)=>(window.MemberNames?.full(a)||a.display_name||a.username||'').localeCompare(window.MemberNames?.full(b)||b.display_name||b.username||''));
       const health=people.map(p=>({p,h:healthFor(p,byUser[p.id]||[],latestTest[p.id])}));
       const working=health.filter(x=>x.h.key==='working'||x.h.key==='partial').length;
       const missing=health.filter(x=>x.h.key==='off').length;
@@ -104,9 +104,9 @@
         const rows=byUser[p.id]||[];
         const count=rows.length;
         h+='<div style="padding:12px 0;border-bottom:1px solid var(--line)"><div class="row" style="gap:12px;align-items:center;flex-wrap:wrap">'+
-          '<div style="min-width:0;flex:1"><div style="font-weight:950">'+esc(p.display_name||p.username||'Player')+(p.role==='commissioner'?' <span class="mini">(Commissioner)</span>':'')+'</div><div class="mini">'+esc(st.detail)+(count?' · '+count+' saved device'+(count===1?'':'s'):'')+'</div></div>'+
+          '<div style="min-width:0;flex:1"><div style="font-weight:950">'+esc(window.MemberNames?.full(p)||p.display_name||p.username||'Player')+(p.role==='commissioner'?' <span class="mini">(Commissioner)</span>':'')+'</div><div class="mini">'+esc(st.detail)+(count?' · '+count+' saved device'+(count===1?'':'s'):'')+'</div></div>'+
           '<span class="pill '+st.cls+'">'+esc(st.label)+'</span>'+
-          (count?'<button class="btn secondary" style="padding:8px 10px" onclick="testPlayerNotification(\''+p.id+'\',\''+esc((p.display_name||p.username||'Player').replace(/'/g,"\\'"))+'\')">Send Test</button>':'')+
+          (count?'<button class="btn secondary" style="padding:8px 10px" onclick="testPlayerNotification(\''+p.id+'\',\''+esc((window.MemberNames?.full(p)||p.display_name||p.username||'Player').replace(/'/g,"\\'"))+'\')">Send Test</button>':'')+
         '</div><div id="notificationTest_'+p.id+'" class="mini" style="margin-top:6px"></div></div>';
       });
       h+='</div></div>';
