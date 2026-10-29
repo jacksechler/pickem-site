@@ -62,7 +62,7 @@ function setup({noPickData=false}={}){
 }
 test('news page loads original LTSPN artwork and editorial module in correct order',()=>{
   const html=read('index.html');
-  const main=html.indexOf('league_news_model.js?v=1'),feature=html.indexOf('ltspn_editorial_model.js?v=1'),
+  const main=html.indexOf('league_news_model.js?v=2'),feature=html.indexOf('ltspn_editorial_model.js?v=2'),
     ui=html.indexOf('league_news.js?v=3');
   assert.ok(main>0&&main<feature&&feature<ui);
   assert.match(html,/league_news\.css\?v=3/);
