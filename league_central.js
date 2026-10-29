@@ -33,13 +33,13 @@
     const [weekRows,scoreRows,people]=await Promise.all([
       db('weeks?select=id,name,number,phase,status,season_id&phase=eq.regular&status=eq.published&order=number.asc'),
       db('week_scores?select=week_id,user_id,total_points,correct_count,question_count,placement,weeks!inner(phase,status)&weeks.phase=eq.regular&weeks.status=eq.published'),
-      db('profiles?select=id,display_name')
+      db('profiles?select=id,display_name,username')
     ]);
     const currentSeason=typeof week!=='undefined'?week?.season_id:null;
     const weeks=weekRows.filter(w=>!currentSeason||w.season_id===currentSeason);
     const publishedIds=new Set(weeks.map(w=>w.id));
     const scores=scoreRows.filter(s=>publishedIds.has(s.week_id));
-    const names=Object.fromEntries(people.map(p=>[p.id,p.display_name||'Member']));
+    const names=Object.fromEntries(people.map(p=>[p.id,window.MemberNames?.full(p)||p.display_name||'Member']));
     const scoredWeeks=weeks.filter(w=>scores.some(s=>s.week_id===w.id));
     const byWeek=new Map(scoredWeeks.map(w=>[w.id,scores.filter(s=>s.week_id===w.id)]));
     const totals=Object.fromEntries(people.map(p=>[p.id,0]));
