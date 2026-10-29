@@ -47,7 +47,7 @@
   }
 
   function firstName(p){
-    return String(p?.display_name||p?.username||'Player').trim().split(/\s+/)[0] || 'Player';
+    return window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   }
 
   function compactValue(v){
