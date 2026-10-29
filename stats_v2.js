@@ -20,7 +20,7 @@
     };
   }
 
-  function profileName(p){ return p?.display_name || p?.username || 'Player'; }
+  function profileName(p){ return window.MemberNames?.full(p)||p?.display_name||p?.username||'Player'; }
 
   window.renderStandings = async function(){
     if(!session) return;
