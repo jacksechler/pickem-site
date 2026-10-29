@@ -10,7 +10,8 @@
   const fmt=v=>Number.isFinite(Number(v))?Number(v).toFixed(1).replace(/\.0$/,''):'—';
   const choose=(a,b)=>a??b;
   const user=()=>typeof session!=='undefined'?session?.user?.id:null;
-  const currentSeason=()=>typeof week!=='undefined'?week?.season_id||null:null;
+  let inferredSeason=null;
+  const currentSeason=()=>((typeof week!=='undefined'?week?.season_id:null)||inferredSeason);
   const hide=id=>$(id)?.classList.contains('hidden');
   const nav=(id)=>window.showPage?.(id,document.querySelector('[data-page="'+id+'"]'));
   const nameOf=p=>window.MemberNames?.full(p)||p?.display_name||p?.username||'Member';
@@ -68,7 +69,11 @@
         db('week_scores?select=week_id,user_id,total_points,correct_count,question_count,placement,unicorn_count,upset_count,opening_streak,weeks!inner(phase,status)&weeks.phase=eq.regular&weeks.status=eq.published')
       ]);
       if(![profiles,weeks,scores].every(Array.isArray))throw Error('Published league records are unavailable.');
-      const selected=weeks.filter(w=>!season||w.season_id===season);
+      // Postseason pages can load with no active regular-season card.
+      // Recover the season ID from the last published card rather than mixing seasons.
+      if(!season&&weeks.length)inferredSeason=weeks.at(-1).season_id||null;
+      const actualSeason=season||inferredSeason;
+      const selected=weeks.filter(w=>!actualSeason||w.season_id===actualSeason);
       const allowed=new Set(selected.map(w=>w.id));
       const relevant=scores.filter(s=>allowed.has(s.week_id));
       let postseason=null;
@@ -76,9 +81,9 @@
         console.debug('Postseason records unavailable for this request',e);
       }
       const raw={profiles,weeks:selected,scores:relevant,postseason,
-        questions:[],picks:[],seasonId:season};
+        questions:[],picks:[],seasonId:actualSeason};
       const model=Model.build(raw);
-      const next={season,time:Date.now(),raw,model,details:false};
+      const next={season:actualSeason,time:Date.now(),raw,model,details:false};
       if(ticket===fetchSerial)cache=next;
       return next;
     })().finally(()=>{if(pending?.promise===promise)pending=null;});
