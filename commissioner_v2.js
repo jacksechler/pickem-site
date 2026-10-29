@@ -83,16 +83,16 @@
     const core=window.RegularScoringCore;
     if(!core) throw new Error('Regular scoring engine did not load.');
 
-    const profiles=await db('profiles?select=id,display_name,role');
+    const profiles=await db('profiles?select=id,display_name,username,role');
     const slots=await db('player_slots?select=slot,display_name,claimed_by&order=slot.asc');
     const commissioner=profiles.find(p=>p.role==='commissioner');
     const people=[];
-    if(commissioner) people.push({id:commissioner.id,name:commissioner.display_name||'Commissioner'});
+    if(commissioner) people.push({id:commissioner.id,name:window.MemberNames?.full(commissioner)||commissioner.display_name||'Commissioner'});
     for(const slot of slots){
       if(!slot.claimed_by) throw new Error('All 8 player accounts must be activated before publishing.');
       const p=profiles.find(x=>x.id===slot.claimed_by);
       if(!p) throw new Error('A player account is missing its profile.');
-      people.push({id:p.id,name:p.display_name||slot.display_name||('Player '+slot.slot)});
+      people.push({id:p.id,name:window.MemberNames?.full(p)||p.display_name||slot.display_name||('Player '+slot.slot)});
     }
 
     const submissions=await db('submissions?week_id=eq.'+week.id+'&select=user_id,tiebreaker_answer');
