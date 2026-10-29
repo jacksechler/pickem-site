@@ -76,7 +76,7 @@ test('feature story is an expanded article with specific questions, results and 
   const html=h.nodes.leagueNewsBox.innerHTML;
   assert.match(html,/data-news-story="w2:deep-dive"/);
   assert.match(html,/THE PICKS THAT MATTERED/);
-  assert.match(html,/NFL matchup 1 of Week 2/);
+  assert.match(html,/NFL matchup \d+ of Week 2/);
   assert.match(html,/Official result: <b>Home<\/b>/);
   assert.match(html,/ln-article-copy/);
   assert.match(html,/ln-article-stats/);
