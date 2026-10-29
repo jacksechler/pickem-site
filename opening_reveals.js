@@ -33,17 +33,22 @@
   async function regular() {
     const weeks = await db('weeks?select=id,name,number,phase,status&phase=eq.regular&order=number.desc&limit=12');
     for (const w of weeks) {
-      const scores = await db('week_scores?week_id=eq.'+encodeURIComponent(w.id)+'&select=user_id,total_points');
+      // Never reveal a winner while scores are provisional or the card is still live.
+      if (w.status !== 'published') continue;
+      const scores = await db('week_scores?week_id=eq.'+encodeURIComponent(w.id)+'&select=user_id,total_points,placement,correct_count');
       if (!scores.length || !scores.some(s=>s.user_id===session.user.id)) continue;
       const key = 'pickem-week-reveal:'+session.user.id+':'+w.id;
       if (localStorage.getItem(key)) return;
       const profiles = await db('profiles?select=id,display_name');
       const names = Object.fromEntries(profiles.map(p=>[p.id,p.display_name]));
-      const ranked = scores.slice().sort((a,b)=>Number(b.total_points)-Number(a.total_points));
+      // Weekly winners are determined by official placement (correct picks and
+      // tiebreakers), not by bonus-heavy season points.
+      const ranked = scores.slice().filter(s=>Number.isInteger(Number(s.placement))&&Number(s.placement)>0)
+        .sort((a,b)=>Number(a.placement)-Number(b.placement));
       const me = ranked.find(s=>s.user_id===session.user.id);
-      const rank = 1+ranked.filter(s=>Number(s.total_points)>Number(me.total_points)).length;
-      const winnerScore = Number(ranked[0].total_points);
-      const winners = ranked.filter(s=>Number(s.total_points)===winnerScore).map(s=>names[s.user_id]||'Member');
+      if (!me || !ranked.some(s=>Number(s.placement)===1)) continue;
+      const rank = Number(me.placement);
+      const winners = ranked.filter(s=>Number(s.placement)===1).map(s=>names[s.user_id]||'Member');
       localStorage.setItem(key,'seen');
       show({eyebrow:w.name+' • Official weekly results',headline:rank===1?'WEEKLY WINNER':'#'+rank+' THIS WEEK',summary:'Week winner'+(winners.length>1?'s':'')+': '+winners.join(', '),stats:[[String(me.total_points),'Your points'],['#'+rank,'Your finish'],[String(ranked.length),'Scored members']],cta:'View standings',onOpen:()=>window.showPage?.('standings')});
       return;
