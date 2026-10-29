@@ -21,9 +21,11 @@
     const round=current.round,cut=Number(round.participants_after),final=round.status==='finalized';
     if(final){
       if(row.advanced&&row.status_after==='champion')return 'champion';
+      if(row.status_after==='runner_up')return 'runner_up';
       return row.advanced?'advanced':'eliminated';
     }
     if(!current.locked)return 'not_locked';
+    if(val(current.question_count,0)===0)return 'pending';
     const remaining=countRemaining(current);
     const value=val(row.cumulative_after);
     if(remaining===null||value===null)return 'pending';
@@ -44,7 +46,7 @@
     const remaining=countRemaining(current);
     const score=val(row.cumulative_after);
     if(current.round.status==='finalized')
-      return kind==='champion'?'Official league champion':kind==='advanced'?'Officially advanced to the next round':'Officially eliminated from championship contention';
+      return kind==='champion'?'Official league champion':kind==='runner_up'?'Official league runner-up':kind==='advanced'?'Officially advanced to the next round':'Officially eliminated from championship contention';
     if(!current.locked)return 'Picks remain private until this round locks.';
     if(score===null||remaining===null)return 'Waiting for complete scoring information.';
     if(remaining===0&&current.tiebreaker_pending)return 'All picks decided; actual tiebreaker still pending.';
@@ -90,7 +92,7 @@
     });
     const counts={
       clinched:rows.filter(r=>['advanced','champion','clinched_math'].includes(r.kind)).length,
-      mathematicallyOut:rows.filter(r=>['eliminated','eliminated_math'].includes(r.kind)).length,
+      mathematicallyOut:rows.filter(r=>['eliminated','runner_up','eliminated_math'].includes(r.kind)).length,
       projectedOut:rows.filter(r=>r.kind==='projected_out').length,
       unresolved:rows.filter(r=>['tiebreaker','pending','not_locked'].includes(r.kind)).length
     };
@@ -114,7 +116,7 @@
       return {...base,mode:'official',members:history.map(h=>({
         id:h.user_id,name:h.display_name||'Member',seed:val(h.seed),rank:val(h.round_rank),
         total:val(h.cumulative_after),correct:val(h.round_correct,0),
-        kind:h.status_after==='champion'?'champion':h.advanced?'advanced':'eliminated',
+        kind:h.status_after==='champion'?'champion':h.status_after==='runner_up'?'runner_up':h.advanced?'advanced':'eliminated',
         official:true
       }))};
     }
