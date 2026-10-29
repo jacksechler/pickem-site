@@ -37,8 +37,8 @@
     const users=subs
       .map(s=>s.user_id)
       .filter(id=>pmap[id])
-      .sort((a,b)=>String(pmap[a]?.display_name||pmap[a]?.username||'')
-        .localeCompare(String(pmap[b]?.display_name||pmap[b]?.username||'')))
+      .sort((a,b)=>String(window.MemberNames?.full(pmap[a])||pmap[a]?.display_name||pmap[a]?.username||'')
+        .localeCompare(String(window.MemberNames?.full(pmap[b])||pmap[b]?.display_name||pmap[b]?.username||'')))
       .slice(0,8);
     const subMap=Object.fromEntries(subs.map(s=>[s.user_id,s]));
     const pickMap={};
