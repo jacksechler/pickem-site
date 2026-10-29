@@ -119,7 +119,7 @@
        powerScore:m.questions>0?(0.65*(recentQuestions?recentRate:rate)+0.35*rate):null};
    });
    const rankings=[...members].sort(sorted);
-   rankings.forEach((p,i)=>p.rank=i+1);
+   rankings.forEach((p,i)=>p.rank=d.weeks.length?i+1:null);
    const h2h={};
    for(const a of members)for(const b of members){
      if(a.id===b.id)continue;
@@ -190,7 +190,17 @@
    if(!week)return {kind:'empty',reason:'A published week is required before the first show.'};
    const top=week.rows[0],winners=week.winners.map(id=>model.members.find(m=>m.id===id)?.name||'Member');
    const movement=week.movements.find(m=>m.change>0)||null;
-   const power=model.power.slice(0,5);
+   // Each archived studio episode ranks members using only scores available that week.
+   const power=model.members.map(m=>{
+     const past=m.weeks.filter(w=>w.weekNumber<=week.number);
+     const recent=past.slice(-3);
+     const allC=past.reduce((a,b)=>a+b.correct,0),allQ=past.reduce((a,b)=>a+b.questions,0);
+     const recentC=recent.reduce((a,b)=>a+b.correct,0),recentQ=recent.reduce((a,b)=>a+b.questions,0);
+     return {id:m.id,name:m.name,seasonRate:pct(allC,allQ),recentRate:pct(recentC,recentQ),
+       score:allQ?(0.65*pct(recentC,recentQ)+0.35*pct(allC,allQ)):null};
+   }).filter(m=>m.score!==null)
+     .sort((a,b)=>b.score-a.score||compare(a.name,b.name))
+     .map((m,i)=>({...m,rank:i+1})).slice(0,5);
    const rare=model.rare.filter(q=>q.weekId===week.id).sort((a,b)=>a.correctCount-b.correctCount);
    const topContenders=week.rows.slice(0,3).map(r=>{
      const member=model.members.find(m=>m.id===r.id);
