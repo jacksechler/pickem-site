@@ -4,6 +4,7 @@
   const Model=window.PlayoffRaceModel;
   if(!Model)return;
   const $=id=>document.getElementById(id);
+  const viewerId=()=>typeof session!=='undefined'?session?.user?.id:null;
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const number=v=>v===null||v===undefined||!Number.isFinite(Number(v))?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:1});
   const date=v=>{
@@ -42,7 +43,7 @@
         if(member&&root.contains(member)){
           selectedPlayer=member.dataset.survivalMember;
           paint(lastData);
-          root.querySelector('[data-survival-member="'+CSS.escape(selectedPlayer)+'"]')?.focus({preventScroll:true});
+          [...root.querySelectorAll('[data-survival-member]')].find(el=>el.dataset.survivalMember===selectedPlayer)?.focus({preventScroll:true});
         }
       });
       anchor.before(root);
@@ -106,13 +107,13 @@
   }
   function survivalHtml(s){
     if(s.kind==='unavailable')return '';
-    const selected=s.rows.find(r=>r.id===selectedPlayer)||s.rows.find(r=>r.id===window.session?.user?.id)||s.rows[0];
+    const selected=s.rows.find(r=>r.id===selectedPlayer)||s.rows.find(r=>r.id===viewerId())||s.rows[0];
     let html='<section class="ps-survival-board" aria-label="Live playoff survival tracker"><div class="ps-survival-head"><div><div class="ps-road-eyebrow">LIVE SURVIVAL TRACKER</div><h2>'+safe(s.roundLabel)+'</h2><p>'+s.cut+' advance · '+(s.remaining===null?'Questions pending':s.remaining+' scored question'+(s.remaining===1?'':'s')+' remaining')+'</p></div><span class="ps-survival-phase '+(s.kind==='official'?'final':'')+'">'+(s.kind==='official'?'OFFICIAL RESULTS':s.kind==='prelock'?'AWAITING LOCK':'LIVE PROJECTIONS')+'</span></div>';
-    html+='<div class="ps-survival-stats"><div><strong>'+s.cut+'</strong><small>Advancement spots</small></div><div><strong>'+s.counts.clinched+'</strong><small>'+(s.kind==='official'?'Officially advanced':'Clinched / advanced')+'</small></div><div><strong>'+s.counts.mathematicallyOut+'</strong><small>'+(s.kind==='official'?'Eliminated':'Cannot advance')+'</small></div><div><strong>'+s.remaining===null?'—':s.remaining+'</strong><small>Questions left</small></div></div>';
+    html+='<div class="ps-survival-stats"><div><strong>'+s.cut+'</strong><small>Advancement spots</small></div><div><strong>'+s.counts.clinched+'</strong><small>'+(s.kind==='official'?'Officially advanced':'Clinched / advanced')+'</small></div><div><strong>'+s.counts.mathematicallyOut+'</strong><small>'+(s.kind==='official'?'Eliminated':'Cannot advance')+'</small></div><div><strong>'+(s.remaining===null?'—':s.remaining)+'</strong><small>Questions left</small></div></div>';
     if(s.kind==='prelock')html+='<p class="ps-road-notice">The race will update when this round locks. Nobody’s picks are exposed early.</p>';
     else if(s.tiebreakerPending&&s.kind!=='official')html+='<p class="ps-road-notice">The actual round tiebreaker is not entered. Tied players near the cut are not officially ranked yet.</p>';
     html+='<div class="ps-survival-list" aria-label="Select a contender">'+s.rows.map((r,i)=>{
-      const active=r.id===selected?.id,me=r.id===window.session?.user?.id;
+      const active=r.id===selected?.id,me=r.id===viewerId();
       const rank=r.rank?'#'+r.rank:'—';
       return (i===s.cut?'<div class="ps-survival-cut">ADVANCEMENT CUT · TOP '+s.cut+'</div>':'')+
         '<button type="button" class="ps-survival-row '+statusClass(r.kind)+(active?' selected':'')+'" data-survival-member="'+safe(r.id)+'" aria-pressed="'+active+'"><span class="ps-survival-rank">'+safe(rank)+'</span><span class="ps-survival-name"><b>'+safe(r.name)+(me?' · YOU':'')+'</b><small>Seed #'+safe(r.seed??'—')+'</small></span><span class="ps-survival-points">'+safe(number(r.total))+' <small>PTS</small></span><span class="ps-survival-label '+statusClass(r.kind)+'">'+safe(labels[r.kind]||'Active')+'</span></button>';
@@ -125,10 +126,9 @@
     const root=mount();if(!root)return;
     const road=Model.road(data);
     const s=Model.survival(data);
-    const requested=selectedRound;
     const fallback=Math.max(1,Math.min(5,road.currentRound||1));
     if(!roundSelectionManual||selectedRound===null||selectedRound<1||selectedRound>5)selectedRound=data.settings?.status==='complete'?5:fallback;
-    if(!s?.rows?.some(r=>r.id===selectedPlayer))selectedPlayer=window.session?.user?.id||s?.rows?.[0]?.id||null;
+    if(!s?.rows?.some(r=>r.id===selectedPlayer))selectedPlayer=viewerId()||s?.rows?.[0]?.id||null;
     const sig=JSON.stringify([data.settings?.status,road,s,selectedRound,selectedPlayer]);
     if(sig===lastSignature&&root.dataset.ready==='yes')return;
     const oldNav=root.querySelector('.ps-road-stages')?.scrollLeft||0;
