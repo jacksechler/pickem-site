@@ -4,7 +4,7 @@
 (() => {
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const decided=q=>q.result!==null&&q.result!==undefined;
-  const firstName=p=>String(p?.display_name||p?.username||'Player').trim().split(/\s+/)[0]||'Player';
+  const firstName=p=>window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   const MAX_REMAINING=4;
   const MAX_SCENARIOS=128;
 
