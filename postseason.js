@@ -19,11 +19,25 @@
     return (label[entry.status]||entry.status)+(entry.eliminated_round?' · '+(data.rounds.find(r=>r.round_number===entry.eliminated_round)?.label||'Round '+entry.eliminated_round):'');
   };
 
+  function normalizeMemberNames(value){
+    if(!value||!window.MemberNames)return value;
+    // Display-only normalization of the RPC response; scores and IDs are unchanged.
+    const fix=x=>{
+      if(x&&typeof x==='object'&&x.display_name){
+        x.display_name=window.MemberNames.full(x);
+      }
+    };
+    for(const entry of value.entries||[])fix(entry);
+    for(const row of value.current?.rows||[])fix(row);
+    for(const history of value.history||[])fix(history);
+    for(const record of value.standings||[])fix(record);
+    return value;
+  }
   async function load(sid=currentSeason(),wid=null,force=false) {
     if(!sid||!session)return null;
     const key=session.user.id+':'+sid+':'+(wid||'current'),hit=cache.get(key);
     if(!force&&hit&&Date.now()-hit.at<5000)return hit.value;
-    const value=await rpc('postseason_state',{p_season_id:sid,p_week_id:wid});
+    const value=normalizeMemberNames(await rpc('postseason_state',{p_season_id:sid,p_week_id:wid}));
     cache.set(key,{value,at:Date.now()});
     if(!wid&&value){latest=value;syncNavigation();}
     return value;
