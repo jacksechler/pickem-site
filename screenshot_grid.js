@@ -4,17 +4,6 @@
   const sameAnswer = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const isDecided = q => q.result !== null && q.result !== undefined;
 
-  const knownFirstNames = {
-    jacksechler:'Jack',
-    cadechristy:'Cade',
-    brodyravenstahl:'Brody',
-    chasecarulli:'Chase',
-    evanlewis:'Evan',
-    jacksongraham:'Jackson',
-    klayfunovits:'Klay',
-    lincolnconstant:'Lincoln'
-  };
-
   function firstName(profile){
     return window.MemberNames?.full(profile)||profile?.display_name||profile?.username||'Player';
   }
@@ -38,8 +27,8 @@
     h+='<div style="display:grid;grid-template-columns:repeat('+users.length+',minmax(0,1fr));gap:3px;width:100%">';
     users.forEach(id=>{
       const name=firstName(profileMap[id]);
-      const size=name.length>=7?'7.5':name.length>=6?'8.5':'9.5';
-      h+='<div title="'+esc(profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:clip">'+esc(name)+'</div>';
+      const size=name.length>=17?'7':name.length>=12?'7.5':'8.5';
+      h+='<div title="'+esc(profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:normal;overflow-wrap:anywhere;line-height:1.1;min-height:27px">'+esc(name)+'</div>';
     });
     qs.forEach(q=>{
       users.forEach(id=>{
