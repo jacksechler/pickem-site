@@ -64,18 +64,18 @@ function harness(changes={}){
 }
 test('News navigation and home preview are included in the published page',()=>{
   const html=read('index.html');
-  assert.match(html,/data-page="news"/);
+  assert.match(html,/data-page="news"[^>]*>LTSPN<\/button>/);
   assert.match(html,/id="news" class="page hidden"/);
   assert.match(html,/id="leagueNewsPreview"/);
   assert.match(html,/id="leagueNewsBox"/);
-  assert.match(html,/league_news\.css\?v=1/);
-  assert.ok(html.indexOf('league_news_model.js?v=1')<html.indexOf('league_news.js?v=1'));
+  assert.match(html,/league_news\.css\?v=2/);
+  assert.ok(html.indexOf('league_news_model.js?v=1')<html.indexOf('league_news.js?v=2'));
   assert.ok(html.indexOf('league_news_model.js?v=1')>0);
 });
 test('official latest week produces a home feature, without exposing private picks',async()=>{
   const h=harness();
   await h.load();
-  assert.match(h.preview.innerHTML,/League News Center/);
+  assert.match(h.preview.innerHTML,/LTSPN/);
   assert.match(h.preview.innerHTML,/Week 2/);
   assert.match(h.preview.innerHTML,/Member 1 wins Week 2/);
   assert.equal(h.queries.some(url=>url.startsWith('picks?')||url.startsWith('submissions?')),false);
@@ -83,7 +83,7 @@ test('official latest week produces a home feature, without exposing private pic
 test('the full news page displays featured story, archived weeks and topic filters',async()=>{
   const h=harness();
   await h.load();
-  assert.match(h.box.innerHTML,/THE LEAGUE WIRE/);
+  assert.match(h.box.innerHTML,/<h2>LTSPN<\/h2>/);
   assert.match(h.box.innerHTML,/FEATURED STORY/);
   assert.match(h.box.innerHTML,/NEWS ARCHIVE/);
   assert.match(h.box.innerHTML,/data-ln-category="standings"/);
@@ -137,4 +137,13 @@ test('existing League Central weekly headlines use official placement, not bonus
   assert.match(src,/status=eq.published/);
   assert.match(src,/Number\(s\.placement\)===1/);
   assert.match(src,/correct picks/);
+});
+
+test('LTSPN branding includes the logo slot and reliable fallback in both positions',async()=>{
+  const h=harness();await h.load();
+  assert.match(h.preview.innerHTML,/class="ln-brand-logo" src="ltspn-logo\.png"/);
+  assert.match(h.box.innerHTML,/class="ln-brand-logo" src="ltspn-logo\.png"/);
+  assert.match(h.box.innerHTML,/ltspn-wordmark\.svg/);
+  assert.match(read('ltspn-wordmark.svg'),/LTSPN/);
+  assert.match(read('league_news.css'),/\.ln-brandmark-large/);
 });
