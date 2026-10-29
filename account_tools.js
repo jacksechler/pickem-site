@@ -69,7 +69,7 @@
       const r=await fetch(ISSUE_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token,apikey:KEY},body:JSON.stringify({username})});
       const d=await r.json();
       if(!r.ok) throw new Error(d.error||'Could not create reset code');
-      alert('Reset code for '+(d.display_name||username)+': '+d.code+'\n\nThis code expires in 30 minutes. Give the code to that player; they can choose their own new password from Forgot password?.');
+      alert('Reset code for '+(window.MemberNames?.full({display_name:d.display_name,username})||d.display_name||username)+': '+d.code+'\n\nThis code expires in 30 minutes. Give the code to that player; they can choose their own new password from Forgot password?.');
     }catch(e){alert(e.message||'Could not create reset code');}
   };
 
