@@ -105,7 +105,7 @@
 
   function refreshHomeSummary() {
     if (!profile) return;
-    const firstName = String(profile.display_name || 'Player').trim().split(/\s+/)[0];
+    const firstName = window.MemberNames?.full(profile)||profile.display_name||'Player';
     if ($('homeSubtitle')) $('homeSubtitle').textContent = 'Welcome back, ' + firstName + '.';
     if ($('homeSubmitted')) $('homeSubmitted').textContent = submission ? 'Submitted' : 'Not submitted';
     if (!week) return;
