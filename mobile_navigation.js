@@ -13,6 +13,7 @@
   const groups=[
     {title:'THE SEASON',items:[
       {id:'playoffs',label:'Playoffs',detail:'Brackets & survival',icon:'trophy'},
+      {id:'standings',label:'Standings',detail:'Final regular-season rankings',icon:'standings'},
       {id:'championship',label:'Championship',detail:'The final matchup',icon:'trophy'},
       {id:'sharegrid',label:'Share Pick Grid',detail:'All members at a glance',icon:'grid'},
       {id:'seasoncalendar',label:'Season Calendar',detail:'Upcoming weeks',icon:'calendar'}
@@ -53,7 +54,7 @@
     b.type='button';b.dataset.mobilePage=item.id;
     b.setAttribute('aria-label',item.label);
     b.innerHTML=icon(item.icon)+'<span>'+item.label+'</span>';
-    b.addEventListener('click',()=>navigate(item.id));
+    b.addEventListener('click',()=>navigate(b.dataset.mobilePage));
     bar.append(b);buttons.set(item.id,b);
   });
   const more=create('button','mnav-tab mnav-more');
@@ -82,6 +83,51 @@
   panel.append(top,content);overlay.append(backdrop,panel);
   app.append(overlay,bar);
   let lastPage=null,returnFocus=null;
+  // Week 20 must be officially published; locking, creating a playoff card,
+  // or simply reaching the calendar date does NOT promote Playoffs early.
+  let postseasonNavigation=false;
+  let seasonCheck=null,lastSeasonCheck=0,checkedSeason=null;
+  const seasonCheckInterval=60000;
+  function setPostseasonNavigation(completed){
+    const next=!!completed;
+    if(postseasonNavigation===next)return;
+    postseasonNavigation=next;
+    const slot=bar.children[3];
+    const page=next?'playoffs':'standings';
+    slot.dataset.mobilePage=page;
+    slot.setAttribute('aria-label',next?'Playoffs':'Standings');
+    slot.innerHTML=icon(next?'trophy':'standings')+'<span>'+page.charAt(0).toUpperCase()+page.slice(1)+'</span>';
+    buttons.delete(next?'standings':'playoffs');
+    buttons.set(page,slot);
+    if(isOpen())renderMenu();
+    update();
+  }
+  async function refreshSeasonStatus(force=false){
+    if(!media.matches||typeof db!=='function'||typeof session==='undefined'||!session?.user?.id)return;
+    if(seasonCheck)return seasonCheck;
+    const now=Date.now();
+    const active=typeof week!=='undefined'?week?.season_id||null:null;
+    if(!force&&now-lastSeasonCheck<seasonCheckInterval&&active===checkedSeason)return;
+    seasonCheck=(async()=>{
+      let seasonId=active;
+      if(!seasonId){
+        // When no week is active, resolve the current league season. Avoid
+        // treating last year's published Week 20 as the new season's finish.
+        const seasons=await db('seasons?select=id,year&order=year.desc&limit=1');
+        seasonId=Array.isArray(seasons)?seasons[0]?.id:null;
+      }
+      if(!seasonId)return;
+      const published=await db('weeks?season_id=eq.'+encodeURIComponent(seasonId)+
+        '&phase=eq.regular&number=eq.20&status=eq.published&select=id&limit=1');
+      if(!Array.isArray(published))throw Error('Could not verify Week 20 status');
+      checkedSeason=active;
+      lastSeasonCheck=Date.now();
+      setPostseasonNavigation(published.length>0);
+    })().catch(error=>{
+      console.debug('Mobile playoff tab: official Week 20 status unavailable',error);
+    }).finally(()=>{seasonCheck=null;});
+    return seasonCheck;
+  }
   const sourceButton=id=>document.querySelector('.topinner > nav button[data-page="'+id+'"]');
   const allowed=id=>{
     const original=sourceButton(id);
@@ -113,7 +159,11 @@
   function renderMenu(){
     content.replaceChildren();
     for(const group of groups){
-      const items=group.items.filter(item=>allowed(item.id));
+      // Before the regular-season finale, Playoffs stays in More. Afterwards,
+      // Playoffs is promoted into the dock and Standings takes its menu place.
+      const items=group.items.filter(item=>allowed(item.id)&&
+        (item.id==='playoffs'?!postseasonNavigation:
+         item.id==='standings'?postseasonNavigation:true));
       if(!items.length)continue;
       const section=create('section','mnav-group');
       const label=create('h3','mnav-group-label');label.textContent=group.title;
@@ -141,6 +191,7 @@
     if(!media.matches||isOpen())return;
     returnFocus=document.activeElement;
     renderMenu();overlay.hidden=false;more.setAttribute('aria-expanded','true');
+    void refreshSeasonStatus();
     document.body.classList.add('mnav-open');
     const active=content.querySelector('.is-active');
     (active||close).focus();
@@ -179,9 +230,9 @@
   const originalShow=window.showPage;
   if(typeof originalShow==='function')window.showPage=function(id){
     const result=originalShow.apply(this,arguments);
-    dismiss(false);update(id);return result;
+    dismiss(false);update(id);void refreshSeasonStatus();return result;
   };
-  const onBreakpoint=()=>{dismiss(false);update();};
+  const onBreakpoint=()=>{dismiss(false);update();void refreshSeasonStatus(true);};
   if(media.addEventListener)media.addEventListener('change',onBreakpoint);
   else if(media.addListener)media.addListener(onBreakpoint);
   // Profile, GameDay and commissioner pages may be opened by their own modules
@@ -194,5 +245,15 @@
     observer.observe(pages,{attributes:true,attributeFilter:['class'],subtree:true});
   }
   update();
-  window.MobileNavigation={open,close:dismiss,navigate,update,isOpen};
+  // Recheck while a member is active so publishing Week 20 changes the dock
+  // without waiting for a new app release or reloading the page.
+  void refreshSeasonStatus();
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)void refreshSeasonStatus(true);
+  });
+  if(typeof setInterval==='function')setInterval(()=>{
+    if(!document.hidden)void refreshSeasonStatus();
+  },seasonCheckInterval);
+  window.MobileNavigation={open,close:dismiss,navigate,update,isOpen,
+    refreshSeasonStatus,getPostseasonNavigation:()=>postseasonNavigation};
 })();
