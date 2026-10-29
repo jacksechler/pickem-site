@@ -16,7 +16,7 @@
     lincolnconstant:'Lincoln Constant'
   };
   const key=value=>String(value||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const trim=value=>String(value||'').trim().replace(/\\s+/g,' ');
+  const trim=value=>String(value||'').trim().replace(/\s+/g,' ');
   function full(input){
     const person=input&&typeof input==='object'?input:null;
     const display=trim(person?.display_name||person?.name||'');
