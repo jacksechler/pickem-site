@@ -49,7 +49,7 @@
     const entryState = entriesComplete ? 'Complete' : d.week.locked ? 'Incomplete after lock' : 'In progress';
     checks.push({title:'Submissions & picks',kind:entryKind,state:entryState,
       detail:esc(d.entries.submitted+' / '+d.entries.required+' required submitted · '+d.entries.pick_rows+' pick rows'),
-      extra: incomplete.length ? '<ul class="diag-list">'+incomplete.map(p=>'<li>'+esc(p.display_name+': '+p.picks+'/'+p.expected_picks+' picks'+(p.submitted?'':' · not submitted'))+'</li>').join('')+'</ul>' : ''});
+      extra: incomplete.length ? '<ul class="diag-list">'+incomplete.map(p=>'<li>'+esc((window.MemberNames?.full(p)||p.display_name)+': '+p.picks+'/'+p.expected_picks+' picks'+(p.submitted?'':' · not submitted'))+'</li>').join('')+'</ul>' : ''});
 
     const q=d.questions;
     const orderOk = q.decided === q.result_ordered && q.result_ordered === q.result_order_distinct &&
