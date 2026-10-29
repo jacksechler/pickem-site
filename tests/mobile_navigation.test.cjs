@@ -101,6 +101,7 @@ function harness({desktop=false,commissioner=false,playoffs=true,authenticated=f
   const db=async url=>{
     calls.push(url);
     if(url.startsWith('seasons?'))return [{id:'season-2026',year:2026}];
+    if(url.startsWith('weeks?phase=eq.regular'))return [{season_id:'season-2026'}];
     if(url.startsWith('weeks?'))return published?[{id:'w20'}]:[];
     throw Error('Unexpected request: '+url);
   };
@@ -274,11 +275,12 @@ test('the switch does not occur on an unfinished Week 20 or based on old season 
   assert.equal(h.calls.some(x=>x.startsWith('weeks?season_id=eq.season-2026')),false);
 });
 
-test('a missing active week resolves latest season instead of using old Week 20 status',async()=>{
+test('a missing active week selects the most recent actual regular-season card',async()=>{
   const h=harness({authenticated:true,activeSeason:null,week20Published:true});
   await h.refresh();
-  assert.ok(h.calls.some(x=>x.startsWith('seasons?select=id,year')));
+  assert.ok(h.calls.some(x=>x.startsWith('weeks?phase=eq.regular&select=season_id&order=created_at.desc')));
   assert.ok(h.calls.some(x=>x.startsWith('weeks?season_id=eq.season-2026')));
+  assert.equal(h.calls.some(x=>x.startsWith('seasons?select=id,year')),false);
   assert.equal(h.bar.children[3].dataset.mobilePage,'playoffs');
 });
 
@@ -306,4 +308,10 @@ test('desktop sidebar never changes when the regular season finishes',async()=>{
   await h.refresh();
   assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
   assert.equal(h.calls.length,0);
+});
+
+
+test('login boot triggers the navigation check after session and week are loaded',()=>{
+ const html=read('index.html');
+ assert.match(html,/renderHome\(\);renderStandings\(\);renderStats\(\);void window\.MobileNavigation\?\.refreshSeasonStatus\?\.\(true\)/);
 });
