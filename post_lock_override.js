@@ -78,7 +78,7 @@
       card.innerHTML = '<div class="eyebrow">COMMISSIONER OVERRIDE</div><h2>Change a pick after lock</h2>'+
         '<p class="muted">Use this only for a player-requested correction. Every change is timestamped in the commissioner activity log. Published weeks stay locked.</p>'+
         '<div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">'+
-          '<div><label for="lockedPickPlayer">Player</label><select id="lockedPickPlayer">'+data.players.map(p=>'<option value="'+p.id+'">'+esc(p.display_name || p.username)+'</option>').join('')+'</select></div>'+
+          '<div><label for="lockedPickPlayer">Player</label><select id="lockedPickPlayer">'+data.players.map(p=>'<option value="'+p.id+'">'+esc(window.MemberNames?.full(p)||p.display_name||p.username)+'</option>').join('')+'</select></div>'+
           '<div><label for="lockedPickQuestion">Question</label><select id="lockedPickQuestion">'+data.questions.map(q=>'<option value="'+q.id+'">#'+q.position+' · '+esc(q.prompt)+'</option>').join('')+'</select></div>'+
         '</div>'+
         '<label for="lockedPickAnswer">Replacement pick</label><select id="lockedPickAnswer"></select><div id="lockedPickCurrent" class="mini"></div>'+
@@ -115,7 +115,7 @@
     if (!reason || reason.length < 3) { msg.textContent = 'Add a short reason for the change.'; return; }
     const answer = decodeOption(rawAnswer);
     if (same(answer, existing.answer)) { msg.textContent = 'Choose a different answer first.'; return; }
-    if (!confirm('Change '+(player.display_name || player.username)+'\'s locked pick on “'+question.prompt+'” from '+answerLabel(existing.answer)+' to '+answerLabel(answer)+'?')) return;
+    if (!confirm('Change '+(window.MemberNames?.full(player)||player.display_name||player.username)+'\'s locked pick on “'+question.prompt+'” from '+answerLabel(existing.answer)+' to '+answerLabel(answer)+'?')) return;
     button.disabled = true;
     msg.textContent = 'Saving…';
     try {
