@@ -43,6 +43,6 @@ test('updated grid scripts and both scroll stylesheets load on the actual page',
   const html = read('index.html');
   assert.match(html, /mobile_ux\.css\?v=4/);
   assert.match(html, /league_scroll_fixes\.css\?v=2/);
-  assert.match(html, /history_profiles\.js\?v=6/);
+  assert.match(html, /history_profiles\.js\?v=7/);
   assert.ok(html.indexOf('league_scroll_fixes.css?v=2') > html.indexOf('mobile_ux.css?v=4'));
 });
