@@ -24,7 +24,7 @@
       allProfiles.map(p=>p.id):idsWithScores.length?idsWithScores:allProfiles.map(p=>p.id);
     if(ids.length!==8||new Set(ids).size!==8)return {kind:'unavailable',reason:'Waiting for the complete eight-member league roster.'};
     const profilesById=Object.fromEntries(allProfiles.map(p=>[p.id,p]));
-    const names=Object.fromEntries(ids.map(id=>[id,profilesById[id]?.display_name||profilesById[id]?.username||'Member']));
+    const names=Object.fromEntries(ids.map(id=>[id,typeof globalThis!=='undefined'&&globalThis.MemberNames?.full(profilesById[id])||profilesById[id]?.display_name||profilesById[id]?.username||'Member']));
     const ordered=ids.slice().sort((a,b)=>names[a].localeCompare(names[b])||a.localeCompare(b));
     const totals=Object.fromEntries(ordered.map(id=>[id,{total:0,correct:0,wins:0}]));
     const start=()=>ordered.map(id=>({id,...totals[id]}));
