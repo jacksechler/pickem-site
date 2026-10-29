@@ -76,9 +76,9 @@ test('site wires all four pages and loads their code after Postseason',()=>{
     assert.match(html,new RegExp('id="'+key+'" class="page hidden"'));
     assert.match(html,new RegExp('id="'+key+'Box"'));
   }
-  assert.ok(html.indexOf('league_extras_model.js?v=1')>html.indexOf('postseason.js?v=11'));
-  assert.ok(html.indexOf('league_extras.js?v=1')>html.indexOf('league_extras_model.js?v=1'));
-  assert.match(html,/league_extras\.css\?v=1/);
+  assert.ok(html.indexOf('league_extras_model.js?v=2')>html.indexOf('postseason.js?v=11'));
+  assert.ok(html.indexOf('league_extras.js?v=2')>html.indexOf('league_extras_model.js?v=2'));
+  assert.match(html,/league_extras\.css\?v=2/);
 });
 test('awards page renders verified current records, not fake champions',async()=>{
   const h=setup();await h.window.LeagueExtras.renderAwards();
