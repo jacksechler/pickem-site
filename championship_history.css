@@ -1,0 +1,66 @@
+/* Championship probability history – matches Rank Tracker, optimized for iPhone. */
+.ch-history{margin-top:18px;padding:20px;min-width:0;border:1px solid #957847;
+  background:linear-gradient(145deg,#18283e,#0f1d32 80%)}
+.ch-history-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.ch-history-header .eyebrow{color:#f0c87f}
+.ch-history-header h2{margin:5px 0;font-size:clamp(23px,4vw,30px);line-height:1.2;color:#f5f6fa}
+.ch-history-sub{color:#b5c3d6;font-size:13px;line-height:1.5;margin:3px 0 0}
+.ch-history-pill{font-size:10px;letter-spacing:.08em;font-weight:900;color:#f7d99f;
+  border:1px solid #96794a;background:#3c3024;border-radius:6px;padding:7px 9px}
+.ch-history-note{font-size:12px;line-height:1.65;color:#b7c6d9;margin:15px 0 0}
+.ch-history-note strong{color:#efce93}
+.ch-history-progress{font-size:12px;color:#f0ca84;font-weight:800;margin-top:11px}
+.ch-history-toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:15px 0 10px}
+.ch-history-choose{display:flex;align-items:center;gap:6px;min-width:200px;max-width:100%}
+.ch-history-choose select{margin:0;width:min(275px,52vw);background:#15273e;color:#f3f6fa;border:1px solid #475976;
+  border-radius:8px;min-height:44px;padding:9px 10px;font-size:16px}
+.ch-history-choose button,.ch-history-refresh{display:inline-flex;align-items:center;justify-content:center;
+  padding:9px 13px;min-height:44px;border-radius:8px;background:#25344b;color:#f3f4fa;
+  border:1px solid #4e6280;cursor:pointer;font-weight:850;font-size:15px}
+.ch-history-choose button{width:44px;padding:7px;font-size:23px}
+.ch-history-choose button:disabled{opacity:.35;cursor:not-allowed}
+.ch-history-choose button:focus-visible,.ch-history-refresh:focus-visible,
+.ch-history-legend:focus-visible{outline:2px solid #f6cc83;outline-offset:2px}
+.ch-history-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x;
+  background:#0a1627;border:1px solid #34435a;border-radius:12px;scrollbar-width:thin}
+.ch-history-chart{width:max-content;min-width:100%;padding:9px 8px 3px}
+.ch-history-chart svg{display:block;max-width:none;height:auto;color:#becfe1;overflow:visible}
+.ch-history-chart svg circle[data-ch-week]{cursor:pointer}
+.ch-history-legend-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.ch-history-legend{border:1px solid #40516c;border-radius:8px;background:#14243b;color:#eef3fa;
+  padding:9px 7px;min-width:0;min-height:42px;display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:850;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+.ch-history-legend.muted{opacity:.42;text-decoration:line-through}
+.ch-history-swatch{flex:0 0 auto;width:10px;height:10px;border-radius:999px;display:inline-block}
+.ch-history-readout{margin-top:18px;border-top:1px solid #33445b;padding-top:16px}
+.ch-history-readout-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px}
+.ch-history-readout-head h3{margin:4px 0;font-size:22px;font-weight:900;color:#f6cf87}
+.ch-history-readout-head>b{font-size:11px;color:#acbfd4}
+.ch-history-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ch-history-result{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  border:1px solid #344861;background:#102039;border-radius:9px;padding:12px;min-width:0}
+.ch-history-result.mine{border-color:#d2aa62;background:#302b2b}
+.ch-history-player{display:flex;align-items:center;gap:8px;min-width:0}
+.ch-history-player strong{font-size:13px;overflow-wrap:anywhere}
+.ch-history-result-value{font-size:21px;font-weight:950;color:#f3d18c;text-align:right;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.ch-history-result-value small{display:block;font-size:11px;font-weight:750;color:#acbdce;margin-top:3px}
+.ch-history-result-value small.up{color:#7de1b6}
+.ch-history-result-value small.down{color:#f4a0aa}
+@media(max-width:750px){
+  .ch-history{padding:14px}
+  .ch-history-legend-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ch-history-results{grid-template-columns:1fr}
+  .ch-history-result{padding:11px}
+}
+@media(max-width:430px){
+  .ch-history-choose{flex:1}
+  .ch-history-choose select{width:auto;flex:1;min-width:0}
+  .ch-history-refresh{width:100%}
+  .ch-history-player strong{font-size:12px}
+  .ch-history-result-value{font-size:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ch-history-scroll{scroll-behavior:auto}
+}
