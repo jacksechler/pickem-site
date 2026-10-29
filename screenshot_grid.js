@@ -28,7 +28,7 @@
     users.forEach(id=>{
       const name=firstName(profileMap[id]);
       const size=name.length>=17?'7':name.length>=12?'7.5':'8.5';
-      h+='<div title="'+esc(profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:normal;overflow-wrap:anywhere;line-height:1.1;min-height:27px">'+esc(name)+'</div>';
+      h+='<div title="'+esc(window.MemberNames?.full(profileMap[id])||profileMap[id]?.display_name||profileMap[id]?.username||'Player')+'" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:normal;overflow-wrap:anywhere;line-height:1.1;min-height:27px">'+esc(name)+'</div>';
     });
     qs.forEach(q=>{
       users.forEach(id=>{
@@ -40,7 +40,7 @@
           border=ok?'#2f9f7b':'#b94a61';
           symbol=ok?'✓':'×';
         }
-        h+='<div title="'+esc(profileMap[id]?.display_name||'Player')+' · Q'+Number(q.position||0)+'" style="height:19px;border-radius:5px;background:'+bg+';border:1px solid '+border+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:950;color:#fff;line-height:1">'+symbol+'</div>';
+        h+='<div title="'+esc(window.MemberNames?.full(profileMap[id])||profileMap[id]?.display_name||'Player')+' · Q'+Number(q.position||0)+'" style="height:19px;border-radius:5px;background:'+bg+';border:1px solid '+border+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:950;color:#fff;line-height:1">'+symbol+'</div>';
       });
     });
     h+='</div><div class="mini" style="margin-top:8px;text-align:center">Green = right · Red = wrong · Gray = not decided</div></div>';
