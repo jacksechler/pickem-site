@@ -39,8 +39,8 @@
       if (!scores.length || !scores.some(s=>s.user_id===session.user.id)) continue;
       const key = 'pickem-week-reveal:'+session.user.id+':'+w.id;
       if (localStorage.getItem(key)) return;
-      const profiles = await db('profiles?select=id,display_name');
-      const names = Object.fromEntries(profiles.map(p=>[p.id,p.display_name]));
+      const profiles = await db('profiles?select=id,display_name,username');
+      const names = Object.fromEntries(profiles.map(p=>[p.id,window.MemberNames?.full(p)||p.display_name]));
       // Weekly winners are determined by official placement (correct picks and
       // tiebreakers), not by bonus-heavy season points.
       const ranked = scores.slice().filter(s=>Number.isInteger(Number(s.placement))&&Number(s.placement)>0)
