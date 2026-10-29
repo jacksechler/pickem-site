@@ -33,6 +33,26 @@ test('computes all eight season profiles from four completed cards',()=>{
  assert.equal(a.rank,1);
  assert.equal(d.rankings[0].name,'Member 1');
 });
+test('Awards and Hall of Fame rank Cade above Evan by total season points, never weekly wins',()=>{
+ const p=profiles.map((x,i)=>({...x,display_name:i===0?'Cade Christy':i===1?'Evan Lewis':x.display_name}));
+ const w=[{id:'real-w1',name:'Week 1',number:1,status:'published',phase:'regular',season_id:'2026'},
+   {id:'real-w2',name:'Week 2',number:2,status:'published',phase:'regular',season_id:'2026'}];
+ const s=w.flatMap((week,j)=>p.map((profile,i)=>({
+   week_id:week.id,user_id:profile.id,
+   correct_count:i===0?9:i===1?11:7,question_count:12,
+   placement:i===1?1:i===0?2:i+1,
+   total_points:i===0?(j===0?36:35.5):i===1?(j===0?30:28):8-i
+ })));
+ const model=M.build({profiles:p,weeks:w,scores:s,seasonId:'2026'});
+ assert.equal(model.rankings[0].name,'Cade Christy');
+ assert.equal(model.rankings[0].points,71.5);
+ assert.equal(model.rankings[1].name,'Evan Lewis');
+ assert.equal(model.rankings[1].points,58);
+ assert.equal(model.rankings[1].wins,2);
+ assert.equal(model.rankings[0].wins,0);
+ assert.equal(model.records.find(r=>r.id==='season-points').holderNames[0],'Cade Christy');
+ assert.equal(model.weeks[1].standings[model.rankings[0].id].rank,1);
+});
 test('profiles provide recent accuracy, average points and longest winning streak',()=>{
  const d=M.build(snapshot());const m=byName(d,'p0');
  assert.equal(m.recentRate,100*(13+12+13)/48);
