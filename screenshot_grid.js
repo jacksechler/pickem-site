@@ -16,10 +16,7 @@
   };
 
   function firstName(profile){
-    const username=String(profile?.username||'').toLowerCase();
-    if(knownFirstNames[username]) return knownFirstNames[username];
-    const name=String(profile?.display_name||profile?.username||'Player').trim();
-    return name.split(/\s+/)[0] || 'Player';
+    return window.MemberNames?.full(profile)||profile?.display_name||profile?.username||'Player';
   }
 
   async function screenshotGridHtml(){
