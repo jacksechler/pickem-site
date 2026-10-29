@@ -157,7 +157,7 @@
         '<button class="btn secondary" onclick="useNotificationPreset(\'score\')">Score Update</button>'+
         '<button class="btn secondary" onclick="useNotificationPreset(\'over\')">Week Over</button>'+
         '<button class="btn secondary" onclick="useNotificationPreset(\'leaderboard\')">Leaderboard</button></div>'+
-      '<label>Send to</label><select id="pushTarget"><option value="">Everyone</option>'+profiles.map(p=>'<option value="'+p.id+'">'+esc(p.display_name||p.username||'Player')+'</option>').join('')+'</select>'+
+      '<label>Send to</label><select id="pushTarget"><option value="">Everyone</option>'+profiles.map(p=>'<option value="'+p.id+'">'+esc(window.MemberNames?.full(p)||p.display_name||p.username||'Player')+'</option>').join('')+'</select>'+
       '<label>Title</label><input id="pushTitle" maxlength="80" placeholder="Pick\'em update">'+
       '<label>Message</label><input id="pushBody" maxlength="220" placeholder="Type your notification">'+
       '<label>Open this page when tapped</label><select id="pushPage"><option value="home">Home</option><option value="picks">Picks</option><option value="league">League Picks</option><option value="standings">Standings</option><option value="stats">Stats</option></select>'+
