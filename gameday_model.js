@@ -7,7 +7,7 @@
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const decided = q => q.result !== null && q.result !== undefined;
   const numeric = v => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v));
-  const name = p => p?.display_name || p?.username || 'Player';
+  const name = p => (typeof globalThis !== 'undefined' ? globalThis.MemberNames?.full(p) : null) || p?.display_name || p?.username || 'Player';
   const resultOrder = (a, b) => Number(a.result_order ?? 999999) - Number(b.result_order ?? 999999) || Number(a.position || 0) - Number(b.position || 0);
   const rankLabel = row => row?.rank ? (row.tied ? 'T' : '#') + row.rank : '—';
   const answerLabel = answer => answer === undefined ? 'No pick' : typeof answer === 'string' ? answer : JSON.stringify(answer);
