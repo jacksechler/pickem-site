@@ -4,8 +4,8 @@
   const fmt=v=>n(v).toFixed(1).replace(/\.0$/,'');
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const decided=q=>q.result!==null&&q.result!==undefined;
-  const name=p=>String(p?.display_name||p?.username||'Player').trim();
-  const firstName=p=>name(p).split(/\s+/)[0]||'Player';
+  const name=p=>window.MemberNames?.full(p)||String(p?.display_name||p?.username||'Player').trim();
+  const firstName=p=>name(p);
 
   function resultOrder(a,b){
     const ao=a.result_order==null?999999:Number(a.result_order);
