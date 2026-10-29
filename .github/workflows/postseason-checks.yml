@@ -21,7 +21,7 @@ jobs:
       - name: Check app assets, login/session behavior, mobile layout, and legacy installers
         run: node --test tests/auth_session.test.cjs tests/mobile_layout.test.cjs tests/league_surface.test.cjs tests/path_to_win.test.cjs tests/share_grid.test.cjs tests/weekly_standings.test.cjs && node tests/release_check.mjs
       - name: Check championship odds, weekly odds, popups, and mobile-grid regressions
-        run: node --test tests/championship_odds_model.test.cjs tests/championship_odds_integration.test.cjs tests/playoff_advancement_model.test.cjs tests/weekly_win_odds_model.test.cjs tests/mobile_grid_scroll_regression.test.cjs tests/opening_reveals.test.cjs tests/playoff_race_model.test.cjs tests/playoff_race_ui.test.cjs
+        run: node --test tests/championship_odds_model.test.cjs tests/championship_odds_integration.test.cjs tests/playoff_advancement_model.test.cjs tests/weekly_win_odds_model.test.cjs tests/mobile_grid_scroll_regression.test.cjs tests/opening_reveals.test.cjs tests/playoff_race_model.test.cjs tests/playoff_race_ui.test.cjs tests/championship_history_model.test.cjs tests/championship_history_ui.test.cjs
       - name: Verify regular-season scoring and database behavior
         run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/regular_scoring.test.cjs tests/regular_db.test.mjs
       - name: Verify live scores, GameDay, and postseason behavior
