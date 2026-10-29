@@ -1,0 +1,111 @@
+/* Playoff Survival Tracker and interactive Road to the Championship.
+   Presentation only. Official scoring remains in postseason_state. */
+#playoffBox .ps-funnel.ps-road-legacy{display:none}
+#playoffBox .ps-race-experience{min-width:0;width:100%;margin:0 0 22px;color:var(--text)}
+#playoffBox .ps-road-board,
+#playoffBox .ps-survival-board{min-width:0;border:1px solid #38445b;border-radius:18px;padding:22px;background:linear-gradient(145deg,#1a2941,#101b2d 75%);margin:0 0 16px}
+#playoffBox .ps-road-board{border-top:3px solid #d2a75b}
+#playoffBox .ps-survival-board{border-top:3px solid #d0a356}
+#playoffBox .ps-road-title,
+#playoffBox .ps-survival-head,
+#playoffBox .ps-road-detail-head,
+#playoffBox .ps-survival-focus-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+#playoffBox .ps-road-eyebrow{font-weight:900;font-size:11px;color:#eac57c;letter-spacing:.14em;text-transform:uppercase}
+#playoffBox .ps-road-title h2,
+#playoffBox .ps-survival-head h2{font-size:clamp(23px,4vw,31px);font-weight:880;line-height:1.16;margin:7px 0;color:#fff}
+#playoffBox .ps-road-title p,
+#playoffBox .ps-survival-head p,
+#playoffBox .ps-road-detail-head p{margin:6px 0 0;color:#b5c5db;font-size:13px;line-height:1.5}
+#playoffBox .ps-road-chip,
+#playoffBox .ps-survival-phase{padding:7px 10px;border:1px solid #926f36;border-radius:6px;background:#332c24;color:#f2ce82;font-size:11px;font-weight:900;letter-spacing:.06em}
+#playoffBox .ps-survival-phase.final{border-color:#459b7b;background:#153b35;color:#8eefd0}
+#playoffBox .ps-road-stages{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:9px;margin:22px 0 18px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+#playoffBox .ps-road-stage{min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:5px;min-height:129px;padding:13px 12px;border-radius:11px;border:1px solid #35455d;background:#121d30;color:#d9e3f1;cursor:pointer;transition:border-color .16s,background .16s;touch-action:manipulation}
+#playoffBox .ps-road-stage:hover{border-color:#8baccf;background:#192b41}
+#playoffBox .ps-road-stage.active{border-color:#e2b96c;background:linear-gradient(155deg,#3a3025,#1b2b40);box-shadow:inset 0 3px 0 #efc275}
+#playoffBox .ps-road-stage.complete:not(.active){border-color:#376d64}
+#playoffBox .ps-road-stage:focus-visible,
+#playoffBox .ps-survival-row:focus-visible{outline:3px solid #a5c7ff;outline-offset:2px}
+#playoffBox .ps-road-stage-number{font-size:10px;letter-spacing:.1em;color:#a8b9ce;font-weight:800}
+#playoffBox .ps-road-stage strong{font-weight:950;font-size:26px;line-height:1.1;color:#f7d08a}
+#playoffBox .ps-road-stage small{font-size:12px;font-weight:800;line-height:1.35;color:#d8e2ef}
+#playoffBox .ps-road-stage-status{font-weight:900;font-size:9px;letter-spacing:.08em;color:#adc3d4;margin-top:auto}
+#playoffBox .ps-road-champion-tab strong{font-size:25px}
+#playoffBox .ps-road-detail{padding:17px;border-radius:13px;background:#101929;border:1px solid #344158}
+#playoffBox .ps-road-detail-head h3{font-size:22px;font-weight:870;color:#f7f7fa;margin:5px 0}
+#playoffBox .ps-road-count{font-size:18px;line-height:1;font-weight:900;color:#f6d48d;padding:10px 13px;background:#2a292a;border-radius:8px}
+#playoffBox .ps-road-field{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:17px}
+#playoffBox .ps-road-member{padding:12px 14px;border:1px solid #3b4b62;border-radius:10px;background:#1a2a40;min-width:0}
+#playoffBox .ps-road-member.success{border-color:#5f806c;background:#18332f}
+#playoffBox .ps-road-member.danger{opacity:.8;border-color:#794957;background:#35202c}
+#playoffBox .ps-road-member.watch{border-color:#a17e4a}
+#playoffBox .ps-road-member-top,
+#playoffBox .ps-road-member-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#playoffBox .ps-road-member-seed{font-size:10px;letter-spacing:.08em;color:#aac0d6;font-weight:850}
+#playoffBox .ps-road-member-state{font-size:11px;font-weight:850;color:#f2d291;text-align:right}
+#playoffBox .ps-road-member.danger .ps-road-member-state{color:#ff9da7}
+#playoffBox .ps-road-member.success .ps-road-member-state{color:#9fe4ca}
+#playoffBox .ps-road-member-name{font-size:16px;font-weight:860;overflow-wrap:anywhere;margin:7px 0}
+#playoffBox .ps-road-member-bottom{font-size:12px;color:#b7c5d8}
+#playoffBox .ps-road-member-bottom b{color:#f5f6fb;font-size:13px}
+#playoffBox .ps-road-empty{margin-top:15px;padding:24px;text-align:center;border:1px dashed #41516b;border-radius:11px;color:#bccbdd}
+#playoffBox .ps-road-empty strong{display:block;font-size:16px;color:#f3f5f9}
+#playoffBox .ps-road-empty p{font-size:12px;line-height:1.5;margin:9px auto 0;max-width:470px}
+#playoffBox .ps-road-notice{font-size:12px;line-height:1.55;color:#f3cf8f;padding:11px 13px;background:#3b302332;border-left:3px solid #dba95f;border-radius:7px;margin:12px 0}
+#playoffBox .ps-road-spotlight{text-align:center;padding:33px 14px;background:radial-gradient(ellipse at top,#4a3d28,#1b283c 60%,#121e30);border:1px solid #a6803d;border-radius:13px}
+#playoffBox .ps-road-spotlight h3{font-size:clamp(24px,5vw,37px);font-weight:950;color:#ffe3a6;margin:10px 0}
+#playoffBox .ps-road-spotlight p{color:#ccd6e3;font-size:13px}
+#playoffBox .ps-road-spotlight.upcoming{background:#19283a;border-color:#34475e}
+#playoffBox .ps-road-spotlight.upcoming h3{color:#fff}
+#playoffBox .ps-survival-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0}
+#playoffBox .ps-survival-stats>div{border:1px solid #364760;background:#111d30;padding:13px 10px;border-radius:9px;min-width:0}
+#playoffBox .ps-survival-stats strong{display:block;color:#f9d38c;font-size:25px;line-height:1.2;font-variant-numeric:tabular-nums}
+#playoffBox .ps-survival-stats small{display:block;color:#b6c5d7;font-size:11px;margin-top:5px;line-height:1.3}
+#playoffBox .ps-survival-list{display:grid;gap:5px;margin:12px 0}
+#playoffBox .ps-survival-row{width:100%;display:grid;grid-template-columns:42px minmax(80px,1fr) 70px minmax(114px,142px);align-items:center;text-align:left;gap:8px;padding:10px 12px;background:#132239;color:#f8fafc;border:1px solid #334861;border-radius:8px;cursor:pointer;min-width:0;touch-action:manipulation}
+#playoffBox .ps-survival-row.selected{outline:1px solid #edc47b;border-color:#eac374;background:#2a3040}
+#playoffBox .ps-survival-row.success{border-left:4px solid #64b69b}
+#playoffBox .ps-survival-row.danger{border-left:4px solid #e4818f}
+#playoffBox .ps-survival-row.watch{border-left:4px solid #e6bb70}
+#playoffBox .ps-survival-rank{color:#9facbf;font-size:13px;font-weight:850}
+#playoffBox .ps-survival-name b{display:block;overflow-wrap:anywhere;font-size:13px}
+#playoffBox .ps-survival-name small{font-size:11px;color:#a9b9cd;display:block}
+#playoffBox .ps-survival-points{font-size:18px;font-weight:950;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+#playoffBox .ps-survival-points small{display:block;font-size:9px;color:#b9c6d8;font-weight:700;letter-spacing:.08em}
+#playoffBox .ps-survival-label{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:7px;font-size:10px;line-height:1.3;font-weight:850;text-align:center;border:1px solid #41506a;color:#bfd0e5}
+#playoffBox .ps-survival-label.success{background:#143e36;color:#a0f1d2;border-color:#447c66}
+#playoffBox .ps-survival-label.danger{background:#4b2431;color:#ffb3bd;border-color:#a4566b}
+#playoffBox .ps-survival-label.watch{background:#453625;color:#f8d494;border-color:#a68147}
+#playoffBox .ps-survival-cut{border:1px solid #a04d5d;background:#54232d;color:#ffc1c5;padding:8px;text-align:center;border-radius:6px;font-weight:900;font-size:10px;letter-spacing:.1em}
+#playoffBox .ps-survival-focus{padding:17px;margin-top:15px;border:1px solid #4e6078;border-radius:12px;background:#101d30}
+#playoffBox .ps-survival-focus.danger{border-color:#9e5062}
+#playoffBox .ps-survival-focus.success{border-color:#4f977d}
+#playoffBox .ps-survival-focus h3{font-size:21px;margin:5px 0 0;color:#fff}
+#playoffBox .ps-survival-focus-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+#playoffBox .ps-survival-focus-stats div{padding:10px;border:1px solid #33455d;border-radius:7px}
+#playoffBox .ps-survival-focus-stats small{display:block;font-size:11px;color:#b5c5d8}
+#playoffBox .ps-survival-focus-stats strong{display:block;margin-top:4px;font-size:19px;color:#f6cb7d}
+#playoffBox .ps-survival-focus>p{font-size:13px;color:#d3e1ef;line-height:1.6;margin:0}
+#playoffBox .ps-survival-focus .ps-survival-math{margin-top:9px;font-size:11px;color:#e2bd83}
+#playoffBox .ps-survival-footnote{font-size:11px;line-height:1.55;color:#a6b8ca;margin:14px 0 0}
+@media(max-width:800px){
+  #playoffBox .ps-road-board,#playoffBox .ps-survival-board{padding:14px}
+  #playoffBox .ps-road-stages{grid-template-columns:repeat(5,minmax(136px,1fr))}
+  #playoffBox .ps-road-field{grid-template-columns:1fr}
+  #playoffBox .ps-survival-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+  #playoffBox .ps-road-stages{grid-template-columns:repeat(5,minmax(128px,1fr))}
+  #playoffBox .ps-road-stage{min-height:118px;padding:12px 10px}
+  #playoffBox .ps-road-stage strong{font-size:23px}
+  #playoffBox .ps-road-detail{padding:12px}
+  #playoffBox .ps-survival-row{grid-template-columns:29px minmax(0,1fr) 56px;gap:6px;padding:9px 8px}
+  #playoffBox .ps-survival-row .ps-survival-label{grid-column:2/4;justify-self:start;padding:4px 7px}
+  #playoffBox .ps-survival-points{font-size:16px}
+  #playoffBox .ps-survival-focus-stats{gap:5px}
+  #playoffBox .ps-survival-focus-stats div{padding:7px}
+  #playoffBox .ps-survival-focus-stats strong{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  #playoffBox .ps-road-stage{transition:none}
+}
