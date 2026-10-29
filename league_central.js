@@ -1,7 +1,7 @@
 // League Central: read-only regular-season story, projections, rivalries and records.
 (() => {
   const $ = id => document.getElementById(id);
-  const esc2 = v => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
+  const esc2 = v => String(v??'').replace(/[&<>"']/g,c=>c==='&'?'&amp;':c==='<'?'&lt;':c==='>'?'&gt;':c==='"'?'&quot;':'&#39;');
   const fmt = v => Number(v||0).toFixed(1).replace(/\.0$/,'');
   const css = document.createElement('style');
   css.textContent = `
@@ -30,11 +30,15 @@
   let request=0, cache=null;
   const isLogged=()=>!!session?.user?.id && !$('app')?.classList.contains('hidden');
   async function getData(){
-    const [weeks,scores,people]=await Promise.all([
-      db('weeks?select=id,name,number,phase,status&phase=eq.regular&order=number.asc'),
-      db('week_scores?select=week_id,user_id,total_points,correct_count,question_count,placement,weeks!inner(phase)&weeks.phase=eq.regular'),
+    const [weekRows,scoreRows,people]=await Promise.all([
+      db('weeks?select=id,name,number,phase,status,season_id&phase=eq.regular&status=eq.published&order=number.asc'),
+      db('week_scores?select=week_id,user_id,total_points,correct_count,question_count,placement,weeks!inner(phase,status)&weeks.phase=eq.regular&weeks.status=eq.published'),
       db('profiles?select=id,display_name')
     ]);
+    const currentSeason=typeof week!=='undefined'?week?.season_id:null;
+    const weeks=weekRows.filter(w=>!currentSeason||w.season_id===currentSeason);
+    const publishedIds=new Set(weeks.map(w=>w.id));
+    const scores=scoreRows.filter(s=>publishedIds.has(s.week_id));
     const names=Object.fromEntries(people.map(p=>[p.id,p.display_name||'Member']));
     const scoredWeeks=weeks.filter(w=>scores.some(s=>s.week_id===w.id));
     const byWeek=new Map(scoredWeeks.map(w=>[w.id,scores.filter(s=>s.week_id===w.id)]));
@@ -106,12 +110,12 @@
     const me=d.rank.find(p=>p.id===session.user.id);
     const leader=d.rank[0];
     const last=d.scoredWeeks.at(-1);
-    const latest=last?d.byWeek.get(last.id).slice().sort((a,b)=>Number(b.total_points)-Number(a.total_points)):[];
-    const top=latest[0];
-    const topScore=Number(top?.total_points||0);
-    const winners=latest.filter(s=>Number(s.total_points)===topScore).map(s=>d.names[s.user_id]||'Member');
+    const latest=last?d.byWeek.get(last.id).slice().sort((a,b)=>Number(a.placement)-Number(b.placement)):[];
+    const top=latest.find(s=>Number(s.placement)===1);
+    const topScore=Number(top?.correct_count||0);
+    const winners=latest.filter(s=>Number(s.placement)===1).map(s=>d.names[s.user_id]||'Member');
     const myLast=latest.find(s=>s.user_id===session.user.id);
-    const myWeeklyRank=myLast?1+latest.filter(s=>Number(s.total_points)>Number(myLast.total_points)).length:null;
+    const myWeeklyRank=myLast?Number(myLast.placement):null;
     const oldTotals=Object.fromEntries(d.rank.map(p=>[p.id,p.total-Number(d.byWeek.get(last.id)?.find(s=>s.user_id===p.id)?.total_points||0)]));
     const oldRank=d.rank.slice().sort((a,b)=>oldTotals[b.id]-oldTotals[a.id]||a.name.localeCompare(b.name));
     const movements=d.rank.map((p,i)=>({name:p.name,delta:oldRank.findIndex(x=>x.id===p.id)-i})).sort((a,b)=>b.delta-a.delta);
@@ -128,7 +132,7 @@
     html+=crownHtml(d);
     html+='<div class="lc-split"><section class="lc-section"><h3>🏆 The Championship Race</h3><div class="lc-list">'+d.rank.map((x,i)=>item('#'+(i+1)+' '+x.name,fmt(x.total)+' pts',x.id===session.user.id?'Your position':'')).join('')+'</div></section>';
     html+='<section class="lc-section"><h3>📰 '+esc2(last?.name||'Latest week')+' · League Headlines</h3><div class="lc-list">';
-    html+=item('Weekly winner'+(winners.length>1?'s':''),winners.join(', '),fmt(topScore)+' points');
+    html+=item('Weekly winner'+(winners.length>1?'s':''),winners.join(', ')||'Awaiting official placement',fmt(topScore)+' correct picks');
     if(myWeeklyRank)html+=item('Your weekly finish','#'+myWeeklyRank,fmt(myLast.total_points)+' points');
     const mover=movements[0];html+=item('Biggest climb',mover.delta>0?mover.name+' ↑'+mover.delta:'No upward moves',mover.delta>0?'Positions gained':'Standings held steady');
     html+=item('The chase',d.rank.length>1?fmt(leader.total-d.rank[1].total)+' pts':'—','Leader’s advantage over second place');
@@ -141,7 +145,7 @@
     const rivals=d.rank.filter(x=>x.id!==session.user.id).map(x=>{let wins=0,losses=0,ties=0;for(const w of d.scoredWeeks){const a=d.byWeek.get(w.id).find(s=>s.user_id===session.user.id),b=d.byWeek.get(w.id).find(s=>s.user_id===x.id);if(!a||!b)continue;const delta=Number(a.total_points)-Number(b.total_points);if(delta>0)wins++;else if(delta<0)losses++;else ties++;}return {name:x.name,wins,losses,ties};});
     html+=rivals.map(x=>item(x.name,x.wins+'–'+x.losses+'–'+x.ties,'Your W–L–T in scored weeks')).join('')+'</section></div>';
     const best=d.scores.slice().sort((a,b)=>Number(b.total_points)-Number(a.total_points))[0];
-    const wins={};for(const w of d.scoredWeeks){const rows=d.byWeek.get(w.id),max=Math.max(...rows.map(x=>Number(x.total_points)));rows.filter(x=>Number(x.total_points)===max).forEach(x=>wins[x.user_id]=(wins[x.user_id]||0)+1);}
+    const wins={};for(const w of d.scoredWeeks){const rows=d.byWeek.get(w.id);rows.filter(x=>Number(x.placement)===1).forEach(x=>wins[x.user_id]=(wins[x.user_id]||0)+1);}
     const mostWins=Object.entries(wins).sort((a,b)=>b[1]-a[1])[0];
     html+='<section class="lc-section"><h3>📚 Record Book</h3><div class="lc-grid"><div class="lc-tile"><small>Best single week</small><strong>'+fmt(best.total_points)+'</strong><small>'+esc2(d.names[best.user_id]||'Member')+'</small></div><div class="lc-tile"><small>Most weekly wins</small><strong>'+esc2(mostWins?d.names[mostWins[0]]:'—')+'</strong><small>'+(mostWins?.[1]||0)+' weekly wins (ties shared)</small></div><div class="lc-tile"><small>Scored regular-season weeks</small><strong>'+d.scoredWeeks.length+'</strong><small>Recorded in this league</small></div></div></section></div>';
     root.innerHTML=html;
