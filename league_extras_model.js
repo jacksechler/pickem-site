@@ -9,7 +9,7 @@
  const pct=(n,d)=>d?100*n/d:0;
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const compare=(a,b)=>String(a).localeCompare(String(b));
- const name=p=>p?.display_name||p?.username||'Member';
+ const name=p=>(typeof globalThis!=='undefined'?globalThis.MemberNames?.full(p):null)||p?.display_name||p?.username||'Member';
  // Player profiles accumulate "points"; running historical snapshots use "total".
  const sorted=(a,b)=>b.points-a.points||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
  const sortedTotals=(a,b)=>b.total-a.total||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
