@@ -123,16 +123,16 @@
   }
 
   async function scoringPeople(){
-    const profiles=await db('profiles?select=id,display_name,role');
+    const profiles=await db('profiles?select=id,display_name,username,role');
     const slots=await db('player_slots?select=slot,display_name,claimed_by&order=slot.asc');
     const commissioner=profiles.find(p=>p.role==='commissioner');
     const people=[];
-    if(commissioner) people.push({id:commissioner.id,name:commissioner.display_name||'Commissioner'});
+    if(commissioner) people.push({id:commissioner.id,name:window.MemberNames?.full(commissioner)||commissioner.display_name||'Commissioner'});
     for(const s of slots){
       if(!s.claimed_by) throw new Error('All 8 player accounts must be activated.');
       const p=profiles.find(x=>x.id===s.claimed_by);
       if(!p) throw new Error('A player profile is missing.');
-      people.push({id:p.id,name:p.display_name||s.display_name||('Player '+s.slot)});
+      people.push({id:p.id,name:window.MemberNames?.full(p)||p.display_name||s.display_name||('Player '+s.slot)});
     }
     if(people.length!==8) throw new Error('Scoring requires exactly 8 players.');
     return people;
