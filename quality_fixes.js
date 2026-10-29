@@ -5,8 +5,7 @@
   const fmt=v=>Number(v||0).toFixed(1).replace(/\.0$/,'');
 
   function firstName(p){
-    const raw=String(p?.display_name||p?.username||'Player').trim();
-    return raw.split(/\s+/)[0]||'Player';
+    return window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   }
 
   async function logActivity(actionType,summary,details={},weekId=null){
