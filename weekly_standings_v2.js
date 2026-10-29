@@ -3,10 +3,7 @@
   const n=v=>Number(v||0);
   const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   const decided=q=>q.result!==null&&q.result!==undefined;
-  const firstName=p=>{
-    const raw=String(p?.display_name||p?.username||'Player').trim();
-    return raw.includes(' ')?raw.split(/\s+/)[0]:raw;
-  };
+  const firstName=p=>window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   const fmt=v=>{
     const x=Number(v);
     return Number.isFinite(x)?x.toFixed(1).replace(/\.0$/,''):'—';
