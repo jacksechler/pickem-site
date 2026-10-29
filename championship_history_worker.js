@@ -1,6 +1,6 @@
 // Off-main-thread historical forecasts. All data supplied is finalized / public to league members.
 // Worker receives only published weekly scores and finalized playoff results.
-importScripts('championship_odds_model.js?v=1','championship_history_model.js?v=2');
+importScripts('championship_odds_model.js?v=1','championship_history_model.js?v=3');
 self.onmessage=event=>{
   const data=event.data;
   if(!data||data.type!=='rebuild')return;
