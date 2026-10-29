@@ -111,8 +111,10 @@
       startsOn:calendar?.starts_on||null,endsOn:calendar?.ends_on||null,
       mode:'future',members:[]};
     if(found?.status==='finalized'){
-      const history=(data?.history||[]).filter(h=>h.round_id===found.id)
-        .sort((a,b)=>Number(a.round_rank)-Number(b.round_rank));
+      const recorded=(data?.history||[]).filter(h=>h.round_id===found.id);
+      const history=(recorded.length?recorded:(current?.round?.id===found.id&&
+        current.round.status==='finalized'?current.rows||[]:[]))
+        .slice().sort((a,b)=>Number(a.round_rank)-Number(b.round_rank));
       return {...base,mode:'official',members:history.map(h=>({
         id:h.user_id,name:h.display_name||'Member',seed:val(h.seed),rank:val(h.round_rank),
         total:val(h.cumulative_after),correct:val(h.round_correct,0),
