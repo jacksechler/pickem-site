@@ -1,4 +1,4 @@
-// League Wire UI. Read-only official results; no database writes or invented interviews.
+// LTSPN UI. Read-only official results; no database writes or invented interviews.
 (() => {
   const Model=window.LeagueNewsModel;
   const History=window.ChampionshipHistoryModel;
@@ -20,7 +20,7 @@
   function cleanCategory(v){return v==='all'||LABELS[v]?v:'all';}
   function storyTag(story){
     const color=COLORS[story.category]||'gold';
-    return '<span class="ln-tag ln-tag-'+color+'">'+esc(LABELS[story.category]||'League news')+'</span>';
+    return '<span class="ln-tag ln-tag-'+color+'">'+esc(LABELS[story.category]||'LTSPN coverage')+'</span>';
   }
   function headlines(data){
     // The newest official playoff round always leads; otherwise show the most recent
@@ -43,20 +43,27 @@
       '<div class="ln-story-source">'+esc(source+likelihood)+
       (story.group==='regular'?' · '+esc(story.weekName):'')+'</div></div></details>';
   }
+  // The publication uses the user's original artwork at ltspn-logo.png when
+  // that image is present in the repository; fall back to the LTSPN wordmark.
+  function brandMark(large=false){
+    return '<span class="ln-brandmark'+(large?' ln-brandmark-large':'')+'">'+
+      '<img class="ln-brand-logo" src="ltspn-logo.png" alt="LTSPN logo" '+
+      'onerror="this.onerror=null;this.src=\'ltspn-wordmark.svg\'"></span>';
+  }
   function emptyHtml(){
-    return '<div class="ln-zero"><div class="ln-eyebrow">THE LEAGUE WIRE</div>'+
+    return '<div class="ln-zero"><div class="ln-eyebrow">LTSPN</div>'+
       '<h3>The season is writing its first story.</h3>'+
       '<p>Weekly headlines, standings shifts, rivalries and record-breaking performances appear as soon as a week is officially published.</p></div>';
   }
   function renderPreview(data){
     const el=$('leagueNewsPreview');if(!el)return;
     if(!data?.stories?.length){
-      el.innerHTML='<section class="ln-home"><div class="ln-home-head"><div><div class="ln-eyebrow">THE LEAGUE WIRE</div><h2>League News Center</h2></div><button type="button" class="ln-home-link" data-ln-open-news>Open News</button></div>'+emptyHtml()+'</section>';
+      el.innerHTML='<section class="ln-home"><div class="ln-home-head"><div><div class="ln-brandline">'+brandMark()+'<div><div class="ln-eyebrow">OFFICIAL LEAGUE NEWS</div><h2>LTSPN</h2></div></div></div><button type="button" class="ln-home-link" data-ln-open-news>Open News</button></div>'+emptyHtml()+'</section>';
       return;
     }
     const stories=headlines(data);
     const top=stories[0];
-    el.innerHTML='<section class="ln-home"><div class="ln-home-head"><div><div class="ln-eyebrow">AUTOMATIC LEAGUE COVERAGE</div><h2>League News Center</h2></div><button type="button" class="ln-home-link" data-ln-open-news>All Stories</button></div>'+
+    el.innerHTML='<section class="ln-home"><div class="ln-home-head"><div><div class="ln-brandline">'+brandMark()+'<div><div class="ln-eyebrow">AUTOMATIC LEAGUE COVERAGE</div><h2>LTSPN</h2></div></div></div><button type="button" class="ln-home-link" data-ln-open-news>All Stories</button></div>'+
       '<button type="button" class="ln-home-feature" data-ln-story="'+esc(top.id)+'"><span class="ln-home-kicker">'+
       esc(top.weekName)+' · '+esc(LABELS[top.category]||'Latest')+'</span><strong>'+
       esc(top.headline)+'</strong><span>'+esc(top.deck)+'</span><span class="ln-home-action">Read story ›</span></button>'+
@@ -80,8 +87,8 @@
     const opts=[['all','All weeks'],...playoffChoices,...weekChoices];
     const selected=opts.some(p=>p[0]===selectedWeek)?selectedWeek:'all';
     selectedWeek=selected;
-    let html='<div class="ln-page"><div class="ln-masthead"><div class="ln-eyebrow">YOUR LEAGUE, YOUR HEADLINES</div>'+
-      '<h2>THE LEAGUE WIRE</h2><p>From opening week through the championship. Every headline backed by official results.</p>'+
+    let html='<div class="ln-page"><div class="ln-masthead"><div class="ln-brandline ln-brandline-large">'+brandMark(true)+'<div class="ln-eyebrow">YOUR LEAGUE, YOUR HEADLINES</div></div>'+
+      '<h2>LTSPN</h2><p>League news, every week, from opening kickoff through the championship. Every headline backed by official results.</p>'+
       '<div class="ln-stats"><span>'+data.weekCount+' regular-season week'+(data.weekCount===1?'':'s')+' covered</span>'+
       '<span>'+data.stories.length+' verified stories</span></div></div>'+
       '<div class="ln-filters"><div class="ln-tabs" role="group" aria-label="Filter news by topic">'+categories.map(([id,label])=>
@@ -172,7 +179,7 @@
         if(event.data?.requestId!==requestId)return;
         if(event.data.type==='error'){
           activeOddsKey=null;w.terminate();if(activeWorker===w)activeWorker=null;
-          console.warn('League News odds reconstruction skipped:',event.data.reason);
+          console.warn('LTSPN odds reconstruction skipped:',event.data.reason);
         }
         if(event.data.type==='done'){
           w.terminate();if(activeWorker===w)activeWorker=null;
@@ -190,14 +197,14 @@
       };
       w.onerror=()=>{activeOddsKey=null;w.terminate();if(activeWorker===w)activeWorker=null;};
       w.postMessage({type:'rebuild',requestId,timeline:t,postseason:[]});
-    }catch(e){activeOddsKey=null;console.debug('League News history worker not supported',e);}
+    }catch(e){activeOddsKey=null;console.debug('LTSPN history worker not supported',e);}
   }
   async function load({force=false,showArchive=false}={}){
     if(!viewer())return;
     const current=++request;
     const preview=$('leagueNewsPreview');
     const archive=$('leagueNewsBox');
-    if(showArchive&&archive&&!lastCache)archive.innerHTML='<div class="ln-zero">Loading the League Wire…</div>';
+    if(showArchive&&archive&&!lastCache)archive.innerHTML='<div class="ln-zero">Loading the LTSPN…</div>';
     try{
       const record=await fetch(force);
       if(request!==current)return;
@@ -206,7 +213,7 @@
       if(showArchive||visibleNews())doWorker(record.raw,record.signature);
     }catch(e){
       if(request!==current)return;
-      if(preview)preview.innerHTML='<section class="ln-home"><div class="ln-eyebrow">THE LEAGUE WIRE</div><h2>League News Center</h2><p>League headlines are temporarily unavailable.</p><button class="ln-home-link" data-ln-retry type="button">Retry</button></section>';
+      if(preview)preview.innerHTML='<section class="ln-home"><div class="ln-brandline">'+brandMark()+'<div><div class="ln-eyebrow">OFFICIAL LEAGUE NEWS</div><h2>LTSPN</h2></div></div><p>League headlines are temporarily unavailable.</p><button class="ln-home-link" data-ln-retry type="button">Retry</button></section>';
       if((showArchive||visibleNews())&&archive)archive.innerHTML='<div class="ln-zero"><h3>News temporarily unavailable</h3><p>The official results could not be loaded. Your picks and standings are unaffected.</p><button data-ln-retry type="button">Try again</button></div>';
     }
   }
