@@ -284,7 +284,8 @@
   const oldStandings=window.renderStandings;
   window.renderStandings=async function(){const out=await oldStandings.apply(this,arguments);try{const data=await load();if(data?.settings.frozen_at){
     const box=$('standingsBox'),copyButton=$('copySeasonStandingsBtn');const chart=[...box.querySelectorAll('.card')].find(c=>c.querySelector('.eyebrow')?.textContent==='SEASON MOVEMENT');
-    box.innerHTML='<section class="card"><div class="eyebrow">FINAL REGULAR SEASON STANDINGS</div><h2>Regular-season champion: '+esc(data.entries.find(e=>e.seed===1)?.display_name||'')+'</h2><p class="ps-note">Frozen at playoff start. Postseason results appear in Playoffs.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Regular-season points</th></tr></thead><tbody>'+data.entries.map(e=>'<tr><td>#'+e.seed+'</td><td>'+esc(e.display_name)+'</td><td>'+fmt(e.regular_season_points)+'</td></tr>').join('')+'</tbody></table></div></section>';if(chart)box.append(chart);
+    const titleHistory=box.querySelector('#championshipHistoryBox');
+    box.innerHTML='<section class="card"><div class="eyebrow">FINAL REGULAR SEASON STANDINGS</div><h2>Regular-season champion: '+esc(data.entries.find(e=>e.seed===1)?.display_name||'')+'</h2><p class="ps-note">Frozen at playoff start. Postseason results appear in Playoffs.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Seed</th><th>Member</th><th>Regular-season points</th></tr></thead><tbody>'+data.entries.map(e=>'<tr><td>#'+e.seed+'</td><td>'+esc(e.display_name)+'</td><td>'+fmt(e.regular_season_points)+'</td></tr>').join('')+'</tbody></table></div></section>';if(chart)box.append(chart);if(titleHistory)box.append(titleHistory);
     if(copyButton){const actions=document.createElement('div');actions.className='ps-actions';actions.append(copyButton);box.prepend(actions);}
   }}catch{}return out;};
   const oldStats=window.renderStats;
