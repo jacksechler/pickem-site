@@ -53,7 +53,7 @@ test('history scripts and stylesheet load after the shared championship model',(
   const ui=html.indexOf('championship_history.js?v=1');
   assert.ok(model>0&&historyModel>model&&ui>historyModel);
   assert.match(html,/championship_history\.css\?v=2/);
-  assert.match(html,/stats_v2\.js\?v=9/);
+  assert.match(html,/stats_v2\.js\?v=10/);
 });
 test('standings source mounts history both before and after Week 1',()=>{
   const source=read('stats_v2.js');
