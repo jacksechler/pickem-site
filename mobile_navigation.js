@@ -111,10 +111,14 @@
     seasonCheck=(async()=>{
       let seasonId=active;
       if(!seasonId){
-        // When no week is active, resolve the current league season. Avoid
-        // treating last year's published Week 20 as the new season's finish.
-        const seasons=await db('seasons?select=id,year&order=year.desc&limit=1');
-        seasonId=Array.isArray(seasons)?seasons[0]?.id:null;
+        // A pre-created future season should not hide the CURRENT season's
+        // playoff dock. Use the most recently created regular-season card.
+        const recent=await db('weeks?phase=eq.regular&select=season_id&order=created_at.desc&limit=1');
+        seasonId=Array.isArray(recent)?recent[0]?.season_id:null;
+        if(!seasonId){
+          const seasons=await db('seasons?select=id,year&order=year.desc&limit=1');
+          seasonId=Array.isArray(seasons)?seasons[0]?.id:null;
+        }
       }
       if(!seasonId)return;
       const published=await db('weeks?season_id=eq.'+encodeURIComponent(seasonId)+
