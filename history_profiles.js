@@ -120,7 +120,7 @@
     const users=d.users.slice(0,8);
     let h='<div class="card" style="padding:12px;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-bottom:9px"><div><div class="eyebrow">SCREENSHOT GRID</div><div style="font-size:17px;font-weight:950;margin-top:2px">'+esc(d.week?.name||'Week')+' Picks</div></div><div class="mini" style="text-align:right">Final row = TB</div></div>';
     h+='<div style="display:grid;grid-template-columns:repeat('+users.length+',minmax(0,1fr));gap:3px;width:100%">';
-    users.forEach(id=>{ const name=prettyName(d.pmap[id]); const size=name.length>=7?'7.5':name.length>=6?'8.5':'9.5'; h+='<div onclick="openPlayerProfile(\''+id+'\')" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:nowrap;overflow:hidden;cursor:pointer">'+esc(name)+'</div>'; });
+    users.forEach(id=>{ const name=prettyName(d.pmap[id]); const size=name.length>=17?'7':name.length>=12?'7.5':'8.5'; h+='<div onclick="openPlayerProfile(\''+id+'\')" style="text-align:center;font-size:'+size+'px;font-weight:950;padding:4px 0 5px;white-space:normal;overflow-wrap:anywhere;line-height:1.1;min-height:27px;cursor:pointer">'+esc(name)+'</div>'; });
     qs.forEach(q=>{
       users.forEach(id=>{
         const a=d.pickMap[id]?.[q.id]; let bg='#223247',border='#304965',symbol='';
