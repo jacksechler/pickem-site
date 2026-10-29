@@ -42,7 +42,7 @@ test('member name formatter loads before other league rendering scripts',()=>{
   const page=read('index.html');
   const name=page.indexOf('member_names.js?v=1');
   const auth=page.indexOf('auth_session.js?v=1');
-  const history=page.indexOf('history_profiles.js?v=6');
+  const history=page.indexOf('history_profiles.js?v=7');
   assert.ok(name>0&&name<auth&&auth<history);
   assert.match(page,/MemberNames\?\.full\(profile\)/);
   assert.match(page,/data-page="news"/);
