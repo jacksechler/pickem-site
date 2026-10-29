@@ -183,7 +183,7 @@
       ' correct · '+m.wins+' weekly win'+(m.wins===1?'':'s')+'</small></span><span aria-hidden="true">›</span></button>').join('')+
       '</div></section>';
     if(issues?.length)html+='<p class="lx-disclaimer">Incomplete published scorecards excluded: '+escape(issues.join(', '))+'</p>';
-    return html+'<p class="lx-disclaimer">This Hall of Fame reflects the current season’s verified records. Career championships across other seasons require their own archived official data; none are invented here.</p></div>';
+    return html+'<div class="lx-export-row"><button type="button" class="lx-button" data-lx-copy>Copy Season Report</button><span id="lxCopyStatus" role="status" class="lx-muted"></span></div><p class="lx-disclaimer">This Hall of Fame reflects the current season’s verified records. Career championships across other seasons require their own archived official data; none are invented here.</p></div>';
   }
   function showAwards(model){
     const box=$('awardsBox');if(box)box.innerHTML=awardsHtml(model);
@@ -237,7 +237,7 @@
         '<h3>Championship Chance History</h3><p class="lx-muted">Retrospective model estimates after each published week, not odds recorded at the time.</p>'+
         lineChart(odds.map(x=>x.value),{cap:100,labels:odds.map(x=>x.label),suffix:'%'})+
         '<p class="lx-muted">Latest reconstructed chance: '+pct(odds.at(-1).value)+
-        '. See Standings for the full eight-player graph.</p></section>';
+        '. <button class="lx-mini-link" data-lx-page="standings">Open full odds graph</button></p></section>';
     }
     return html;
   }
@@ -462,8 +462,12 @@
       if(active==='championship')renderChampionship(true);
       return;
     }
-    if(t.dataset.lxCopy){
-      load().then(bundle=>navigator.clipboard?.writeText?.(shareReport(bundle.model))).catch(()=>{});
+    if(t.dataset.lxCopy!==undefined){
+      load().then(async bundle=>{
+        if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(shareReport(bundle.model));
+        if($('lxCopyStatus'))$('lxCopyStatus').textContent='Report copied';
+      }).catch(()=>{if($('lxCopyStatus'))$('lxCopyStatus').textContent='Unable to copy on this browser';});
     }
   }
   for(const id of ['awards','studio','championship','player'])
