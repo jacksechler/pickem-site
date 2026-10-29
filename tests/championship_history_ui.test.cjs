@@ -49,7 +49,7 @@ function boot(){
 test('history scripts and stylesheet load after the shared championship model',()=>{
   const html=read('index.html');
   const model=html.indexOf('championship_odds_model.js?v=1');
-  const historyModel=html.indexOf('championship_history_model.js?v=2');
+  const historyModel=html.indexOf('championship_history_model.js?v=3');
   const ui=html.indexOf('championship_history.js?v=1');
   assert.ok(model>0&&historyModel>model&&ui>historyModel);
   assert.match(html,/championship_history\.css\?v=2/);
@@ -104,7 +104,7 @@ test('frozen postseason standings preserve both ranking and championship odds ch
 });
 test('background worker imports the same historical and championship forecast engines',()=>{
   const worker=read('championship_history_worker.js');
-  assert.match(worker,/importScripts\('championship_odds_model\.js\?v=1','championship_history_model\.js\?v=2'\)/);
+  assert.match(worker,/importScripts\('championship_odds_model\.js\?v=1','championship_history_model\.js\?v=3'\)/);
   assert.match(worker,/postMessage\(\{requestId,type:'done',snapshots\}\)/);
   new Function(worker);
 });
