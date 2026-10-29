@@ -49,7 +49,7 @@ function boot(){
 test('history scripts and stylesheet load after the shared championship model',()=>{
   const html=read('index.html');
   const model=html.indexOf('championship_odds_model.js?v=1');
-  const historyModel=html.indexOf('championship_history_model.js?v=1');
+  const historyModel=html.indexOf('championship_history_model.js?v=2');
   const ui=html.indexOf('championship_history.js?v=1');
   assert.ok(model>0&&historyModel>model&&ui>historyModel);
   assert.match(html,/championship_history\.css\?v=1/);
