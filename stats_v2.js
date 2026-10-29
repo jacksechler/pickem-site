@@ -9,7 +9,7 @@
   async function loadPublishedData(){
     const [profiles, weeks, scores] = await Promise.all([
       db('profiles?select=id,display_name,username,role'),
-      db('weeks?phase=eq.regular&status=eq.published&select=id,number,name,published_at&order=number.asc'),
+      db('weeks?phase=eq.regular&status=eq.published&select=id,number,name,published_at,status,season_id&order=number.asc'),
       db('week_scores?select=*,weeks!inner(phase)&weeks.phase=eq.regular')
     ]);
     const publishedIds = new Set(weeks.map(w => w.id));
@@ -31,6 +31,7 @@
       const {profiles,weeks,scores} = await loadPublishedData();
       if(!weeks.length || !scores.length){
         box.innerHTML = '<h2>No published scores yet</h2><p class="muted">Season standings appear after the first week is scored and published.</p>';
+        window.ChampionshipHistory?.render({profiles,weeks,scores},box);
         return;
       }
 
@@ -144,6 +145,9 @@
       '</div>';
 
       box.innerHTML = h;
+      // The history chart is reconstructed from the same finalized weekly scores.
+      // It runs in a worker so the standings page remains responsive on phones.
+      window.ChampionshipHistory?.render({profiles,weeks,scores},box);
     }catch(e){
       console.error(e);
       box.innerHTML = '<div class="notice">Standings unavailable.</div>';
