@@ -6,7 +6,7 @@ const path=require('node:path');
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
 const primary=['home','picks','league','standings'];
 const more=['playoffs','championship','sharegrid','seasoncalendar','news','studio','stats','awards','commissioner'];
-function harness({desktop=false,commissioner=false,playoffs=true}={}){
+function harness({desktop=false,commissioner=false,playoffs=true,authenticated=false,week20Published=false,activeSeason='season-2026'}={}){
   let document;
   const nodes=[];
   class Element {
@@ -96,7 +96,17 @@ function harness({desktop=false,commissioner=false,playoffs=true}={}){
     constructor(cb){observer.push(cb)}
     observe(){}
   }
-  const scope={document,window,MutationObserver:MutationObserverMock};
+  const calls=[];
+  let published=week20Published;
+  const db=async url=>{
+    calls.push(url);
+    if(url.startsWith('seasons?'))return [{id:'season-2026',year:2026}];
+    if(url.startsWith('weeks?'))return published?[{id:'w20'}]:[];
+    throw Error('Unexpected request: '+url);
+  };
+  const scope={document,window,MutationObserver:MutationObserverMock,db,
+    session:authenticated?{user:{id:'member-1'}}:null,
+    week:activeSeason?{season_id:activeSeason}:null,console:{debug(){}}};
   vm.runInNewContext(read('mobile_navigation.js'),scope,{filename:'mobile_navigation.js'});
   return {document,window,app,body,media,nodes,history,originalButtons,
     bar:document.getElementById('mobileNav'),
@@ -107,7 +117,10 @@ function harness({desktop=false,commissioner=false,playoffs=true}={}){
     content,
     show:id=>window.MobileNavigation.navigate(id),
     open:()=>window.MobileNavigation.open(),
-    dismiss:()=>window.MobileNavigation.close()};
+    dismiss:()=>window.MobileNavigation.close(),
+    calls,
+    publishWeek20(value){published=value;},
+    refresh:()=>window.MobileNavigation.refreshSeasonStatus(true)};
 }
 test('five mobile targets replace the cluttered seven-tab dock',()=>{
  const h=harness();
@@ -207,4 +220,90 @@ test('JS and CSS load after prior mobile and page scripts, without changing the 
  const newCss=html.indexOf('mobile_navigation.css?v=1');
  assert.ok(old>=0&&newJS>old&&oldCss>=0&&newCss>oldCss);
  assert.match(read('mobile_navigation.js'),/const originalShow=window.showPage/);
+});
+
+
+test('before Week 20 is officially published, Standings stays in the dock and Playoffs in More',async()=>{
+  const h=harness({authenticated:true,week20Published:false});
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
+  assert.equal(h.bar.children[3].getAttribute('aria-label'),'Standings');
+  h.open();
+  const menu=h.menu.querySelectorAll('button[data-mobile-page]').map(x=>x.dataset.mobilePage);
+  assert.ok(menu.includes('playoffs'));
+  assert.equal(menu.includes('standings'),false);
+  assert.ok(h.calls.some(url=>url.includes('number=eq.20')&&url.includes('status=eq.published')));
+});
+
+test('after Week 20 is published, Playoffs replaces Standings and Standings moves to More',async()=>{
+  const h=harness({authenticated:true,week20Published:true});
+  await h.refresh();
+  assert.equal(h.bar.children.length,5);
+  assert.equal(h.bar.children[3].dataset.mobilePage,'playoffs');
+  assert.equal(h.bar.children[3].getAttribute('aria-label'),'Playoffs');
+  assert.match(h.bar.children[3].innerHTML,/Playoffs/);
+  h.open();
+  const menu=h.menu.querySelectorAll('button[data-mobile-page]').map(x=>x.dataset.mobilePage);
+  assert.ok(menu.includes('standings'));
+  assert.equal(menu.includes('playoffs'),false);
+  assert.equal(h.window.MobileNavigation.getPostseasonNavigation(),true);
+  h.show('playoffs');
+  assert.deepEqual(h.history,[{id:'playoffs',source:'playoffs'}]);
+  assert.equal(h.bar.children[3].getAttribute('aria-current'),'page');
+});
+
+test('publishing Week 20 while the member is signed in switches tabs without a reload',async()=>{
+  const h=harness({authenticated:true,week20Published:false});
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
+  h.open();
+  h.publishWeek20(true);
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'playoffs');
+  const menu=h.menu.querySelectorAll('button[data-mobile-page]').map(x=>x.dataset.mobilePage);
+  assert.ok(menu.includes('standings'));
+  assert.equal(menu.includes('playoffs'),false);
+  assert.equal(h.moreButton.getAttribute('aria-expanded'),'true');
+});
+
+test('the switch does not occur on an unfinished Week 20 or based on old season records',async()=>{
+  const h=harness({authenticated:true,activeSeason:'season-2027',week20Published:false});
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
+  assert.ok(h.calls.some(x=>x.startsWith('weeks?season_id=eq.season-2027')));
+  assert.equal(h.calls.some(x=>x.startsWith('weeks?season_id=eq.season-2026')),false);
+});
+
+test('a missing active week resolves latest season instead of using old Week 20 status',async()=>{
+  const h=harness({authenticated:true,activeSeason:null,week20Published:true});
+  await h.refresh();
+  assert.ok(h.calls.some(x=>x.startsWith('seasons?select=id,year')));
+  assert.ok(h.calls.some(x=>x.startsWith('weeks?season_id=eq.season-2026')));
+  assert.equal(h.bar.children[3].dataset.mobilePage,'playoffs');
+});
+
+test('Standings remains a working page in More when playoff navigation takes over',async()=>{
+  const h=harness({authenticated:true,week20Published:true});
+  await h.refresh();
+  h.open();
+  const standings=h.menu.querySelectorAll('button[data-mobile-page]').find(x=>x.dataset.mobilePage==='standings');
+  standings.emit('click');
+  assert.deepEqual(h.history,[{id:'standings',source:'standings'}]);
+  assert.equal(h.moreButton.getAttribute('aria-current'),'page');
+  assert.equal(h.bar.children[3].getAttribute('aria-current'),null);
+  assert.equal(h.overlay.hidden,true);
+});
+
+test('logging out or being unauthenticated never independently activates the playoff switch',async()=>{
+  const h=harness({authenticated:false,week20Published:true});
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
+  assert.equal(h.calls.length,0);
+});
+
+test('desktop sidebar never changes when the regular season finishes',async()=>{
+  const h=harness({desktop:true,authenticated:true,week20Published:true});
+  await h.refresh();
+  assert.equal(h.bar.children[3].dataset.mobilePage,'standings');
+  assert.equal(h.calls.length,0);
 });
