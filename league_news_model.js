@@ -20,7 +20,7 @@
     return new Map((snapshots||[]).filter(p=>p?.id&&p.odds).map(p=>[p.id,p]));
   }
   function build({profiles=[],weeks=[],scores=[],oddsSnapshots=[],postseason=null,seasonId=null}={}){
-    const names=Object.fromEntries(profiles.filter(p=>p.id).map(p=>[p.id,p.display_name||p.username||'Member']));
+    const names=Object.fromEntries(profiles.filter(p=>p.id).map(p=>[p.id,typeof globalThis!=='undefined'&&globalThis.MemberNames?.full(p)||p.display_name||p.username||'Member']));
     const regularWeeks=[...weeks].filter(w=>w?.id&&w.status==='published'&&
       (w.phase==null||w.phase==='regular')&&(!seasonId||!w.season_id||w.season_id===seasonId))
       .sort((a,b)=>Number(a.number)-Number(b.number)||stable(a.id,b.id));
@@ -190,7 +190,7 @@
       const eliminated=rows.filter(r=>!r.advanced);
       const roundName=round.label||'Playoff Round '+round.round_number;
       const champ=rows.find(r=>r.status_after==='champion');
-      const name=r=>r.display_name||names[r.user_id]||'Member';
+      const name=r=>names[r.user_id]||r.display_name||'Member';
       const isFinal=Number(round.round_number)===4;
       const headline=isFinal&&champ?
         name(champ)+' wins the league championship':
