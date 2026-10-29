@@ -102,10 +102,17 @@ test('frozen postseason standings preserve both ranking and championship odds ch
   assert.match(src,/const titleHistory=box\.querySelector\('#championshipHistoryBox'\)/);
   assert.match(src,/if\(titleHistory\)box\.append\(titleHistory\)/);
 });
+test('background worker imports the same historical and championship forecast engines',()=>{
+  const worker=read('championship_history_worker.js');
+  assert.match(worker,/importScripts\('championship_odds_model\.js\?v=1','championship_history_model\.js\?v=1'\)/);
+  assert.match(worker,/postMessage\(\{requestId,type:'done',snapshots\}\)/);
+  new Function(worker);
+});
 test('mobile chart scrolls sideways and the week readout remains fully visible',()=>{
   const css=read('championship_history.css');
   assert.match(css,/\.ch-history-scroll\{[^}]*overflow-x:auto;overflow-y:hidden/);
   assert.match(css,/@media\(max-width:750px\)/);
   assert.match(css,/@media\(max-width:430px\)/);
   assert.match(css,/\.ch-history-results\{grid-template-columns:1fr\}/);
+  assert.match(css,/touch-action:pan-x pan-y/);
 });
