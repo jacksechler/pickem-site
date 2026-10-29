@@ -75,14 +75,14 @@
       db('submissions?week_id=eq.'+encoded+'&select=user_id,tiebreaker_answer'),
       db('picks?week_id=eq.'+encoded+'&select=user_id,question_id,answer'),
       db('week_scores?week_id=eq.'+encoded+'&select=user_id,placement,correct_count'),
-      db('profiles?select=id,display_name'),
+      db('profiles?select=id,display_name,username'),
       db('weeks?id=eq.'+encoded+'&select=id,name,phase,status,lock_at,auto_locked_at,tiebreaker_result&limit=1')
     ]);
     // Do not show prior odds if the commissioner reopened the week.
     const latest=fresh?.[0];
     if(!latest||latest.phase!=='regular'||!M.locked(latest))return null;
     return {bundle:{week:latest,questions,submissions,picks,officialScores},
-      names:Object.fromEntries(profiles.map(p=>[p.id,p.display_name||'League member']))};
+      names:Object.fromEntries(profiles.map(p=>[p.id,window.MemberNames?.full(p)||p.display_name||'League member']))};
   }
   async function refresh(){
     if(!visible())return;
