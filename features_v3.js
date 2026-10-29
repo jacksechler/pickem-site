@@ -3,7 +3,7 @@
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const n = v => Number(v || 0);
   const fmt = v => n(v).toFixed(1).replace(/\.0$/, '');
-  const nameOfProfile = p => p?.display_name || p?.username || 'Player';
+  const nameOfProfile = p => window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   const isDecided = q => q?.result !== null && q?.result !== undefined;
   const scorePct = s => s?.pick_percentage != null ? n(s.pick_percentage) : (n(s?.question_count) ? n(s.correct_count)/n(s.question_count)*100 : 0);
   const safeResult = q => typeof q.result === 'string' ? q.result : JSON.stringify(q.result);
