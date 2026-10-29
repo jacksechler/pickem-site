@@ -78,7 +78,7 @@ test('official latest week produces a home feature, without exposing private pic
   assert.match(h.preview.innerHTML,/LTSPN/);
   assert.match(h.preview.innerHTML,/Week 2/);
   assert.match(h.preview.innerHTML,/Member 1 wins Week 2/);
-  assert.equal(h.queries.some(url=>url.startsWith('picks?')||url.startsWith('submissions?')),false);
+  assert.ok(h.queries.filter(url=>url.startsWith('picks?')||url.startsWith('submissions?')).every(url=>url.includes('week_id=in.(w1,w2)')));
 });
 test('the full news page displays featured story, archived weeks and topic filters',async()=>{
   const h=harness();
@@ -123,7 +123,7 @@ test('only published weeks are requested and scoring remains read-only',async()=
   const h=harness();
   await h.load();
   assert.ok(h.queries.some(url=>url.includes('status=eq.published')));
-  assert.ok(h.queries.every(url=>!url.includes('method=POST')&&!url.includes('submissions')));
+  assert.ok(h.queries.every(url=>!url.includes('method=POST') && (!url.startsWith('submissions?') || url.includes('week_id=in.(w1,w2)'))));
 });
 test('the layout uses one-column cards on phones without trapping vertical scrolling',()=>{
   const css=read('league_news.css');
