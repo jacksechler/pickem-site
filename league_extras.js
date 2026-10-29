@@ -292,7 +292,7 @@
         '<div><small>OFFICIAL #'+r.placement+'</small><strong>'+escape(r.name)+'</strong><span>'+
         r.correct+'/'+r.questions+' correct · '+fmt(r.points)+' season pts</span></div>').join('')+
       '</div>'+storyLink()+'</section>';
-    html+='<section class="lx-card"><div class="lx-kicker">THE RUN OF SHOW</div><h3>Tonight's Rundown</h3>'+
+    html+='<section class="lx-card"><div class="lx-kicker">THE RUN OF SHOW</div><h3>Tonight’s Rundown</h3>'+
       '<div class="lx-record-list">'+show.coverage.map((p,i)=>
         '<div class="lx-record lx-rundown"><span class="lx-rundown-num">0'+(i+1)+'</span>'+
         '<div><small>'+escape(p.label)+'</small><strong>'+escape(p.headline)+'</strong><span>'+
