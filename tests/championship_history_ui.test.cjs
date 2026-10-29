@@ -28,7 +28,7 @@ function boot(){
     createElement(tag){
       assert.equal(tag,'section');
       const node={
-        isConnected:true,dataset:{},innerHTML:'',
+        isConnected:true,dataset:{},innerHTML:'',contains(){return true},
         addEventListener(type,cb){listeners[type]=cb},
         setAttribute(){},querySelector(){return null}
       };
