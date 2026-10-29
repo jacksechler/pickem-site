@@ -20,7 +20,8 @@
     const idsWithScores=[...new Set(visibleScores.map(s=>s.user_id).filter(Boolean))];
     // Before Week 1, use the exact eight registered member profiles.
     const allProfiles=[...profiles].filter(p=>p.id);
-    const ids=idsWithScores.length?idsWithScores:allProfiles.map(p=>p.id);
+    const ids=idsWithScores.length===8?idsWithScores:allProfiles.length===8?
+      allProfiles.map(p=>p.id):idsWithScores.length?idsWithScores:allProfiles.map(p=>p.id);
     if(ids.length!==8||new Set(ids).size!==8)return {kind:'unavailable',reason:'Waiting for the complete eight-member league roster.'};
     const profilesById=Object.fromEntries(allProfiles.map(p=>[p.id,p]));
     const names=Object.fromEntries(ids.map(id=>[id,profilesById[id]?.display_name||profilesById[id]?.username||'Member']));
