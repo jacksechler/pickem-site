@@ -10,7 +10,9 @@
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const compare=(a,b)=>String(a).localeCompare(String(b));
  const name=p=>p?.display_name||p?.username||'Member';
- const sorted=(a,b)=>b.total-a.total||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
+ // Player profiles accumulate "points"; running historical snapshots use "total".
+ const sorted=(a,b)=>b.points-a.points||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
+ const sortedTotals=(a,b)=>b.total-a.total||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
  function clean(data={}){
    const season=data.seasonId||null;
    const weeks=(data.weeks||[]).filter(w=>w?.id&&w.status==='published'&&
@@ -38,7 +40,7 @@
      postseason:data.postseason||null,seasonId:season};
  }
  function rankOfTotals(members){
-   const list=[...members].sort(sorted);
+   const list=[...members].sort(sortedTotals);
    return Object.fromEntries(list.map((x,i)=>[x.id,i+1]));
  }
  function rarePickLedger(d){
