@@ -13,7 +13,7 @@
     return Number.isFinite(parsed.valueOf())?parsed.toLocaleDateString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'}):'';
   };
   const labels={
-    champion:'Champion',advanced:'Advanced',eliminated:'Eliminated',
+    champion:'Champion',runner_up:'Runner-up',advanced:'Advanced',eliminated:'Eliminated',
     clinched_math:'Clinched',eliminated_math:'Cannot advance',
     tiebreaker:'Tiebreaker pending',projected_advance:'Projected through',
     projected_out:'At risk',not_locked:'Awaiting lock',pending:'Waiting for results',
