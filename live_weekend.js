@@ -5,7 +5,7 @@
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const num = v => Number(v || 0);
   const fmt = v => num(v).toFixed(1).replace(/\.0$/, '');
-  const pname = p => p?.display_name || p?.username || 'Player';
+  const pname = p => window.MemberNames?.full(p)||p?.display_name||p?.username||'Player';
   const decided = q => q.result !== null && q.result !== undefined;
 
   function resultSort(a,b){
