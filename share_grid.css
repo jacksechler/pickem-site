@@ -10,6 +10,7 @@
 #sharegrid .share-grid th:first-child{width:52px;text-align:left;background:var(--panel2);position:sticky;left:0;z-index:2}
 #sharegrid .share-grid thead th{background:var(--panel2);font-weight:950;position:sticky;top:0;z-index:3}
 #sharegrid .share-grid thead th:first-child{z-index:4}
+#sharegrid .share-grid thead th:not(:first-child){white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.25;vertical-align:middle}
 #sharegrid .share-grid td.right{background:#0b2a25;color:var(--green);font-weight:900}
 #sharegrid .share-grid td.wrong{background:#32131b;color:var(--red);font-weight:900}
 #sharegrid .share-grid .tb th,#sharegrid .share-grid .tb td{border-bottom:0;background:#102b41;color:var(--accent);font-weight:950}
