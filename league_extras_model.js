@@ -10,9 +10,8 @@
  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const compare=(a,b)=>String(a).localeCompare(String(b));
  const name=p=>(typeof globalThis!=='undefined'?globalThis.MemberNames?.full(p):null)||p?.display_name||p?.username||'Member';
- // Player profiles accumulate "points"; running historical snapshots use "total".
+ // Both season and historical standings use the accumulated "points" field.
  const sorted=(a,b)=>b.points-a.points||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
- const sortedTotals=(a,b)=>b.total-a.total||b.correct-a.correct||b.wins-a.wins||compare(a.name,b.name);
  function clean(data={}){
    const season=data.seasonId||null;
    const weeks=(data.weeks||[]).filter(w=>w?.id&&w.status==='published'&&
@@ -40,7 +39,7 @@
      postseason:data.postseason||null,seasonId:season};
  }
  function rankOfTotals(members){
-   const list=[...members].sort(sortedTotals);
+   const list=[...members].sort(sorted);
    return Object.fromEntries(list.map((x,i)=>[x.id,i+1]));
  }
  function rarePickLedger(d){
