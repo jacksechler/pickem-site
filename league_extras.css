@@ -153,3 +153,5 @@
  .lx-feature-link{padding:12px 10px}
 }
 @media(prefers-reduced-motion:reduce){.lx-confetti{animation:none}}
+
+.lx-export-row{display:flex;align-items:center;flex-wrap:wrap;gap:13px;margin:12px 0 0}.lx-export-row .lx-muted{min-height:18px}
