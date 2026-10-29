@@ -10,19 +10,9 @@
   const fmt = v => num(v).toFixed(1).replace(/\.0$/, '');
   const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
   const decided = q => q.result !== null && q.result !== undefined;
-  const knownFirstNames = {
-    jacksechler:'Jack', cadechristy:'Cade', brodyravenstahl:'Brody', chasecarulli:'Chase',
-    evanlewis:'Evan', jacksongraham:'Jackson', klayfunovits:'Klay', lincolnconstant:'Lincoln'
-  };
-
-  function prettyName(p){
-    const u=String(p?.username||'').toLowerCase();
-    if(knownFirstNames[u]) return knownFirstNames[u];
-    const raw=String(p?.display_name||p?.username||'Player').trim();
-    return raw.includes(' ') ? raw.split(/\s+/)[0] : raw;
-  }
-
-  function fullName(p){ return p?.display_name || p?.username || 'Player'; }
+  // All visible player names use First Last; usernames stay unchanged for login.
+  function prettyName(p){ return window.MemberNames?.full(p)||p?.display_name||p?.username||'Player'; }
+  function fullName(p){ return prettyName(p); }
 
   function profileButton(id,name,extra=''){
     return '<button onclick="openPlayerProfile(\''+id+'\')" '+extra+' style="border:0;background:transparent;color:inherit;padding:0;font:inherit;font-weight:950;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(56,189,248,.45);text-underline-offset:3px">'+esc(name)+'</button>';
