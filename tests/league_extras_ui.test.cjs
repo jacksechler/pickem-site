@@ -96,7 +96,7 @@ test('weekly SportsCenter generates a published results rundown and power five',
   const s=h.nodes.studioBox.innerHTML;
   assert.match(s,/SPORTSCENTER/);
   assert.match(s,/LTSPN BREAKING/);
-  assert.match(s,/Run of Show/);
+  assert.match(s,/RUN OF SHOW/);
   assert.match(s,/LTSPN Power Five/);
   assert.match(s,/Week 1/);
   assert.match(s,/Member 1/);
