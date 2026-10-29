@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 132" role="img" aria-labelledby="title">
+  <title id="title">LTSPN</title>
+  <defs>
+    <linearGradient id="letters" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#fff4db"/>
+      <stop offset="70%" stop-color="#f2d099"/>
+      <stop offset="100%" stop-color="#d3a85c"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 18 H452 L434 35 H6 Z" fill="#c08f49"/>
+  <path d="M22 117 H446 L430 128 H6 Z" fill="#c08f49"/>
+  <text x="36" y="99" fill="url(#letters)" stroke="#17304f" stroke-width="1" paint-order="stroke" font-family="Arial Black,Arial,sans-serif" font-size="93" font-style="italic" font-weight="900" letter-spacing="-7">LTSPN</text>
+  <path d="M25 107 H450" stroke="#e4b45f" stroke-width="5" opacity=".9"/>
+</svg>
