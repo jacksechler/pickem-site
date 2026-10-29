@@ -2,6 +2,7 @@
 (() => {
   const Model=window.LeagueNewsModel;
   const History=window.ChampionshipHistoryModel;
+  const Editorial=window.LTSPNEditorialModel;
   if(!Model)return;
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,13 +34,30 @@
     const isPlayoff=story.group==='playoffs';
     const source=isPlayoff?'Finalized playoff results':'Published weekly standings';
     const likelihood=story.category==='odds'?' · Reconstructed model estimate':'';
+    const highlights=Array.isArray(story.highlights)?story.highlights:[];
+    const stats=Array.isArray(story.stats)?story.stats:[];
+    const factStrip=stats.length?'<div class="ln-article-stats">'+stats.map(x=>
+      '<div><span>'+esc(x.label)+'</span><strong>'+esc(x.value)+'</strong></div>').join('')+'</div>':'';
+    const highlightsHtml=highlights.length?
+      '<section class="ln-impact" aria-label="Biggest picks"><h4>THE PICKS THAT MATTERED</h4>'+
+      '<p>Actual scored questions and how the eight league members answered them.</p>'+
+      '<div class="ln-impact-list">'+highlights.map((x,i)=>
+        '<div class="ln-impact-item"><span class="ln-impact-number">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<div><strong>'+esc(x.prompt)+'</strong>'+
+        '<div class="ln-impact-answer">Official result: <b>'+esc(x.outcome)+'</b></div>'+
+        '<div class="ln-impact-stat">'+esc(x.correctCount)+' of '+esc(x.fieldSize)+
+        ' correct'+(x.correctNames?.length?' · '+esc(x.correctNames.join(', ')):'')+'</div></div></div>'
+      ).join('')+'</div></section>':'';
+    const byline='<div class="ln-byline"><b>LTSPN REPORTING</b><span>Verified league results</span>'+
+      (story.readMinutes?'<span>'+esc(story.readMinutes)+' min read</span>':'')+'</div>';
     return '<details class="ln-story'+(featured?' ln-story-featured':'')+'" '+
       (expanded?'open ':'')+'data-news-story="'+esc(story.id)+'">'+
       '<summary class="ln-story-summary">'+
       '<div class="ln-story-meta">'+storyTag(story)+'<span>'+esc(story.weekName)+'</span></div>'+
-      '<h3>'+esc(story.headline)+'</h3><p>'+esc(story.deck)+'</p>'+
+      '<h3>'+esc(story.headline)+'</h3><p>'+esc(story.deck)+'</p>'+byline+
       '<span class="ln-read">Read the full story <span aria-hidden="true">+</span></span></summary>'+
-      '<div class="ln-story-body">'+story.body.map(p=>'<p>'+esc(p)+'</p>').join('')+
+      '<div class="ln-story-body">'+factStrip+
+      '<div class="ln-article-copy">'+story.body.map((p,i)=>'<p class="'+(i===0?'ln-article-lead':'')+'">'+esc(p)+'</p>').join('')+'</div>'+highlightsHtml+
       '<div class="ln-story-source">'+esc(source+likelihood)+
       (story.group==='regular'?' · '+esc(story.weekName):'')+'</div></div></details>';
   }
@@ -122,8 +140,39 @@
     if(targeted)targeted.open=true;
   }
   function buildData(raw,oddsSnapshots=[]){
-    return Model.build({profiles:raw.profiles,weeks:raw.weeks,scores:raw.scores,
+    const verified=Model.build({profiles:raw.profiles,weeks:raw.weeks,scores:raw.scores,
       oddsSnapshots,postseason:raw.postseason,seasonId:raw.season});
+    return Editorial?.build?.({news:verified,profiles:raw.profiles,weeks:raw.weeks,
+      scores:raw.scores,questions:raw.questions||[],picks:raw.picks||[],
+      submissions:raw.submissions||[],seasonId:raw.season})||verified;
+  }
+  async function fetchAnswerArchive(published){
+    if(!published.length)return {questions:[],picks:[],submissions:[]};
+    const ids=published.map(w=>w.id).filter(Boolean);
+    const expression='in.('+ids.join(',')+')';
+    // Only officially PUBLISHED week IDs can be read here.
+    // Include all the scored questions and complete eight-member pick ledgers,
+    // never the current live/draft week's private answers.
+    try{
+      const [questions,submissions]=await Promise.all([
+        db('questions?select=id,week_id,prompt,sport,result,counts_for_score,result_order,position&week_id='+expression+'&order=week_id.asc,position.asc'),
+        db('submissions?select=week_id,user_id,tiebreaker_answer&week_id='+expression)
+      ]);
+      if(!Array.isArray(questions)||!Array.isArray(submissions))throw Error('Answer archive incomplete');
+      const picks=[];
+      const pageSize=700;
+      for(let offset=0;offset<7000;offset+=pageSize){
+        const page=await db('picks?select=week_id,user_id,question_id,answer&week_id='+expression+
+          '&order=week_id.asc,question_id.asc,user_id.asc&limit='+pageSize+'&offset='+offset);
+        if(!Array.isArray(page))throw Error('Answer page incomplete');
+        picks.push(...page);
+        if(page.length<pageSize)break;
+      }
+      return {questions,picks,submissions};
+    }catch(error){
+      console.debug('LTSPN detailed picks temporarily unavailable',error);
+      return {questions:[],picks:[],submissions:[]};
+    }
   }
   async function fetchOfficialData(){
     const [profiles,weeks,scores]=await Promise.all([
@@ -136,6 +185,7 @@
     const published=weeks.filter(w=>!season||w.season_id===season);
     const IDs=new Set(published.map(w=>w.id));
     const relevantScores=scores.filter(s=>IDs.has(s.week_id));
+    const answerArchive=await fetchAnswerArchive(published);
     let postseason=null;
     if(window.Postseason?.load){
       try {
@@ -143,13 +193,17 @@
         if(info&&['live','complete'].includes(info.settings?.status))postseason=info;
       }catch(e){console.debug('Playoff news temporarily unavailable',e);}
     }
-    return {profiles,weeks:published,scores:relevantScores,postseason,season};
+    return {profiles,weeks:published,scores:relevantScores,postseason,season,
+      ...answerArchive};
   }
   function leagueSignature(raw){
     return JSON.stringify([raw.season,raw.weeks.map(w=>[w.id,w.number,w.status]),
       raw.scores.map(s=>[s.week_id,s.user_id,s.placement,s.correct_count,s.total_points])
         .sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
-      raw.postseason?.history||[]]);
+      raw.postseason?.history||[],
+      (raw.questions||[]).map(q=>[q.id,q.result]),
+      (raw.picks||[]).map(p=>[p.week_id,p.question_id,p.user_id,p.answer]),
+      (raw.submissions||[]).map(x=>[x.week_id,x.user_id,x.tiebreaker_answer])]);
   }
   async function fetch(force=false){
     if(!force&&lastCache&&Date.now()-lastCache.at<90000)return lastCache;
