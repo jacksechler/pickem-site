@@ -24,6 +24,8 @@ jobs:
         run: node --test tests/championship_odds_model.test.cjs tests/championship_odds_integration.test.cjs tests/playoff_advancement_model.test.cjs tests/weekly_win_odds_model.test.cjs tests/mobile_grid_scroll_regression.test.cjs tests/opening_reveals.test.cjs tests/playoff_race_model.test.cjs tests/playoff_race_ui.test.cjs tests/championship_history_model.test.cjs tests/championship_history_ui.test.cjs tests/league_news_model.test.cjs tests/league_news_ui.test.cjs tests/ltspn_editorial_model.test.cjs tests/ltspn_editorial_ui.test.cjs
       - name: Verify Championship GameDay, advanced player profiles, SportsCenter and Hall of Fame
         run: node --test tests/league_extras_model.test.cjs tests/league_extras_ui.test.cjs
+      - name: Verify five-destination mobile navigation and accessible More menu
+        run: node --test tests/mobile_navigation.test.cjs
       - name: Verify all member names display as First Last without changing login identities
         run: node --test tests/member_names.test.cjs
       - name: Verify regular-season scoring and database behavior
