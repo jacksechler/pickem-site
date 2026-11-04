@@ -116,7 +116,7 @@
     if(supportsPush()) enabled=!!(await currentSubscription());
     let h='<div class="card" id="notificationCard"><div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:210px"><div class="eyebrow">PHONE ALERTS</div><h2 style="margin:4px 0">League Notifications</h2>';
     if(enabled){
-      h+='<div class="good"><b>✓ Enabled on this device</b></div><div class="mini">You can receive picks, score, week-complete, and leaderboard alerts.</div>';
+      h+='<div class="good"><b>✓ Push subscription saved on this device</b></div><div class="mini">Lock Screen updates are available when delivery succeeds. Ask the commissioner to send a test alert to confirm delivery.</div>';
     }else if(isIOS()&&!isStandalone()){
       h+='<div class="muted">On iPhone, add Pick\'em to your Home Screen first. Then open it from the icon and enable alerts.</div>';
     }else{
@@ -124,7 +124,9 @@
     }
     h+='</div><div>'+(enabled
       ?'<button class="btn secondary" onclick="disableLeagueNotifications()">Turn Off</button>'
-      :'<button class="btn" onclick="enableLeagueNotifications()">🔔 Enable Notifications</button>')+'</div></div><div id="notificationStatus" class="mini"></div></div>';
+      :'<button class="btn" onclick="enableLeagueNotifications()">🔔 Enable Notifications</button>')+'</div></div>'+
+      (isIOS()?'<div><button type="button" class="iphone-setup-link" onclick="window.IphoneExperience?.open?.()">iPhone Setup &amp; Status</button></div>':'')+
+      '<div id="notificationStatus" class="mini"></div></div>';
     home.insertAdjacentHTML('beforeend',h);
   }
 
