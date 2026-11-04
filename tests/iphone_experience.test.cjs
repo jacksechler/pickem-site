@@ -101,7 +101,7 @@ test('enable notifications happens only after an explicit tap',async()=>{
 test('guide can be closed with the Close button and restores focus',()=>{
   const h=harness();
   h.window.IphoneExperience.open();
-  assert.equal(h.window.IphoneExperience.open instanceof Function,true);
+  assert.equal(typeof h.window.IphoneExperience.open,'function');
   h.window.IphoneExperience.close();
   assert.equal(h.modal.hidden,true);
   assert.equal(h.document.activeElement,h.setupButton);
