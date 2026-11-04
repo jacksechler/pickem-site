@@ -68,7 +68,7 @@
         {label:'Submitted',value:submitted+'/'+required},
         {label:'Scored results',value:decided+'/'+scored},
         {label:'Official score rows',value:String(scoreRows)},
-        {label:'Recorded actions',value:auditAvailable?String(normalized.length):'Unavailable'}
+        {label:'Recent logged actions',value:auditAvailable?String(normalized.length):'Unavailable'}
       ],activity:normalized,auditAvailable,canExport:true};
   }
   function summarizeArchive({seasonId=null,weeks=[],scores=[],questions=[],profiles=[]}={}){
