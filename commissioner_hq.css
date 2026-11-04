@@ -1,0 +1,58 @@
+/* Commissioner Control Center, styled within existing league admin page. */
+#commissionerHQ.cc-host{padding:0!important;overflow:hidden;border:1px solid #5e6a7b}
+.cc-overview{padding:0;color:#eef1f7}
+.cc-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:20px;
+ background:linear-gradient(135deg,#1c3048,#101d2e 78%);border-bottom:1px solid #39485d}
+.cc-heading h2{font-size:clamp(23px,4vw,30px);font-weight:950;margin:6px 0;letter-spacing:-.03em}
+.cc-heading p{font-size:13px;color:#bdccdd;line-height:1.55;margin:0}
+.cc-eyebrow{font-size:10px;letter-spacing:.14em;color:#f0c57f;text-transform:uppercase;font-weight:900}
+.cc-status{font-size:11px;font-weight:850;line-height:1.35;max-width:220px;border:1px solid;border-radius:9px;padding:9px 10px}
+.cc-green{color:#a5e8c0;background:#1a3d2c;border-color:#4f916a}
+.cc-amber{color:#f5d99b;background:#3e3524;border-color:#8d713e}
+.cc-red{color:#ffbdc4;background:#482a35;border-color:#ad6271}
+.cc-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#3b4b62;border-bottom:1px solid #3b4b62}
+.cc-metric{padding:17px 13px;background:#16283e;min-width:0;display:flex;flex-direction:column;gap:6px}
+.cc-metric small{font-size:11px;color:#afc1d6;line-height:1.4}
+.cc-metric strong{font-size:clamp(20px,3vw,29px);font-variant-numeric:tabular-nums;color:#f5d18c;overflow-wrap:anywhere}
+.cc-checks,.cc-audit,.cc-actions{padding:20px;border-bottom:1px solid #324157}
+.cc-section-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+.cc-section-head h3,.cc-actions h3{font-size:17px;color:#f2f5fa;margin:0}
+.cc-section-head>span{font-size:10px;color:#b6c9dc}
+.cc-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cc-check{border:1px solid #40506a;background:#132138;border-radius:9px;display:flex;align-items:flex-start;gap:10px;padding:13px;min-width:0}
+.cc-bubble{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ font-size:14px;font-weight:900;flex:0 0 auto}
+.cc-check>div{min-width:0}
+.cc-check strong{font-size:12px;color:#f4f5f9;display:block;line-height:1.4}
+.cc-check small{font-size:11px;color:#b4c4d8;display:block;margin-top:4px;line-height:1.55}
+.cc-notice{margin:11px 0 0;padding:11px 13px;border:1px solid;border-radius:8px;font-size:12px;line-height:1.65}
+.cc-missing{margin-top:12px;padding:12px;background:#2b2836;border-radius:8px;border:1px solid #69606c}
+.cc-missing strong{font-size:12px;color:#f5d49b}
+.cc-missing>div{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+.cc-missing span{font-size:11px;color:#d5d8e0}
+.cc-footnote,.cc-muted{color:#aebfd1;font-size:11px;line-height:1.6}
+.cc-footnote{margin:11px 20px 18px}
+.cc-audit-list{list-style:none;padding:0;margin:0;display:grid;gap:0}
+.cc-audit-list li{display:flex;align-items:flex-start;gap:9px;padding:11px 0;border-bottom:1px solid #32445d}
+.cc-audit-list li:last-child{border-bottom:0}
+.cc-audit-dot{width:8px;height:8px;flex:0 0 auto;margin-top:5px;border-radius:50%;background:#d8af6e}
+.cc-audit-list strong{color:#f2f4f7;font-size:12px;font-weight:800;line-height:1.45;display:block}
+.cc-audit-list small{color:#b3c1d2;font-size:11px;line-height:1.5;display:block;margin-top:4px}
+.cc-actions p{font-size:12px;color:#c4d0dc;line-height:1.65;margin:7px 0 12px}
+.cc-buttons{display:flex;gap:9px;flex-wrap:wrap}
+.cc-btn{appearance:none;cursor:pointer;min-height:42px;font:850 12px/1.3 system-ui,sans-serif;
+ padding:10px 12px;background:#e4bb78;color:#1d2a3d;border:1px solid #f1cc90;border-radius:9px}
+.cc-btn:hover{filter:brightness(1.08)}
+.cc-btn.cc-secondary{background:#21354d;border-color:#60748d;color:#f1f4f8}
+.cc-btn:focus-visible{outline:3px solid #f4dcaa;outline-offset:2px}
+.cc-loading{padding:20px;font-size:13px;color:#becfe2}
+@media(max-width:740px){
+ .cc-heading,.cc-checks,.cc-audit,.cc-actions{padding:15px}
+ .cc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cc-check-grid{grid-template-columns:1fr}
+ .cc-heading{gap:9px}
+ .cc-status{max-width:none}
+ .cc-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cc-btn{white-space:normal}
+}
+@media(max-width:380px){.cc-buttons{grid-template-columns:1fr}}
