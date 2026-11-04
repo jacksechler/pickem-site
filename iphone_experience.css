@@ -1,0 +1,51 @@
+/* iPhone web app onboarding; opt-in only, never prompts for permission on load. */
+.ip-overlay[hidden]{display:none!important}
+.ip-overlay{position:fixed;inset:0;z-index:1500;display:flex;align-items:center;justify-content:center;
+ padding:16px;box-sizing:border-box;color:#e8f1fc}
+.ip-overlay *{box-sizing:border-box}
+.ip-scrim{position:absolute;inset:0;background:rgba(5,10,20,.79)}
+.ip-sheet{position:relative;display:flex;flex-direction:column;overflow:hidden;
+ width:min(600px,100%);max-height:min(90dvh,850px);background:#14243a;
+ border:1px solid #72849a;border-radius:19px;box-shadow:0 18px 70px #0009}
+.ip-head{padding:22px 20px 16px;background:linear-gradient(135deg,#253b57,#14243b);
+ border-bottom:1px solid #43566f;position:relative}
+.ip-kicker{color:#efc87e;font-size:11px;font-weight:900;letter-spacing:.12em}
+.ip-head h2{font-size:clamp(23px,4vw,30px);color:#f6f7fb;font-weight:950;line-height:1.2;
+ letter-spacing:-.03em;margin:8px 47px 8px 0}
+.ip-head p{color:#c2cfdf;line-height:1.5;font-size:13px;margin:0 46px 0 0}
+.ip-close{position:absolute;right:16px;top:18px;background:#324762;color:#fff;
+ border:1px solid #677f9a;cursor:pointer;width:42px;height:42px;border-radius:11px;font-size:17px}
+.ip-body{padding:17px 21px 22px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain}
+.ip-status-grid{background:#102033;border:1px solid #445775;border-radius:10px;
+ padding:12px;display:grid;gap:7px;margin-bottom:15px}
+.ip-status{font-size:12px;line-height:1.45;font-weight:750}
+.ip-status.ip-ok{color:#ade8c1}
+.ip-status.ip-pending{color:#f3d190}
+.ip-status-grid small{font-size:10px;line-height:1.5;color:#aebfd5;margin-top:5px}
+.ip-step{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:15px 0;
+ border-bottom:1px solid #384b66}
+.ip-number{display:flex;align-items:center;justify-content:center;background:#d8ae6e;
+ color:#122237;font-weight:950;font-size:14px;border-radius:50%;width:29px;height:29px}
+.ip-step h3{font-size:16px;color:#f5f7fb;margin:3px 0 8px}
+.ip-step p{font-size:12px;line-height:1.75;color:#c5d3e4;margin:8px 0}
+.ip-step .ip-small{font-size:11px;color:#9db0c7}
+.ip-cta{min-height:44px;cursor:pointer;padding:10px 13px;background:#e3b974;border:1px solid #eccb93;
+ border-radius:9px;color:#17283c;font-size:12px;font-weight:900;margin:6px 0 2px}
+.ip-cta.ip-ghost{color:#f5d7a6;border-color:#977a55;background:#24384f}
+.ip-cta:disabled{opacity:.55;cursor:not-allowed}
+.ip-cta:focus-visible,.ip-close:focus-visible,.iphone-setup-link:focus-visible{
+ outline:3px solid #f6d697;outline-offset:2px}
+.ip-note{font-size:11px;line-height:1.6;color:#abbcd0;margin:15px 0 0}
+.iphone-setup-link{border:1px solid #8391a1;background:#243b54;color:#eef3fb;
+ padding:9px 12px;border-radius:9px;font-weight:850;font-size:12px;cursor:pointer;
+ margin-top:8px;min-height:42px;display:inline-flex;align-items:center}
+body.ip-open{overflow:hidden!important}
+@media(max-width:620px){
+ .ip-overlay{padding:0;align-items:flex-end}
+ .ip-sheet{max-height:calc(94dvh - env(safe-area-inset-bottom));border-radius:18px 18px 0 0;
+  width:100%;margin-bottom:0}
+ .ip-body{padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .ip-head{padding:19px 15px 15px}
+ .ip-body{padding-left:15px;padding-right:15px}
+}
