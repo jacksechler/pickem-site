@@ -90,8 +90,9 @@ begin
     select count(*),
       count(*) filter (
         where nullif(btrim(q.prompt),'') is null
-           or jsonb_typeof(q.answer_options) is distinct from 'array'
-           or jsonb_array_length(q.answer_options) < 2
+           or case when jsonb_typeof(q.answer_options) = 'array'
+                   then jsonb_array_length(q.answer_options) < 2
+                   else true end
       )
     into question_count,invalid_count
     from public.questions q where q.week_id = new.id;
