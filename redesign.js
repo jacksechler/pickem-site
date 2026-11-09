@@ -136,8 +136,8 @@
       context: () => week?.id || 'new',
       classify: node => {
         const id = node.id;
-        // Operations applies to every commissioner task, including locked weeks.
-        if (id === 'commissionerHQ') return 'context';
+        // Keep the long operations report below the everyday commissioner tools.
+        if (id === 'commissionerHQ') return 'footer';
         const heading = node.querySelector('h2')?.textContent || '';
         if (['finishWeekCard', 'liveResultEntry', 'postseasonFinish'].includes(id) || /Results & Scoring|Enter Results/.test(heading)) return 'results';
         if (/Player Accounts|Submission Status/.test(heading)) return 'players';
@@ -218,6 +218,10 @@
     let set = box.querySelector(':scope > .clean-panelset');
     for (const node of incoming) {
       const section = config.classify(node);
+      if (section === 'footer') {
+        node.dataset.cleanFixed = 'true';
+        continue;
+      }
       if (section === 'toolbar' || section === 'context') {
         node.dataset.cleanFixed = 'true';
         if (section === 'toolbar') node.classList.add('clean-toolbar');
@@ -275,6 +279,10 @@
     });
     set.querySelector('.clean-tabs').hidden = available.length < 2;
     if (!available.includes(state.active)) state.active = available[0] || config.initial();
+    if (id === 'commissionerBox') {
+      const operations = $('commissionerHQ');
+      if (operations && box.lastElementChild !== operations) box.appendChild(operations);
+    }
     selectTab(box, state.active);
   }
 

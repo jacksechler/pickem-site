@@ -60,7 +60,7 @@
         let correct=0;
         const chance=rates[p.id]??0.5;
         for(let q=0;q<count;q++)if(random()<chance)correct++;
-        return {...p,total:p.total+correct,tieRandom:random()};
+        return {...p,total:(round===4?0:p.total)+correct,tieRandom:random()};
       });
       sortForCut(ranked,false,random);
       survivors=ranked.slice(0,CUTS[round-1]).map(p=>({id:p.id,seed:p.seed,total:p.total}));
@@ -109,7 +109,7 @@
       const id=e.user_id||e.id;
       const row=rows.get(id);
       const actual=useLocked?asNumber(row?.cumulative_after,NaN):NaN;
-      const fallback=asNumber(e.current_total,asNumber(e.starting_bonus,asNumber(BONUS[Number(e.seed)-1])));
+      const fallback=roundNumber===4?0:asNumber(e.current_total,asNumber(e.starting_bonus,asNumber(BONUS[Number(e.seed)-1])));
       return {id,seed:Number(e.seed)||8,total:Number.isFinite(actual)?actual:fallback,
         distance:current&&numeric(current.week?.tiebreaker_result)&&numeric(row?.round_tiebreaker_answer)
           ?Math.abs(Number(current.week.tiebreaker_result)-Number(row.round_tiebreaker_answer)):Infinity};

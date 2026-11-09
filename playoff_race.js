@@ -93,7 +93,7 @@
     }else{
       html+='<div class="ps-road-detail-head"><div><div class="ps-road-eyebrow">'+stageStatus(round)+(round.mode==='projected'?' · NOT OFFICIAL':'')+'</div><h3>'+safe(round.title)+'</h3><p>'+round.before+' contenders · Top '+round.after+' advance'+(round.startsOn?' · '+safe(date(round.startsOn))+'–'+safe(date(round.endsOn)):'')+'</p></div><span class="ps-road-count">'+round.before+' → '+round.after+'</span></div>';
       if(round.mode==='projected')html+='<p class="ps-road-notice">This is a projected next-round field based on the current locked standings. The commissioner must finalize the round before anyone officially advances.</p>';
-      else if(round.mode==='qualified')html+='<p class="ps-road-notice">These members officially qualified in the preceding round. The next card has not started.</p>';
+      else if(round.mode==='qualified')html+='<p class="ps-road-notice">These members officially qualified in the preceding round. The next card has not started.'+(round.number===4?' Both finalists start at 0 for championship week.':'')+'</p>';
       else if(round.mode==='prelock')html+='<p class="ps-road-notice">Current seeds are visible, but picks and projected advancement stay private until the round locks.</p>';
       html+=stageCards(round);
     }
@@ -103,7 +103,7 @@
     if(!selected)return '';
     const body=selected.reason;
     const tag=labels[selected.kind]||'Active';
-    return '<section class="ps-survival-focus '+statusClass(selected.kind)+'" aria-label="Selected member survival outlook"><div class="ps-survival-focus-head"><div><div class="ps-road-eyebrow">SURVIVAL OUTLOOK</div><h3>'+safe(selected.name)+'</h3></div><span class="ps-survival-label '+statusClass(selected.kind)+'">'+safe(tag)+'</span></div><div class="ps-survival-focus-stats"><div><small>Cumulative total</small><strong>'+safe(number(selected.total))+'</strong></div><div><small>Current cut</small><strong>TOP '+s.cut+'</strong></div><div><small>Questions left</small><strong>'+safe(s.remaining===null?'—':s.remaining)+'</strong></div></div><p>'+safe(body)+'</p>'+(selected.mathematicallyCertain&&!selected.official?'<p class="ps-survival-math">Mathematically certain from current scores and remaining questions; still unofficial until the commissioner finalizes the round.</p>':'')+'</section>';
+    return '<section class="ps-survival-focus '+statusClass(selected.kind)+'" aria-label="Selected member survival outlook"><div class="ps-survival-focus-head"><div><div class="ps-road-eyebrow">SURVIVAL OUTLOOK</div><h3>'+safe(selected.name)+'</h3></div><span class="ps-survival-label '+statusClass(selected.kind)+'">'+safe(tag)+'</span></div><div class="ps-survival-focus-stats"><div><small>'+(s.roundNumber===4?'Finals-week points':'Cumulative total')+'</small><strong>'+safe(number(selected.total))+'</strong></div><div><small>Current cut</small><strong>TOP '+s.cut+'</strong></div><div><small>Questions left</small><strong>'+safe(s.remaining===null?'—':s.remaining)+'</strong></div></div><p>'+safe(body)+'</p>'+(selected.mathematicallyCertain&&!selected.official?'<p class="ps-survival-math">Mathematically certain from current scores and remaining questions; still unofficial until the commissioner finalizes the round.</p>':'')+'</section>';
   }
   function survivalHtml(s){
     if(s.kind==='unavailable')return '';

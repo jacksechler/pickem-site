@@ -79,9 +79,9 @@ function harness(){
 }
 test('Playoffs loads the interactive road scripts before the postseason renderer',()=>{
   const html=read('index.html');
-  const a=html.indexOf('playoff_race_model.js?v=1');
-  const b=html.indexOf('playoff_race.js?v=1');
-  const c=html.indexOf('postseason.js?v=11');
+  const a=html.indexOf('playoff_race_model.js?');
+  const b=html.indexOf('playoff_race.js?');
+  const c=html.indexOf('postseason.js?');
   assert.ok(a>0&&a<b&&b<c);
   assert.match(html,/playoff_race\.css\?v=1/);
   assert.match(read('postseason.js'),/window\.PlayoffRace\?\.render\(data\)/);

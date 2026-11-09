@@ -182,7 +182,7 @@
       return await new Promise((resolve,reject)=>{
         let settled=false;
         try{
-          worker=new Worker('championship_history_worker.js?v=1');
+          worker=new Worker('championship_history_worker.js?v=2');
         }catch(error){reject(error);return;}
         const thisWorker=worker;
         const finish=(out,error)=>{

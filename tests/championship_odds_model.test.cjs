@@ -81,3 +81,24 @@ test('future card sizes can be configured without altering the cut rules',()=>{
   assert.deepEqual(o.assumedRoundCounts,[4,7,9,13]);
   assert.deepEqual(M.CUTS,[6,4,2,1]);
 });
+
+test('a future championship discards all accumulated points after semifinal qualification',()=>{
+  const finalists=entries.map((e,i)=>({...e,status:i<2?'active':'eliminated',current_total:i===0?1000:0}));
+  const s=state(3,true,true,1,1);
+  const o=M.estimatePlayoffs({entries:finalists,state:s,samples:8000,seedKey:'finals-reset'});
+  assert.ok(o.titleOdds[ids[0]]>45&&o.titleOdds[ids[0]]<55);
+  assert.equal(o.titleOdds[ids[2]],0);
+});
+test('pre-lock finals simulate a fresh card even if input entries contain old totals',()=>{
+  const finalists=entries.slice(0,2).map((e,i)=>({...e,current_total:i===0?1000:0}));
+  const s=state(4,false,false,12);s.current.rows=s.current.rows.slice(0,2);
+  const o=M.estimatePlayoffs({entries:finalists,state:s,samples:8000,seedKey:'prelock-finals-reset'});
+  assert.ok(o.titleOdds[ids[0]]>45&&o.titleOdds[ids[0]]<55);
+});
+test('locked finals retain scored finals picks instead of resetting on every forecast',()=>{
+  const finalists=entries.slice(0,2);
+  const s=state(4,true,false,1,1);
+  s.current.rows=finalists.map((e,i)=>({user_id:e.user_id,seed:e.seed,cumulative_after:i}));
+  const o=M.estimatePlayoffs({entries:finalists,state:s,questions:[{id:'game',result:'A'}],picks:[],samples:300});
+  assert.equal(o.titleOdds[ids[1]],100);
+});

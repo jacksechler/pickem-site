@@ -6,7 +6,7 @@ const root=path.join(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 test('championship model loads before both page integrations',()=>{
   const html=read('index.html');
-  const model=html.indexOf('src="championship_odds_model.js?v=1"');
+  const model=html.indexOf('src="championship_odds_model.js?');
   const playoff=html.indexOf('src="playoff_advancement.js?v=3"');
   const homepage=html.indexOf('src="league_central.js?v=3"');
   assert.ok(model>0&&playoff>model&&homepage>model);

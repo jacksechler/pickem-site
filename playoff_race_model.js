@@ -138,7 +138,7 @@
         .sort((a,b)=>Number(a.seed)-Number(b.seed));
       if(qualified.length===stage.before)return {...base,mode:'qualified',
         members:qualified.map(h=>({id:h.user_id,name:h.display_name||'Member',
-          seed:val(h.seed),total:val(h.cumulative_after),kind:'qualified',official:true}))};
+          seed:val(h.seed),total:number===4?0:val(h.cumulative_after),kind:'qualified',official:true}))};
     }
     // Never present predicted survivor names as an official future field.
     if(prev?.status==='live'&&current?.round?.id===prev.id&&current.locked&&number===Number(prev.round_number)+1
@@ -150,7 +150,7 @@
       if(!tied&&list.length===stage.before)
         return {...base,mode:'projected',members:list.map(r=>({
           id:r.user_id,name:r.display_name||'Member',seed:val(r.seed),
-          total:val(r.cumulative_after),kind:'projected_advance',official:false
+          total:number===4?0:val(r.cumulative_after),kind:'projected_advance',official:false
         }))};
     }
     return base;

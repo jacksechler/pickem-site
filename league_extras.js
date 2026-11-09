@@ -349,7 +349,7 @@
     }));
     let html='<div class="lx-shell"><header class="lx-banner lx-champ-banner"><div class="lx-kicker">THE CHAMPIONSHIP • GAME DAY</div>'+
       '<h2>'+(official?'THE CHAMPION IS CROWNED':'CHAMPIONSHIP GAMEDAY')+'</h2><p>'+
-      (official?'A league season has its official winner.':'Two finalists. One championship. Every point matters.')+
+      (official?'A league season has its official winner.':'Both finalists start at 0. One week. Every correct pick counts.')+
       '</p><div class="lx-microstats"><span>'+(official?'OFFICIAL FINAL':
       state.locked?'LIVE · PICKS LOCKED':'MATCHUP SET · AWAITING LOCK')+'</span><span>8 → 6 → 4 → 2 → 1</span>'+
       (state.remaining!==null?'<span>'+state.remaining+' scored questions remaining</span>':'')+
@@ -364,7 +364,7 @@
         '<div class="lx-finalist'+(official&&champion.user_id===p.id?' crowned':'')+'"><small>SEED #'+escape(p.seed)+
         (official&&champion.user_id===p.id?' · CHAMPION':'')+'</small><h3>'+escape(p.name)+
         '</h3><strong class="lx-final-score">'+(p.total===null?'—':fmt(p.total))+'</strong>'+
-        '<span>Cumulative playoff points</span>'+
+        '<span>Finals-week points</span>'+
         (Number.isFinite(Number(p.odds))?'<div class="lx-win-chance"><strong>'+
           pct(p.odds)+'</strong><span>Chance to win it all</span><div class="lx-bar"><i style="width:'+
           Math.max(0,Math.min(100,Number(p.odds)))+'%"></i></div></div>':'<p class="lx-muted">'+

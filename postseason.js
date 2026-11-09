@@ -63,10 +63,11 @@
   }
   function raceTable(data,current=data.current) {
     if(!current)return '<div class="card muted">The next round is being prepared.</div>';
-    const official=current.round.status==='finalized',cut=current.round.participants_after;
+    const official=current.round.status==='finalized',cut=current.round.participants_after,finals=Number(current.round.round_number)===4;
     let html='<section class="card ps-race"><div class="ps-heading"><div><div class="eyebrow">'+(official?'FINAL ROUND':'PLAYOFF RACE')+'</div><h2>'+esc(current.round.label)+'</h2></div><span class="ps-badge">'+current.round.participants_before+' → '+cut+'</span></div>';
+    html+=(finals?'<p class="ps-note"><b>0–0 fresh start.</b> One championship week. Only finals picks count; earlier points and seed bonuses do not carry into this score.</p>':'');
     html+=(current.finalize_not_before?'<p class="ps-note">One extended semifinal card through '+date(current.ends_on)+'. The final cut opens '+stamp(current.finalize_not_before)+', after all scored results are entered.</p>':'');
-    html+='<div class="tablewrap"><table class="table ps-table"><caption class="ps-sr">Cumulative playoff standings. One-time seed bonus plus correct playoff picks.</caption><thead><tr><th class="ps-total-col">Total</th><th>Place / seed</th><th>Member</th><th>Seed bonus</th><th>This round</th><th>Playoff pts</th><th>Status</th></tr></thead><tbody>';
+    html+='<div class="tablewrap"><table class="table ps-table"><caption class="ps-sr">'+(finals?'Finals-week standings. Both finalists start at zero.':'Cumulative playoff standings. One-time seed bonus plus correct playoff picks.')+'</caption><thead><tr><th class="ps-total-col">Total</th><th>Place / seed</th><th>Member</th><th>Seed bonus</th><th>This round</th><th>'+(finals?'Finals pts':'Playoff pts')+'</th><th>Status</th></tr></thead><tbody>';
     current.rows.forEach((r,i)=>{
       if(i===cut){
         const cutMode=official?'ps-official-cut':current.locked?'ps-projected-cut':'ps-pending-cut';
@@ -74,19 +75,19 @@
         const cutDetail=official?'TOP '+cut+' '+(cut===1?'WON THE TITLE':'OFFICIALLY ADVANCED'):current.locked?'BELOW THIS LINE = PROJECTED ELIMINATION · TOP '+cut+' ADVANCE':'TOP '+cut+' ADVANCE · PROJECTION WAITS FOR THE CARD TO LOCK';
         html+='<tr class="ps-cut '+cutMode+'"><td colspan="7"><div class="ps-cut-banner"><span class="ps-cut-alert">'+cutTitle+'</span><strong>'+cutDetail+'</strong></div></td></tr>';
       }
-      const e=member(data,r.user_id),points=Number(r.cumulative_after)-Number(e?.starting_bonus??seedBonus(r.seed));
+      const e=member(data,r.user_id),bonus=finals?0:Number(e?.starting_bonus??seedBonus(r.seed)),points=Number(r.cumulative_after)-bonus;
       const text=official?(r.advanced?(r.status_after==='champion'?'Champion':'Advanced'):label[r.status_after]):!current.locked?'Awaiting lock':label[r.projected_status];
       const belowCut=!official&&current.locked&&i>=cut;
       const tb=current.locked?'<small>TB: '+(r.round_tiebreaker_answer==null?'No entry':fmt(r.round_tiebreaker_answer))+(r.round_tiebreaker_distance==null?'':' · '+fmt(r.round_tiebreaker_distance)+' away')+'</small>':'';
       const rowClass=[r.user_id===session?.user?.id?'ps-my-row':'',belowCut?'ps-below-cut':''].filter(Boolean).join(' ');
-      html+='<tr class="'+rowClass+'"><td class="ps-total-col"><strong>'+fmt(r.cumulative_after)+'</strong></td><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>+'+fmt(e?.starting_bonus??seedBonus(r.seed))+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+(belowCut?'<span class="ps-cut-tag">AT RISK</span>':'')+tb+'</td></tr>';
+      html+='<tr class="'+rowClass+'"><td class="ps-total-col"><strong>'+fmt(r.cumulative_after)+'</strong></td><td><b>'+(r.tied?'T':'#')+r.round_rank+'</b><small>Seed #'+r.seed+'</small></td><th scope="row">'+esc(r.display_name)+(r.user_id===session?.user?.id?' <span class="ps-you">You</span>':'')+'</th><td>+'+fmt(bonus)+'</td><td>+'+r.round_correct+'</td><td>+'+fmt(points)+'</td><td><span class="ps-state '+(text==='Projected out'||text==='Eliminated'?'bad':'')+'">'+esc(text)+'</span>'+(belowCut?'<span class="ps-cut-tag">AT RISK</span>':'')+tb+'</td></tr>';
     });
     html+='</tbody></table></div><p class="ps-note">'+(official?'Saved official round results.':current.tiebreaker_pending?'Tiebreaker pending. Equal totals stay tied until the actual result is entered.':'Ties use this round’s tiebreaker distance, then the frozen regular-season seed.')+(!current.tiebreaker_pending?' Actual tiebreaker: '+fmt(current.week.tiebreaker_result)+'.':'')+' Every correct scored pick adds 1. No placement points or bonuses.</p></section>';
     return html;
   }
   function personal(data,id=session?.user?.id) {
     const e=member(data,id);if(!e)return '';
-    const r=roundRow(data,id),total=r&&e.status==='active'?r.cumulative_after:e.current_total;
+    const r=roundRow(data,id),total=r&&e.status==='active'&&data.current?.round.status!=='finalized'?r.cumulative_after:e.current_total;
     let margin='';
     if(e.status==='active'&&r&&data.current?.round.status!=='finalized') {
       const c=data.current,above=c.rows[c.round.participants_after-1],below=c.rows[c.round.participants_after];
@@ -95,7 +96,7 @@
       else if(r.sort_index<=c.round.participants_after&&below)margin=fmt(Number(r.cumulative_after)-Number(below.cumulative_after))+' points above the cut line';
       else if(above)margin=fmt(Number(above.cumulative_after)-Number(r.cumulative_after))+' points below the cut line';
     }
-    return '<section class="card ps-personal"><div><div class="eyebrow">'+(id===session?.user?.id?'YOUR POSTSEASON':'POSTSEASON')+'</div><h2>'+esc(e.display_name)+'</h2><p>'+esc(status(e,data))+'</p><p class="ps-note">'+esc(margin||'Starting seed #'+e.seed+' · +'+fmt(e.starting_bonus??seedBonus(e.seed))+' one-time seed bonus')+'</p></div><div class="ps-total">'+fmt(total)+'<span>championship points</span></div></section>';
+    return '<section class="card ps-personal"><div><div class="eyebrow">'+(id===session?.user?.id?'YOUR POSTSEASON':'POSTSEASON')+'</div><h2>'+esc(e.display_name)+'</h2><p>'+esc(status(e,data))+'</p><p class="ps-note">'+esc(margin||(Number(e.championship_offset)>0?'Finals fresh start · only championship-week picks count':'Starting seed #'+e.seed+' · +'+fmt(e.starting_bonus??seedBonus(e.seed))+' one-time seed bonus'))+'</p></div><div class="ps-total">'+fmt(total)+'<span>championship points</span></div></section>';
   }
   function eliminated(data) {
     const shown=new Set(data.current?.rows.map(r=>r.user_id)||[]);
@@ -111,15 +112,15 @@
   function champion(data) {
     const winner=data.entries.find(e=>e.status==='champion'),runner=data.entries.find(e=>e.status==='runner_up');
     if(!winner)return '';
-    return '<section class="card ps-champion"><div class="eyebrow">🏆 2026 PICK’EM CHAMPION</div><h2>'+esc(winner.display_name)+'</h2><div class="ps-champion-total">'+fmt(winner.current_total)+' <span>points</span></div><p>Seed #'+winner.seed+' · +'+fmt(winner.starting_bonus??seedBonus(winner.seed))+' seed bonus + '+winner.playoff_points+' playoff correct</p>'+(runner?'<p class="muted">Runner-up: '+esc(runner.display_name)+' · '+fmt(runner.current_total)+'</p>':'')+'</section>';
+    return '<section class="card ps-champion"><div class="eyebrow">🏆 2026 PICK’EM CHAMPION</div><h2>'+esc(winner.display_name)+'</h2><div class="ps-champion-total">'+fmt(winner.current_total)+' <span>points</span></div><p>Seed #'+winner.seed+' · +'+fmt(winner.starting_bonus??seedBonus(winner.seed))+' seed bonus in rounds 1–3 · '+winner.playoff_points+' correct across the postseason; title score counts finals only</p>'+(runner?'<p class="muted">Runner-up: '+esc(runner.display_name)+' · '+fmt(runner.current_total)+'</p>':'')+'</section>';
   }
   function formatAndSchedule(data) {
     const rounds=data.calendar.filter(c=>c.phase==='playoff').sort((a,b)=>a.round_number-b.round_number);
     const field=[[8,6],[6,4],[4,2],[2,1]];
-    return '<section class="card ps-format"><div class="eyebrow">HOW IT WORKS</div><h2>Eight members. Four rounds. One champion.</h2><p>Your regular-season finish becomes a one-time playoff starting bonus. Keep adding one point per correct playoff pick and stay above the cut.</p><div class="ps-format-grid">'+
-      '<div><b>Earn your starting bonus</b><p>Final regular-season finish sets a one-time bonus: 1st +10, 2nd +8, 3rd +7, 4th +5, 5th +4, 6th +3, 7th +2, 8th +0. The bonus is awarded once and your playoff total carries forward.</p></div>'+
+    return '<section class="card ps-format"><div class="eyebrow">HOW IT WORKS</div><h2>Eight members. Four rounds. One champion.</h2><p>Your regular-season finish becomes a one-time playoff starting bonus. Add one point per correct pick through the semifinals. The final two then reset to zero for a one-week championship.</p><div class="ps-format-grid">'+
+      '<div><b>Earn your starting bonus</b><p>Final regular-season finish sets a one-time bonus: 1st +10, 2nd +8, 3rd +7, 4th +5, 5th +4, 6th +3, 7th +2, 8th +0. The bonus is awarded once and your playoff total carries through rounds 1–3. It does not carry into the finals.</p></div>'+
       '<div><b>Every correct pick adds 1</b><p>Every scored sport counts equally. Playoff rounds award no placement points or bonuses.</p></div>'+
-      '<div><b>Survive the cumulative cut</b><p>The top 6 advance, then 4, then 2. The finalist with the highest championship total wins.</p></div></div>'+
+      '<div><b>Survive the cut. Start the final at zero.</b><p>The top 6 advance, then 4, then 2. Both finalists reset to 0. The most correct picks in the championship week wins; existing tiebreaker rules apply.</p></div></div>'+
       '<details class="ps-rules"><summary>Ties, deadlines, and picking after elimination</summary><ul><li>Equal totals use this round’s tiebreaker distance, then the higher saved regular-season seed. Live ties stay tied while the actual result is pending.</li><li>A missing submission earns zero. A missing tiebreaker ranks behind a supplied answer.</li><li>Every card has one lock. It can lock early when all active contenders submit: 8, 6, 4, or 2 members.</li><li>Eliminated members can keep picking for fun until lock. Their championship total stays frozen, and their submissions do not trigger early lock.</li><li>The semifinal card spans both weeks. Submit all picks by its initial Thursday lock; the final cut happens after the extended round.</li></ul></details></section>'+
       '<section class="card ps-schedule"><div class="ps-heading"><div><div class="eyebrow">2027 PLAYOFF SCHEDULE</div><h2>Every round, at a glance</h2></div>'+button('Full season calendar','calendar')+'</div><p class="ps-note">All playoff dates and lock times are fixed in the postseason plan. They cannot be moved by the weekly blueprint or changed through the commissioner calendar.</p><div class="tablewrap"><table class="table ps-table"><thead><tr><th>Round</th><th>Games / setup</th><th>Field</th><th>Card lock</th></tr></thead><tbody>'+rounds.map(c=>'<tr><th scope="row">'+esc(c.label)+(c.round_number===3?'<small class="ps-extended-label">Extended round</small>':'')+'</th><td><b>'+date(c.starts_on)+'–'+date(c.ends_on)+'</b><small>'+esc(c.sports.join(' · '))+'</small><small>Setup: Tue, '+date(c.setup_date)+'</small></td><td>'+field[c.round_number-1].join(' → ')+'</td><td>'+stamp(c.suggested_lock_at)+'<small>'+(c.lock_confirmed?'Confirmed':'Proposed')+'</small></td></tr>').join('')+'</tbody></table></div><p class="ps-note">Semifinals include January 28–February 8 with one entry and one final cut. The next week is Championship, ending on Super Bowl Sunday. There is no off week.</p><p class="ps-note">CFB and CFP games fit the earlier rounds; the CFP title game is January 25. The later schedule combines CBB and NFL, with CFB still selectable when a real game fits. <a href="https://collegefootballplayoff.com/news/2026/6/1/26-27-broadcast-sked" target="_blank" rel="noopener noreferrer">CFP dates</a></p></section>';
   }
@@ -206,7 +207,7 @@
   function copyText(data=latest) {
     const c=data?.current;if(!c)return 'Playoffs have not started.';
     const lines=['🏆 PICK’EM PLAYOFFS',c.round.label.toUpperCase(),c.round.participants_before+' ENTERED — TOP '+c.round.participants_after+' '+(c.round.participants_after===1?'WINS':'ADVANCE'),c.round.status==='finalized'?'FINAL':'PROVISIONAL',''];
-    c.rows.forEach((r,i)=>{if(i===c.round.participants_after)lines.push('— CUT LINE —');const e=member(data,r.user_id);lines.push((r.tied?'T':'#')+r.round_rank+' '+r.display_name+' — '+fmt(r.cumulative_after),'   Seed #'+r.seed+' • Start: +'+fmt(e?.starting_bonus??seedBonus(r.seed))+' • Playoff picks: +'+fmt(Number(r.cumulative_after)-Number(e?.starting_bonus??seedBonus(r.seed))));});
+    c.rows.forEach((r,i)=>{if(i===c.round.participants_after)lines.push('— CUT LINE —');const e=member(data,r.user_id),bonus=Number(c.round.round_number)===4?0:Number(e?.starting_bonus??seedBonus(r.seed));lines.push((r.tied?'T':'#')+r.round_rank+' '+r.display_name+' — '+fmt(r.cumulative_after),'   Seed #'+r.seed+' • Start: +'+fmt(bonus)+' • '+(Number(c.round.round_number)===4?'Finals':'Playoff')+' picks: +'+fmt(Number(r.cumulative_after)-bonus));});
     return lines.join('\n');
   }
   async function refreshAfterAction() {

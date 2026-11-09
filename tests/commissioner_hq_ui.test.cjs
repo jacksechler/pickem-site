@@ -26,7 +26,7 @@ function environment({admin=true,logError=false,diagnosticResponder}={}){
  const children=[];
  const byId={};
  const root={
-   prepend(node){children.unshift(node);byId[node.id]=node;},
+   appendChild(node){children.push(node);byId[node.id]=node;},
    querySelector(){return null}
  };
  byId.commissionerBox=root;
@@ -72,7 +72,7 @@ test('re-render during diagnostics keeps the replacement panel populated and ign
  assert.match(html,/Latest week/);
  assert.doesNotMatch(html,/Stale week|Reviewing league operations/);
 });
-test('commissioner center mounts above existing diagnostics with publish checklist',async()=>{
+test('commissioner center mounts after existing commissioner tools with publish checklist',async()=>{
  const h=environment();await h.window.CommissionerHQ.load(true);
  const panel=h.document.getElementById('commissionerHQ');
  assert.ok(panel);

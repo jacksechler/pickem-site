@@ -26,6 +26,7 @@ await db.exec(await fs.readFile(new URL('../supabase/migrations/20260914104006_a
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005080900_regular_schedule_blueprint_and_frozen_playoffs.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005081500_finalize_week_blueprint_and_freeze_playoffs.sql',import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../supabase/migrations/20261005083000_restore_postseason_action_execution.sql',import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../supabase/migrations/20261109153527_championship_fresh_start.sql',import.meta.url),'utf8'));
 await db.exec('grant usage on schema public to authenticated');
 await db.exec('grant execute on all functions in schema public to authenticated');
 await db.exec('grant execute on function public.postseason_action(text,jsonb) to authenticated');
@@ -235,17 +236,38 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   const p=await action('preview_round',{week_id:conference}); assert.equal(p.rows.length,4); assert.equal(p.ready,true);
   const missing=p.rows.find(r=>r.user_id===players[3]); assert.equal(missing.round_correct,0);assert.equal(missing.round_tiebreaker_distance,null);
   await action('finalize',{week_id:conference,revision:p.revision});
-  assert.equal((await state()).entries.filter(e=>e.status==='active').length,2);
+  const after=await state();
+  const finalists=after.entries.filter(e=>e.status==='active');
+  assert.equal(finalists.length,2);
+  assert.ok(finalists.every(e=>Number(e.current_total)===0));
+  assert.ok(finalists.every(e=>Number(e.championship_offset)>0));
+  assert.ok(after.history.filter(h=>h.round_number===3&&h.advanced).every(h=>Number(h.cumulative_after)>0));
  });
  let superbowl=(await action('create_round')).week_id;
- await card(superbowl,[5,13,0,0,0,0,0,0],[2,3,4,5,6,7]);
+ await t.test('finals open at zero regardless of earlier playoff advantage',async()=>{
+  const s=await state();
+  assert.ok(s.current.rows.every(r=>Number(r.cumulative_before)===0&&Number(r.cumulative_after)===0));
+ });
+ await card(superbowl,[5,6,0,0,0,0,0,0],[2,3,4,5,6,7]);
  await q("update questions set result='\"A\"' where week_id=$1",[superbowl]); await q('update weeks set tiebreaker_result=45 where id=$1',[superbowl]);
  await t.test('two contenders lock the final; champion and runner-up persist',async()=>{
   assert.ok((await q('select auto_locked_at from weeks where id=$1',[superbowl]))[0].auto_locked_at);
-  const p=await action('preview_round',{week_id:superbowl});await action('finalize',{week_id:superbowl,revision:p.revision});
+  const p=await action('preview_round',{week_id:superbowl});
+  assert.equal(Number(p.rows.find(r=>r.user_id===players[0]).cumulative_after),5);
+  assert.equal(Number(p.rows.find(r=>r.user_id===players[1]).cumulative_after),6);
+  assert.ok(p.rows.every(r=>Number(r.cumulative_before)===0));
+  await action('finalize',{week_id:superbowl,revision:p.revision});
   const s=await state(players[7]); assert.equal(s.settings.status,'complete');assert.equal(s.entries.filter(e=>e.status==='champion').length,1);assert.equal(s.entries.filter(e=>e.status==='runner_up').length,1);
   assert.equal(s.entries.find(e=>e.status==='champion').user_id,players[1]);assert.equal(s.history.length,20);
+  assert.equal(Number(s.entries.find(e=>e.status==='champion').current_total),6);
   assert.deepEqual(s.entries.map(e=>Number(e.regular_season_points)),[104,100,96,94,91,88,85,81]);
+ });
+ await t.test('correcting a finalized championship retains the zero baseline',async()=>{
+  const p=await action('preview_correction',{week_id:superbowl,results:{},tiebreaker_result:46});
+  await action('correct',{week_id:superbowl,results:{},tiebreaker_result:46,revision:p.revision});
+  const s=await state();
+  assert.ok(s.current.rows.every(r=>Number(r.cumulative_before)===0));
+  assert.equal(Number(s.entries.find(e=>e.status==='champion').current_total),6);
  });
  await t.test('earlier corrections require an explicit rebuild and invalidate later rounds safely',async()=>{
   const results={[qs[0]]:'B'}; const p=await action('preview_correction',{week_id:wildcard,results,tiebreaker_result:48});
@@ -254,7 +276,9 @@ test('postseason acceptance cases in isolated PostgreSQL',async t=>{
   assert.equal((await state()).rounds.length,4);
   await action('correct',{week_id:wildcard,results,tiebreaker_result:48,revision:p.revision,confirmation:'REBUILD PLAYOFFS FROM THIS ROUND'});
   const s=await state();assert.equal(s.rounds.length,1);assert.equal(s.entries.filter(e=>e.status==='active').length,6);assert.equal(s.entries.filter(e=>e.status==='champion').length,0);assert.equal(s.history.length,8);
-  assert.equal((await q('select count(*)::integer n from private.playoff_rebuild_audit'))[0].n,1);
+  assert.equal((await q('select count(*)::integer n from private.playoff_rebuild_audit'))[0].n,2);
+  assert.ok(s.entries.every(e=>Number(e.championship_offset)===0));
+  assert.ok(s.entries.every(e=>Number(e.current_total)===Number(e.starting_bonus)+Number(e.playoff_points)));
  });
  await t.test('reset also requires exact explicit confirmation',async()=>{
   await assert.rejects(action('reset'),/Type RESET ALL PLAYOFFS/);

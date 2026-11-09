@@ -73,7 +73,7 @@
     if(!node){
       node=document.createElement('section');
       node.id='commissionerHQ';node.className='card cc-host';
-      root.prepend(node);
+      root.appendChild(node);
     }
     return node;
   }
