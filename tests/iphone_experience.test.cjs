@@ -138,3 +138,46 @@ test('small mobile sheet respects safe-area and touch behavior',()=>{
   assert.match(css,/\.ip-overlay\[hidden\]\{display:none!important\}/);
   assert.match(css,/overscroll-behavior:contain/);
 });
+
+function updateHarness({remembered='2099.01.01.1',storageBlocked=false,remote='2099.01.01.2'}={}){
+  const elements={};
+  const stored=new Map([['pickemAppliedVersion',remembered]]);
+  const document={
+    hidden:false,addEventListener(){},
+    getElementById:id=>elements[id]||null,
+    createElement(){return {style:{},remove(){delete elements[this.id]}}},
+    body:{appendChild(node){elements[node.id]=node;elements.pickemUpdateBtn={};}}
+  };
+  let destination=null;
+  const window={};
+  vm.runInNewContext(read('app_update.js'),{
+    window,document,URL,Date,navigator:{},history:{replaceState(){}},
+    location:{href:'https://example.test/pickem/?appv='+remote,replace(url){destination=url}},
+    localStorage:{getItem:k=>stored.get(k),setItem(k,v){if(storageBlocked)throw Error('Storage blocked');stored.set(k,v)}},
+    fetch:async()=>({ok:true,json:async()=>({version:remote})}),
+    setTimeout(){},setInterval(){},console
+  });
+  return {window,elements,stored,get destination(){return destination}};
+}
+test('a remembered update cannot conceal that older code is still running',async()=>{
+  const h=updateHarness();
+  // Simulate a stored acknowledgement left by an older tab after this tab loaded.
+  h.stored.set('pickemAppliedVersion','2099.01.01.2');
+  await h.window.checkPickemUpdate();
+  assert.ok(h.elements.pickemUpdateBanner);
+  await h.window.forcePickemUpdate();
+  assert.equal(new URL(h.destination).searchParams.get('appv'),'2099.01.01.2');
+  assert.equal(h.elements.pickemUpdateBtn.disabled,true);
+});
+test('blocked local storage does not prevent update detection',async()=>{
+  const h=updateHarness({storageBlocked:true});
+  await h.window.checkPickemUpdate();
+  assert.ok(h.elements.pickemUpdateBanner);
+});
+test('the running build does not keep prompting for its own version',async()=>{
+  const current=JSON.parse(read('app-version.json')).version;
+  const h=updateHarness({remote:current});
+  await h.window.checkPickemUpdate();
+  assert.equal(h.elements.pickemUpdateBanner,undefined);
+  assert.equal(h.stored.get('pickemAppliedVersion'),current);
+});

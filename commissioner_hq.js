@@ -79,7 +79,7 @@
   }
   async function load(force=false){
     const box=mount();
-    if(!box||loading)return;
+    if(!box||(loading&&!force))return;
     const w=currentWeek();
     const myRequest=++request;
     loading=true;
@@ -90,17 +90,18 @@
           Promise.reject(new Error('No active week')),
         db('commissioner_activity_log?select=actor_id,week_id,action_type,summary,created_at&order=created_at.desc&limit=30')
       ]);
-      if(!commissioner()||myRequest!==request)return;
+      if(!commissioner()||myRequest!==request||currentWeek()?.id!==w?.id)return;
       const activity=logResult.status==='fulfilled'&&Array.isArray(logResult.value)?logResult.value:[];
       const auditAvailable=logResult.status==='fulfilled'&&Array.isArray(logResult.value);
       const diagnostic=diag.status==='fulfilled'?diag.value:null;
       last=Model.analyze(diagnostic,activity,{auditAvailable});
       box.innerHTML=panel(last);
     }catch(e){
+      if(myRequest!==request||!commissioner())return;
       lastError=e;console.warn('Commissioner control center unavailable',e);
       box.innerHTML='<p>Operations unavailable. Please check the detailed diagnostics and refresh.</p>'+
         '<button type="button" class="cc-btn" data-cc-refresh>Retry</button>';
-    }finally{loading=false;}
+    }finally{if(myRequest===request)loading=false;}
   }
   async function paged(path,pageSize=500,maxRows=5000){
     const rows=[];
@@ -178,7 +179,7 @@
   const original=window.renderCommissioner;
   if(typeof original==='function')window.renderCommissioner=async function(){
     const result=await original.apply(this,arguments);
-    if(commissioner())load(true);
+    if(commissioner())await load(true);
     return result;
   };
   window.CommissionerHQ={load,archive,analyze:Model.analyze};

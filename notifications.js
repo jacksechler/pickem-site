@@ -125,7 +125,7 @@
     h+='</div><div>'+(enabled
       ?'<button class="btn secondary" onclick="disableLeagueNotifications()">Turn Off</button>'
       :'<button class="btn" onclick="enableLeagueNotifications()">🔔 Enable Notifications</button>')+'</div></div>'+
-      (isIOS()?'<div><button type="button" class="iphone-setup-link" onclick="window.IphoneExperience?.open?.()">iPhone Setup &amp; Status</button></div>':'')+
+      '<div><button type="button" class="iphone-setup-link" onclick="window.IphoneExperience?.open?.()">iPhone Setup &amp; Status</button></div>'+
       '<div id="notificationStatus" class="mini"></div></div>';
     home.insertAdjacentHTML('beforeend',h);
   }

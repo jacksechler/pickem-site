@@ -21,7 +21,7 @@ const diagnostic={
  questions:{scored:12,decided:0,result_ordered:0,result_order_distinct:0},
  scores:{rows:0,expected_when_published:8}
 };
-function environment({admin=true,logError=false}={}){
+function environment({admin=true,logError=false,diagnosticResponder}={}){
  const calls=[];
  const children=[];
  const byId={};
@@ -38,7 +38,7 @@ function environment({admin=true,logError=false}={}){
  };
  const db=async(path,options)=>{
    calls.push(path);
-   if(path==='rpc/commissioner_diagnostics')return diagnostic;
+   if(path==='rpc/commissioner_diagnostics')return diagnosticResponder?diagnosticResponder():diagnostic;
    if(path.startsWith('commissioner_activity_log?')){
      if(logError)throw Error('No log access');
      return [{created_at:'2026-11-01',action_type:'week_publish',summary:'Week 1 published'}];
@@ -55,8 +55,23 @@ function environment({admin=true,logError=false}={}){
    session:{user:{id:'p0'}},week:{id:'w2',season_id:'s1',name:'Week 2'},
    console:{warn(){}},setTimeout};
  vm.runInNewContext(read('commissioner_hq.js'),global,{filename:'commissioner_hq.js'});
- return {window,document,calls,children,root};
+ return {window,document,calls,children,root,reset(){delete byId.commissionerHQ;children.length=0;}};
 }
+test('re-render during diagnostics keeps the replacement panel populated and ignores the stale response',async()=>{
+ const pending=[];
+ const h=environment({diagnosticResponder:()=>new Promise(resolve=>pending.push(resolve))});
+ const oldLoad=h.window.CommissionerHQ.load(true);
+ h.reset();
+ const newLoad=h.window.CommissionerHQ.load(true);
+ assert.equal(pending.length,2);
+ pending[1]({...diagnostic,week:{...diagnostic.week,name:'Latest week'}});
+ await newLoad;
+ pending[0]({...diagnostic,week:{...diagnostic.week,name:'Stale week'}});
+ await oldLoad;
+ const html=h.document.getElementById('commissionerHQ').innerHTML;
+ assert.match(html,/Latest week/);
+ assert.doesNotMatch(html,/Stale week|Reviewing league operations/);
+});
 test('commissioner center mounts above existing diagnostics with publish checklist',async()=>{
  const h=environment();await h.window.CommissionerHQ.load(true);
  const panel=h.document.getElementById('commissionerHQ');
@@ -99,8 +114,8 @@ test('export fails closed if official scoreboard is incomplete',async()=>{
 test('site includes commissioner and iPhone scripts after existing diagnostics and notifications',()=>{
  const html=read('index.html');
  const diag=html.indexOf('commissioner_diagnostics.js?v=2');
- const hq=html.indexOf('commissioner_hq.js?v=1');
- const notifications=html.indexOf('notifications.js?v=5');
+ const hq=html.indexOf('commissioner_hq.js?');
+ const notifications=html.indexOf('notifications.js?');
  const iphone=html.indexOf('iphone_experience.js?v=1');
  assert.ok(diag>0&&hq>diag);
  assert.ok(notifications>0&&iphone>notifications);

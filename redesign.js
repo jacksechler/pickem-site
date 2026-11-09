@@ -62,13 +62,14 @@
     updateNavigation(document.querySelector('.page:not(.hidden)')?.id || 'home');
   }
 
-  function fold(node, key, label, order, parent = $('home')) {
+  function fold(node, key, label, order, parent = $('home'), initiallyOpen = false) {
     if (!node || !parent) return;
     let details = $(key);
     if (!details) {
       details = document.createElement('details');
       details.id = key;
       details.className = 'clean-disclosure';
+      details.open = initiallyOpen;
       details.style.order = String(order);
       const summary = document.createElement('summary');
       summary.textContent = label;
@@ -100,7 +101,7 @@
     fold($('thisWeekPickem'), 'homeStoryDetails', 'League storylines', 20);
     fold($('whatJustHappenedHome'), 'homeActivityDetails', 'Recent league activity', 30);
     fold($('playerDirectoryCard'), 'homePlayerDetails', 'All league players', 40);
-    fold($('notificationCard'), 'homeNotificationDetails', 'Notification preferences', 50);
+    fold($('notificationCard'), 'homeNotificationDetails', 'League Notifications · iPhone Setup & Status', 50, $('home'), true);
   }
 
   function refreshHomeSummary() {
@@ -135,6 +136,8 @@
       context: () => week?.id || 'new',
       classify: node => {
         const id = node.id;
+        // Operations applies to every commissioner task, including locked weeks.
+        if (id === 'commissionerHQ') return 'context';
         const heading = node.querySelector('h2')?.textContent || '';
         if (['finishWeekCard', 'liveResultEntry', 'postseasonFinish'].includes(id) || /Results & Scoring|Enter Results/.test(heading)) return 'results';
         if (/Player Accounts|Submission Status/.test(heading)) return 'players';

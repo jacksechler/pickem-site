@@ -1,6 +1,6 @@
 // Lightweight update checker for the Pick'em PWA/site.
 (() => {
-  const BUILD_VERSION = '2026.11.09.1';
+  const BUILD_VERSION = '2026.11.09.2';
   const APPLIED_KEY = 'pickemAppliedVersion';
   const CHECK_EVERY_MS = 15 * 60 * 1000;
   let lastCheck = 0;
@@ -19,21 +19,15 @@
     return 0;
   }
 
-  // The running JS build is authoritative. A remembered applied version can
-  // only move the effective version forward, never backward. This prevents a
-  // stale localStorage value from making the banner reappear after refresh.
+  // Only running code proves an update loaded. A previous tap or URL parameter
+  // must not acknowledge a build while the browser is still running old assets.
   function effectiveCurrentVersion(){
-    const applied=localStorage.getItem(APPLIED_KEY)||'';
-    return compareVersions(applied,BUILD_VERSION)>0 ? applied : BUILD_VERSION;
+    return BUILD_VERSION;
   }
 
   try{
     const u=new URL(location.href);
-    const applied=u.searchParams.get('appv');
-    if(applied){
-      const current=localStorage.getItem(APPLIED_KEY)||'';
-      if(compareVersions(applied,current)>0) localStorage.setItem(APPLIED_KEY,applied);
-    }
+    localStorage.setItem(APPLIED_KEY,BUILD_VERSION);
     if(u.searchParams.has('appv')||u.searchParams.has('_refresh')){
       u.searchParams.delete('appv');
       u.searchParams.delete('_refresh');
@@ -52,7 +46,7 @@
     const banner=document.createElement('div');
     banner.id='pickemUpdateBanner';
     banner.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:10000;background:#102b41;border:1px solid #38bdf8;border-radius:14px;padding:12px 14px;box-shadow:0 12px 36px rgba(0,0,0,.4);display:flex;gap:12px;align-items:center;justify-content:space-between;color:#f8fafc;font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-    banner.innerHTML='<div><b>New Pick\'em update available</b><div style="color:#9fb0c6;font-size:12px;margin-top:2px">Tap Update once. It will not keep coming back after refresh.</div></div><button id="pickemUpdateBtn" style="border:0;border-radius:10px;background:#38bdf8;color:#03131d;padding:10px 12px;font-weight:900;white-space:nowrap">Update</button>';
+    banner.innerHTML='<div><b>New Pick\'em update available</b><div style="color:#9fb0c6;font-size:12px;margin-top:2px">Tap Update to load the latest version.</div></div><button id="pickemUpdateBtn" style="border:0;border-radius:10px;background:#38bdf8;color:#03131d;padding:10px 12px;font-weight:900;white-space:nowrap">Update</button>';
     document.body.appendChild(banner);
     document.getElementById('pickemUpdateBtn').onclick=forceUpdate;
   }
@@ -79,14 +73,6 @@
 
   async function forceUpdate(){
     const target=latestVersion||BUILD_VERSION;
-    // Acknowledge before navigating. Even if the browser briefly serves an
-    // older cached document, that old copy will not resurrect this banner.
-    try{
-      const current=localStorage.getItem(APPLIED_KEY)||'';
-      if(compareVersions(target,current)>0) localStorage.setItem(APPLIED_KEY,target);
-    }catch{}
-    hideUpdateBanner();
-
     const btn=document.getElementById('pickemUpdateBtn');
     if(btn){ btn.disabled=true; btn.textContent='Updating…'; }
     try{
