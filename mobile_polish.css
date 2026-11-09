@@ -267,3 +267,20 @@ body.clean-ui { min-height: 100dvh; }
     -webkit-overflow-scrolling: touch;
   }
 }
+
+
+/* iPhone commissioner batch-release controls and upload preview. */
+.clean-ui #questionBatchReleaseCard { min-width:0; overflow-wrap:anywhere; }
+.clean-ui #questionBatchReleaseCard .batch-actions { min-width:0; }
+.clean-ui #questionBatchReleaseCard .batch-preview { max-width:100%; overflow-x:auto; }
+.clean-ui #questionBatchReleaseCard .batch-input { display:block; max-width:100%; font-size:16px; }
+.clean-ui #questionBatchReleaseCard .batch-actions .btn,
+.clean-ui #questionBatchReleaseCard .batch-actions label.btn { text-align:center; white-space:normal; }
+@media(max-width:600px){
+  .clean-ui #questionBatchReleaseCard .batch-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+  .clean-ui #questionBatchReleaseCard .batch-actions .btn,
+  .clean-ui #questionBatchReleaseCard .batch-actions label.btn { width:100%; min-width:0; min-height:48px; display:flex; align-items:center; justify-content:center; }
+  .clean-ui #questionBatchReleaseCard .batch-preview ol { padding-left:22px; }
+  .clean-ui #questionBatchReleaseCard .batch-preview li { overflow-wrap:anywhere; }
+  .clean-ui #playoffBox .tablewrap { -webkit-overflow-scrolling:touch; }
+}
