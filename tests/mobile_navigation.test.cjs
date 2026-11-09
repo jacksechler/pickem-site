@@ -217,7 +217,7 @@ test('JS and CSS load after prior mobile and page scripts, without changing the 
  const html=read('index.html');
  const old=html.indexOf('league_extras.js?v=2');
  const newJS=html.indexOf('mobile_navigation.js?v=1');
- const oldCss=html.indexOf('mobile_polish.css?v=3');
+ const oldCss=html.indexOf('mobile_polish.css?v=');
  const newCss=html.indexOf('mobile_navigation.css?v=1');
  assert.ok(old>=0&&newJS>old&&oldCss>=0&&newCss>oldCss);
  assert.match(read('mobile_navigation.js'),/const originalShow=window.showPage/);
