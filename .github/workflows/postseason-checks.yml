@@ -30,6 +30,8 @@ jobs:
         run: node --test tests/mobile_navigation.test.cjs
       - name: Verify all member names display as First Last without changing login identities
         run: node --test tests/member_names.test.cjs
+      - name: Verify private question batches, CSV imports and release security
+        run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/question_batch_model.test.cjs tests/question_release_db.test.mjs
       - name: Verify regular-season scoring and database behavior
         run: PGLITE_MODULE="$RUNNER_TEMP/postseason-test/node_modules/@electric-sql/pglite/dist/index.js" node --test tests/regular_scoring.test.cjs tests/regular_db.test.mjs
       - name: Verify live scores, GameDay, and postseason behavior
