@@ -45,8 +45,7 @@ test('official published placements replace simulations, including golf-style ti
   assert.equal(output.players[1].probability,100);
   assert.equal(output.players[2].probability,0);
 });
-test('missing or incomplete entries do not produce misleading percentages',()=>{
-  assert.equal(M.result(bundle({submissions:subscriptions.slice(1)})).kind,'unavailable');
+test('questions without choices do not produce misleading percentages',()=>{
   assert.equal(M.result(bundle({questions:[{...questions[0],answer_options:[]}]})).kind,'unavailable');
 });
 test('playoff weeks use advancement odds instead of weekly-win odds',()=>{
@@ -54,4 +53,33 @@ test('playoff weeks use advancement odds instead of weekly-win odds',()=>{
 });
 test('scoreless or unscored-only cards do not produce odds',()=>{
   assert.equal(M.result(bundle({questions:[{...questions[0],counts_for_score:false}]})).kind,'unavailable');
+});
+
+
+test('seven submitted entries still produce odds and ignore the missing member’s saved picks',()=>{
+  const output=M.result(bundle({submissions:subscriptions.slice(1)}));
+  assert.equal(output.kind,'estimate');
+  assert.equal(output.submittedCount,7);
+  assert.equal(output.missingCount,1);
+  assert.equal(output.players.length,7);
+  assert.ok(output.players.every(p=>p.id!=='user-0'));
+  assert.ok(Math.abs(output.players.reduce((sum,p)=>sum+p.probability,0)-100)<1);
+  const withoutDraft=M.result(bundle({submissions:subscriptions.slice(1),picks:picks.filter(p=>p.user_id!=='user-0')}));
+  // Both sets use the same submitted entries; raw draft answers are never scored.
+  assert.deepEqual(withoutDraft.players,output.players);
+});
+test('one submitted entry is the sole contender; no submissions and duplicates remain unavailable',()=>{
+  const output=M.result(bundle({submissions:subscriptions.slice(0,1)}));
+  assert.equal(output.players.length,1);
+  assert.equal(output.players[0].probability,100);
+  assert.equal(M.result(bundle({submissions:[]})).kind,'unavailable');
+  assert.equal(M.result(bundle({submissions:[subscriptions[0],subscriptions[0]]})).kind,'unavailable');
+});
+test('published results remain authoritative even when a submission is missing',()=>{
+  const officialScores=ids.map((user_id,i)=>({user_id,placement:i+1,correct_count:8-i}));
+  const output=M.result(bundle({week:week({status:'published'}),submissions:subscriptions.slice(1),officialScores}));
+  assert.equal(output.kind,'official');
+  assert.equal(output.players.length,8);
+  assert.equal(output.players[0].id,'user-0');
+  assert.equal(output.players[0].probability,100);
 });

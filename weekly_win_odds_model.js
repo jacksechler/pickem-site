@@ -24,18 +24,10 @@
     if(!locked(week,now))return {kind:'locked',reason:'Win probabilities unlock when this week’s picks lock.'};
     if(!Array.isArray(submissions)||!Array.isArray(questions)||!Array.isArray(picks))
       return {kind:'unavailable',reason:'Weekly picks and scores are still loading.'};
-    const users=[...new Set(submissions.map(s=>s.user_id).filter(Boolean))].sort();
-    if(users.length!==8 || submissions.length!==8)
-      return {kind:'unavailable',reason:'Waiting for all eight submitted entries before estimating the winner.'};
-    const submitted=new Map(submissions.map(s=>[s.user_id,s]));
-    if(users.some(id=>!numeric(submitted.get(id)?.tiebreaker_answer)))
-      return {kind:'unavailable',reason:'Waiting for complete tiebreaker entries.'};
-    const scored=questions.filter(q=>q.counts_for_score!==false);
-    if(!scored.length)return {kind:'unavailable',reason:'No scored questions are available for this week.'};
-    if(week.status==='published'&&Array.isArray(officialScores)&&officialScores.length===8&&officialScores.every(s=>numeric(s.placement))){
+    if(week.status==='published'&&Array.isArray(officialScores)&&officialScores.length===8&&new Set(officialScores.map(s=>s.user_id)).size===8&&officialScores.every(s=>s.user_id&&numeric(s.placement))){
       const map=new Map(officialScores.map(s=>[s.user_id,s]));
-      if(users.every(id=>map.has(id))){
-        const players=users.map(id=>({
+      if(map.size===8){
+        const players=[...map.keys()].map(id=>({
           id,probability:Number(map.get(id).placement)===1?100:0,
           correct:Number(map.get(id).correct_count)||0,
           placement:Number(map.get(id).placement)
@@ -43,6 +35,16 @@
         return {kind:'official',remaining:0,samples:0,players,weekId:week.id,assumption:'Official published placements. Shared first-place ties are all winners.'};
       }
     }
+    const users=[...new Set(submissions.map(s=>s.user_id).filter(Boolean))].sort();
+    if(!users.length)
+      return {kind:'unavailable',reason:'No submitted entries are available for this week.'};
+    if(users.length>8 || submissions.length!==users.length)
+      return {kind:'unavailable',reason:'Submitted entries could not be verified.'};
+    const submitted=new Map(submissions.map(s=>[s.user_id,s]));
+    if(users.some(id=>!numeric(submitted.get(id)?.tiebreaker_answer)))
+      return {kind:'unavailable',reason:'Waiting for complete tiebreaker entries.'};
+    const scored=questions.filter(q=>q.counts_for_score!==false);
+    if(!scored.length)return {kind:'unavailable',reason:'No scored questions are available for this week.'};
     const byId=new Map(users.map(id=>[id,new Map()]));
     for(const p of picks)if(byId.has(p.user_id))byId.get(p.user_id).set(p.question_id,p.answer);
     const known=scored.filter(decided);
@@ -61,7 +63,7 @@
       return {kind:'pending',reason:'All results are in, but the actual tiebreaker is needed to determine the winner.'};
     const victories=Array(users.length).fill(0);
     const count=open.length?Math.max(100,Math.min(15000,Math.floor(samples))):1;
-    const fingerprint=JSON.stringify([week.id,week.tiebreaker_result,scored.map(q=>[q.id,q.result]),picks.map(p=>[p.user_id,p.question_id,p.answer]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);
+    const fingerprint=JSON.stringify([week.id,week.tiebreaker_result,scored.map(q=>[q.id,q.result]),users.map(id=>[id,submitted.get(id).tiebreaker_answer]),picks.filter(p=>byId.has(p.user_id)).map(p=>[p.user_id,p.question_id,p.answer]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);
     let seed=hash(fingerprint);
     const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
     for(let run=0;run<count;run++){
@@ -86,7 +88,7 @@
       correct:initial[i],tiebreaker_answer:Number(submitted.get(id).tiebreaker_answer)
     })).sort((a,b)=>b.probability-a.probability||b.correct-a.correct||a.id.localeCompare(b.id));
     return {kind:'estimate',weekId:week.id,remaining:open.length,decided:known.length,total:scored.length,
-      samples:count,actualKnown,players,
+      samples:count,actualKnown,players,submittedCount:users.length,missingCount:8-users.length,
       assumption:'Remaining listed answers are simulated as equally likely. Unknown actual tiebreakers split tied scenarios evenly; exact known tiebreaker ties may share first place.'};
   }
   return {result,options,locked,same};

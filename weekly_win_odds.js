@@ -62,7 +62,7 @@
     if(official){
       html+='<p class="wo-help">Final published week. Official first-place ties each count as a weekly win; other members have a 0% chance because the week has finished.</p>';
     }else{
-      html+='<p class="wo-help">'+prediction.decided+' of '+prediction.total+' scored questions decided · '+(prediction.remaining?prediction.samples.toLocaleString()+' simulations':'All game results entered')+'. Each remaining answer choice is treated as equally likely. '+(prediction.actualKnown?'The entered tiebreaker is used if correct-pick totals tie.':'If correct-pick totals tie, chances are split evenly until the actual tiebreaker is known.')+' These are estimates, not official results.</p>';
+      html+='<p class="wo-help">'+(prediction.missingCount?'Based on '+prediction.submittedCount+' submitted entries. Unsubmitted picks are excluded. ':'')+prediction.decided+' of '+prediction.total+' scored questions decided · '+(prediction.remaining?prediction.samples.toLocaleString()+' simulations':'All game results entered')+'. Each remaining answer choice is treated as equally likely. '+(prediction.actualKnown?'The entered tiebreaker is used if correct-pick totals tie.':'If correct-pick totals tie, chances are split evenly until the actual tiebreaker is known.')+' These are estimates, not official results.</p>';
     }
     return html;
   }
