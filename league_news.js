@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const LABELS={weekly:'Weekly results',standings:'Standings',records:'Records',
-    rivalries:'Rivalries',odds:'Title odds',playoffs:'Playoffs'};
+    rivalries:'Rivalries',odds:'Title odds',playoffs:'Playoffs',satire:'LTSPN satire'};
   const COLORS={weekly:'gold',standings:'blue',records:'green',
     rivalries:'purple',odds:'gold',playoffs:'red'};
   let request=0,lastCache=null,selectedCategory='all',selectedWeek='all',
@@ -32,7 +32,7 @@
   function articleHtml(story,featured=false,expanded=false){
     const ids=story.playerIds||story.winnerIds||[];
     const isPlayoff=story.group==='playoffs';
-    const source=isPlayoff?'Finalized playoff results':'Published weekly standings';
+    const source=story.category==='satire'?'Satire based on submission status; no scoring changes':isPlayoff?'Finalized playoff results':'Published weekly standings';
     const likelihood=story.category==='odds'?' · Reconstructed model estimate':'';
     const highlights=Array.isArray(story.highlights)?story.highlights:[];
     const stats=Array.isArray(story.stats)?story.stats:[];
@@ -48,7 +48,7 @@
         '<div class="ln-impact-stat">'+esc(x.correctCount)+' of '+esc(x.fieldSize)+
         ' correct'+(x.correctNames?.length?' · '+esc(x.correctNames.join(', ')):'')+'</div></div></div>'
       ).join('')+'</div></section>':'';
-    const byline='<div class="ln-byline"><b>LTSPN REPORTING</b><span>Verified league results</span>'+
+    const byline='<div class="ln-byline"><b>'+(story.category==='satire'?'LTSPN SATIRE':'LTSPN REPORTING')+'</b><span>'+(story.category==='satire'?'DNP — Did Not Pick':'Verified league results')+'</span>'+
       (story.readMinutes?'<span>'+esc(story.readMinutes)+' min read</span>':'')+'</div>';
     return '<details class="ln-story'+(featured?' ln-story-featured':'')+'" '+
       (expanded?'open ':'')+'data-news-story="'+esc(story.id)+'">'+
@@ -88,7 +88,7 @@
       '<div class="ln-home-links">'+stories.slice(1).map(story=>
       '<button type="button" data-ln-story="'+esc(story.id)+'"><span>'+esc(story.weekName)+
       '</span><strong>'+esc(story.headline)+'</strong></button>').join('')+'</div>'+
-      '<p class="ln-home-foot">Based on official league results, not generated rumors or fictional quotes.</p></section>';
+      '<p class="ln-home-foot">Official results coverage and clearly labeled league satire. No fictional quotes.</p></section>';
   }
   function filterStories(data){
     const category=cleanCategory(selectedCategory);
@@ -102,13 +102,14 @@
     const categories=[['all','All stories'],...Object.entries(LABELS)];
     const weekChoices=[...data.entries].reverse().map(w=>[w.id,w.name]);
     const playoffChoices=data.playoffs.map(p=>[p.weekId,p.weekName]).filter(p=>p[0]);
-    const opts=[['all','All weeks'],...playoffChoices,...weekChoices];
+    const satireChoices=data.stories.filter(s=>s.category==='satire'&&!weekChoices.some(w=>w[0]===s.weekId)).map(s=>[s.weekId,s.weekName]);
+    const opts=[['all','All weeks'],...satireChoices,...playoffChoices,...weekChoices];
     const selected=opts.some(p=>p[0]===selectedWeek)?selectedWeek:'all';
     selectedWeek=selected;
     let html='<div class="ln-page"><div class="ln-masthead"><div class="ln-brandline ln-brandline-large">'+brandMark(true)+'<div class="ln-eyebrow">YOUR LEAGUE, YOUR HEADLINES</div></div>'+
-      '<h2>LTSPN</h2><p>League news, every week, from opening kickoff through the championship. Every headline backed by official results.</p>'+
+      '<h2>LTSPN</h2><p>League news, every week, from opening kickoff through the championship. Results coverage and clearly labeled league satire.</p>'+
       '<div class="ln-stats"><span>'+data.weekCount+' regular-season week'+(data.weekCount===1?'':'s')+' covered</span>'+
-      '<span>'+data.stories.length+' verified stories</span></div></div>'+
+      '<span>'+data.stories.length+' stories</span></div></div>'+
       '<div class="ln-filters"><div class="ln-tabs" role="group" aria-label="Filter news by topic">'+categories.map(([id,label])=>
       '<button type="button" data-ln-category="'+esc(id)+'" class="'+(id===selectedCategory?'active':'')+
       '" aria-pressed="'+(id===selectedCategory?'true':'false')+'">'+esc(label)+'</button>').join('')+
@@ -142,9 +143,11 @@
   function buildData(raw,oddsSnapshots=[]){
     const verified=Model.build({profiles:raw.profiles,weeks:raw.weeks,scores:raw.scores,
       oddsSnapshots,postseason:raw.postseason,seasonId:raw.season});
-    return Editorial?.build?.({news:verified,profiles:raw.profiles,weeks:raw.weeks,
+    const data=Editorial?.build?.({news:verified,profiles:raw.profiles,weeks:raw.weeks,
       scores:raw.scores,questions:raw.questions||[],picks:raw.picks||[],
       submissions:raw.submissions||[],seasonId:raw.season})||verified;
+    const story=window.DNPWeekModel?.build({...raw.dnp,profiles:raw.profiles,seasonId:raw.season});
+    return story?{...data,stories:[story,...data.stories],latest:story}:data;
   }
   async function fetchAnswerArchive(published){
     if(!published.length)return {questions:[],picks:[],submissions:[]};
@@ -193,11 +196,22 @@
         if(info&&['live','complete'].includes(info.settings?.status))postseason=info;
       }catch(e){console.debug('Playoff news temporarily unavailable',e);}
     }
-    return {profiles,weeks:published,scores:relevantScores,postseason,season,
+    let dnp=null;
+    if(window.DNPWeekModel){
+      try{
+        const active=await db('weeks?is_active=eq.true&select=id,name,number,season_id,is_active,lock_at');
+        const activeWeek=active.find(w=>w.id===window.DNPWeekModel.WEEK);
+        if(activeWeek&&Date.now()>=Date.parse(activeWeek.lock_at)){
+          const submissions=await db('submissions?select=user_id&week_id=eq.'+activeWeek.id);
+          dnp={activeWeek,submissions};
+        }
+      }catch(e){console.debug('Submission report unavailable',e);}
+    }
+    return {dnp,profiles,weeks:published,scores:relevantScores,postseason,season,
       ...answerArchive};
   }
   function leagueSignature(raw){
-    return JSON.stringify([raw.season,raw.weeks.map(w=>[w.id,w.number,w.status]),
+    return JSON.stringify([raw.dnp,raw.season,raw.weeks.map(w=>[w.id,w.number,w.status]),
       raw.scores.map(s=>[s.week_id,s.user_id,s.placement,s.correct_count,s.total_points])
         .sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
       raw.postseason?.history||[],
@@ -263,6 +277,12 @@
       const record=await fetch(force);
       if(request!==current)return;
       renderPreview(record.data);
+      const badge=$('leagueDNPBadge');
+      if(badge){
+        const story=record.data.stories.find(s=>s.category==='satire');
+        badge.hidden=!story;
+        badge.innerHTML=story?'<div class="card"><div class="ln-eyebrow">LTSPN SATIRE · '+esc(story.weekName)+'</div><p><strong>'+esc(story.memberName)+'</strong> <span class="ln-tag ln-tag-gold">DNP — Did Not Pick</span></p><p class="muted">Out this week: submission deadline. No extra scoring penalty.</p></div>':'';
+      }
       if(showArchive||visibleNews())renderArchive(record.data,!!(activeOddsKey===record.signature));
       if(showArchive||visibleNews())doWorker(record.raw,record.signature);
     }catch(e){
@@ -318,11 +338,12 @@
     window.showPage=function(id){
       const result=oldShow.apply(this,arguments);
       if(id==='news')load({showArchive:true});
+      if(id==='league')load({force:true});
       return result;
     };
   setInterval(()=>{
     if(viewer()&&!document.hidden&&
-      (!$('home')?.classList.contains('hidden')||visibleNews()))
+      (!$('home')?.classList.contains('hidden')||!$('league')?.classList.contains('hidden')||visibleNews()))
       load({force:true,showArchive:visibleNews()});
   },120000);
   if(viewer())load();

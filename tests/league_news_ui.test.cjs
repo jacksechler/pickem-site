@@ -38,12 +38,15 @@ function harness(changes={}){
   const db=async url=>{
     queries.push(url);
     if(url.startsWith('profiles?'))return changes.profiles||profiles;
+    if(url.startsWith('weeks?is_active='))return changes.activeWeeks||[];
+    if(url.startsWith('submissions?select=user_id&'))return changes.liveSubmissions||[];
     if(url.startsWith('weeks?'))return changes.weeks||weeks;
     if(url.startsWith('week_scores?'))return changes.scores||scores;
     throw new Error('Unexpected request: '+url);
   };
   const window={
     LeagueNewsModel:News,
+    DNPWeekModel:changes.dnpModel,
     showPage(id){navigation.push(id)},
     renderHome(){}
   };
@@ -69,7 +72,7 @@ test('News navigation and home preview are included in the published page',()=>{
   assert.match(html,/id="leagueNewsPreview"/);
   assert.match(html,/id="leagueNewsBox"/);
   assert.match(html,/league_news\.css\?v=3/);
-  assert.ok(html.indexOf('league_news_model.js?v=2')<html.indexOf('league_news.js?v=3'));
+  assert.ok(html.indexOf('league_news_model.js?v=2')<html.indexOf('league_news.js?v=4'));
   assert.ok(html.indexOf('league_news_model.js?v=2')>0);
 });
 test('official latest week produces a home feature, without exposing private picks',async()=>{
@@ -146,4 +149,38 @@ test('LTSPN branding includes the logo slot and reliable fallback in both positi
   assert.match(h.box.innerHTML,/ltspn-wordmark\.svg/);
   assert.match(read('ltspn-wordmark.svg'),/LTSPN/);
   assert.match(read('league_news.css'),/\.ln-brandmark-large/);
+});
+
+const DNP=require('../dnp_week_model.js');
+const activeWeek={id:DNP.WEEK,name:'Week 12',number:12,is_active:true,season_id:'season-2026',lock_at:'2026-01-01T00:00:00Z'};
+const dnpProfiles=[...profiles,{id:DNP.MEMBER,display_name:'Test Member'}];
+test('DNP story is limited to the approved locked week and verified missing submission',()=>{
+  const input={activeWeek,profiles:dnpProfiles,submissions:[],now:Date.parse('2026-01-02')};
+  assert.equal(DNP.build(input).category,'satire');
+  for(const change of [
+    {activeWeek:{...activeWeek,id:'next-week'}},
+    {activeWeek:{...activeWeek,is_active:false}},
+    {activeWeek:{...activeWeek,lock_at:'invalid'}},
+    {now:Date.parse('2025-12-31')},
+    {submissions:null},
+    {submissions:[{user_id:DNP.MEMBER}]},
+    {seasonId:'another-season'}
+  ])assert.equal(DNP.build({...input,...change}),null);
+});
+test('DNP feature is labeled satire, offers its week filter, and reads no live answers',async()=>{
+  const h=harness({dnpModel:DNP,profiles:dnpProfiles,activeWeeks:[activeWeek]});
+  await h.load();
+  assert.match(h.preview.innerHTML,/Test Member Sidelined by the Submit Button/);
+  assert.match(h.box.innerHTML,/LTSPN SATIRE/);
+  assert.match(h.box.innerHTML,/DNP — Did Not Pick/);
+  assert.match(h.box.innerHTML,/Satire based on submission status; no scoring changes/);
+  assert.ok(h.box.innerHTML.includes('<option value="'+DNP.WEEK+'"'));
+  assert.ok(h.queries.filter(q=>q.startsWith('picks?')).every(q=>!q.includes(DNP.WEEK)));
+});
+test('DNP disappears after submission restoration or next active week',async()=>{
+  for(const changes of [{activeWeeks:[{...activeWeek,id:'next-week'}]},
+    {activeWeeks:[activeWeek],liveSubmissions:[{user_id:DNP.MEMBER}]}]){
+    const h=harness({dnpModel:DNP,profiles:dnpProfiles,...changes});await h.load();
+    assert.doesNotMatch(h.preview.innerHTML,/Sidelined by the Submit Button/);
+  }
 });
