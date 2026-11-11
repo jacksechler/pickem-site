@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="mobile_navigation.css?v=1">
 <link rel="stylesheet" href="commissioner_hq.css?v=1">
 <link rel="stylesheet" href="iphone_experience.css?v=1">
+<link rel="stylesheet" href="ltspn_poll.css?v=1">
 </head>
 <body class="clean-ui">
 <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -46,6 +47,7 @@
   <div><div class="brand">PICK<span>'EM</span></div><div class="brand-caption">Your league · 2026 season</div></div>
   <nav aria-label="Main navigation">
     <button class="navbtn active" data-page="home" onclick="showPage('home',this)">Home</button>
+    <button class="navbtn" data-page="top25" onclick="showPage('top25',this)">LTSPN Top 25</button>
     <button class="navbtn" data-page="news" onclick="showPage('news',this)">LTSPN</button>
     <button class="navbtn" data-page="studio" onclick="showPage('studio',this)">SportsCenter</button>
     <button class="navbtn" data-page="picks" onclick="showPage('picks',this)">My picks</button>
@@ -74,6 +76,7 @@
 <section id="studio" class="page hidden" aria-labelledby="studioTitle"><div class="hero"><div><div class="eyebrow">LTSPN STUDIO</div><h1 id="studioTitle">SportsCenter</h1><div class="muted">The weekly league broadcast rundown and power rankings.</div></div></div><div id="studioBox" aria-live="polite"></div></section>
 <section id="awards" class="page hidden" aria-labelledby="awardsTitle"><div class="hero"><div><div class="eyebrow">SEASON ARCHIVES</div><h1 id="awardsTitle">Awards &amp; Hall of Fame</h1><div class="muted">Official league records and historical honors.</div></div></div><div id="awardsBox" aria-live="polite"></div></section>
 <section id="championship" class="page hidden" aria-labelledby="championshipTitle"><div class="hero"><div><div class="eyebrow">ROAD TO THE CROWN</div><h1 id="championshipTitle">Championship GameDay</h1><div class="muted">The final two contenders, live title scenarios, and official trophy.</div></div><button class="btn secondary" onclick="showPage('playoffs',document.querySelector('[data-page=playoffs]'))">Playoffs</button></div><div id="championshipBox" aria-live="polite"></div></section>
+<section id="top25" class="page hidden"><div class="hero"><div><img class="poll-brand" src="ltspn-logo.png" alt="LTSPN"><h1>College Football Top 25</h1><p>Your league’s weekly college football poll.</p></div></div><div id="pollBox"></div></section>
 <section id="news" class="page hidden" aria-labelledby="newsTitle"><div class="hero"><div><div class="eyebrow">LEAGUE COVERAGE</div><h1 id="newsTitle">LTSPN</h1><div class="muted">Official league news, weekly recaps, records, and the championship race.</div></div></div><div id="leagueNewsBox" aria-live="polite"><div class="card muted">Loading league news…</div></div></section>
 <section id="picks" class="page hidden"><div class="hero"><div><div id="picksWeek" class="eyebrow">CURRENT WEEK</div><h1>Make Picks</h1><div class="muted">Your picks stay private until the week locks.</div></div></div><div class="progress"><i id="progressBar"></i></div><div id="pickBox" class="card pickbox"></div><div class="row controls"><button class="btn secondary" onclick="previousPick()">← Back</button><button id="nextPickBtn" class="btn secondary" onclick="nextPick()">Next →</button></div></section>
 <section id="league" class="page hidden"><div class="hero"><div><div class="eyebrow">YOUR LEAGUE</div><h1>League picks</h1></div><div class="league-page-actions"><button id="leagueShareGrid" class="btn secondary" type="button" onclick="showPage('sharegrid',document.querySelector('[data-page="sharegrid"]'))">Share Grid</button><button id="openGameDay" class="btn" type="button" hidden>Open GameDay</button></div></div><div id="leagueDNPBadge" hidden aria-live="polite"></div><div id="leagueBox"></div></section>
@@ -151,7 +154,7 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="potential_unicorn.js?v=3"></script>
 <script src="commissioner_admin_tools.js?v=4"></script>
 <script src="archived_week_editor.js?v=6"></script>
-<script src="app_update.js?v=37"></script>
+<script src="app_update.js?v=38"></script>
 <script src="quality_fixes.js?v=5"></script>
 <script src="weekly_standings_v2.js?v=4"></script>
 <script src="copy_standings.js?v=5"></script>
@@ -186,7 +189,8 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="league_news.js?v=4"></script>
 <script src="league_extras_model.js?v=3"></script>
 <script src="league_extras.js?v=3"></script>
-<script src="mobile_navigation.js?v=1"></script>
+<script src="ltspn_poll.js?v=1"></script>
+<script src="mobile_navigation.js?v=2"></script>
 <script src="iphone_experience.js?v=1"></script>
 <script src="question_batch_model.js?v=1"></script>
 <script src="question_batch_release.js?v=1"></script>

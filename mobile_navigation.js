@@ -19,6 +19,7 @@
       {id:'seasoncalendar',label:'Season Calendar',detail:'Upcoming weeks',icon:'calendar'}
     ]},
     {title:'COVERAGE & STATS',items:[
+      {id:'top25',label:'LTSPN Top 25',detail:'Just-for-fun college poll',icon:'standings'},
       {id:'news',label:'LTSPN',detail:'League news articles',icon:'news'},
       {id:'studio',label:'SportsCenter',detail:'Weekly rundown',icon:'studio'},
       {id:'stats',label:'Stats & Records',detail:'Player numbers',icon:'stats'},

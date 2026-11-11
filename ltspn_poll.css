@@ -1,0 +1,10 @@
+#top25 .poll-brand{width:180px;max-width:60%;height:auto;display:block;margin-bottom:18px}
+#top25 .poll-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+#top25 .poll-ballot{padding-left:30px}#top25 .poll-ballot li{padding:9px 0;border-bottom:1px solid #ffffff18}
+#top25 .poll-ballot li>span{display:inline-block;width:calc(100% - 126px);vertical-align:middle}
+#top25 .poll-ballot li>div{display:inline-flex;gap:4px;vertical-align:middle}
+#top25 button[data-up],#top25 button[data-down],#top25 button[data-remove]{min-width:36px;min-height:40px;border-radius:8px;border:1px solid #ffffff30;background:#1b293a;color:inherit}
+#pollMatches{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#pollMatches button{padding:10px;border-radius:8px;background:#243447;color:white;border:1px solid #ffffff30}
+#top25 .poll-table{overflow-x:auto}#top25 table{width:100%}#top25 th,#top25 td{padding:10px 6px}
+#top25 button:disabled{opacity:.4;cursor:default}
+@media(max-width:800px){#top25 .poll-columns{grid-template-columns:1fr}#top25 .poll-columns>section:last-child{grid-row:1}}
