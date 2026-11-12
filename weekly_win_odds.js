@@ -26,7 +26,7 @@
     @media(max-width:650px){#weeklyWinOdds.wo-odds{padding:14px}.wo-odds .wo-top{grid-template-columns:1fr;gap:9px}.wo-odds .wo-card{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:12px}.wo-odds .wo-rank,.wo-odds .wo-name,.wo-odds .wo-meta{grid-column:1}.wo-odds .wo-name{margin:4px 0}.wo-odds .wo-pct{grid-column:2;grid-row:1/3;align-self:center;font-size:29px}.wo-odds .wo-track{grid-column:1/3;margin:7px 0}}
   `;
   document.head.append(css);
-  let sequence=0,activeRefresh=0;
+  let sequence=0,activeRefresh=0,nextPercentageId=null;
   const visible=()=>!!session?.user?.id&&!$('league')?.classList.contains('hidden')&&!$('app')?.classList.contains('hidden');
   const weekId=()=>$('leagueBox')?.querySelector('select[onchange*="setLeagueHistoryWeek"]')?.value || week?.id||null;
   const findNode=()=>document.getElementById('weeklyWinOdds');
@@ -66,12 +66,23 @@
     }
     return html;
   }
+  function percentageView(bundle,names){
+    const data=window.WeeklyPercentageModel?.calculate(bundle,nextPercentageId);
+    if(!data)return '';
+    const pct=(correct,total)=>total?(100*correct/total).toFixed(2)+'%':'—';
+    const playerRows=Object.entries(names).map(([id,name])=>{
+      const player=data.players.find(p=>p.id===id);
+      return '<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0"><span>'+escape(name)+'</span><strong>'+(player?pct(player.correct,player.total)+' · '+player.correct+'/'+player.total:'No submitted entry')+'</strong></div>';
+    }).join('');
+    return '<section id="weeklyPickPercentage" style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #776747"><div class="eyebrow">WEEK 12 TIEBREAKER TRACKER</div><h2>Total pick percentage</h2><strong style="font-size:38px;color:#f4cf83">'+pct(data.correct,data.total)+'</strong><p>'+data.correct+' correct / '+data.total+' scored picks across '+data.players.length+' submitted entries.</p><p class="muted">Only scored questions count. Unsubmitted entries are excluded. Updates every 20 seconds.</p>'+playerRows+
+      (data.next?'<h3>What if the next result is…</h3><label>Next result<select id="percentageNext">'+data.remaining.map(q=>'<option value="'+escape(q.id)+'" '+(q.id===data.next.id?'selected':'')+'>'+escape(q.prompt||'Unscored question')+'</option>').join('')+'</select></label><p class="muted">Choose whichever game or question will be scored next.</p>'+data.scenarios.map(row=>'<div style="padding:10px 0"><strong>'+escape(typeof row.answer==='object'?JSON.stringify(row.answer):row.answer)+'</strong> → <b>'+pct(row.correct,row.total)+'</b> <span class="muted">('+row.correct+'/'+row.total+' · '+row.added+' additional correct)</span></div>').join('')+(data.scenarios.length?'':'<p>No answer options available for this question.</p>'):'<p>All scored questions are complete.</p>')+'</section>';
+  }
   async function loadBundle(id){
     const encoded=encodeURIComponent(id);
     const w=(await db('weeks?id=eq.'+encoded+'&select=id,name,phase,status,lock_at,auto_locked_at,tiebreaker_result&limit=1'))?.[0];
     if(!w||w.phase!=='regular'||!M.locked(w))return null;
     const [questions,submissions,picks,officialScores,profiles,fresh]=await Promise.all([
-      db('questions?week_id=eq.'+encoded+'&select=id,counts_for_score,answer_options,result'),
+      db('questions?week_id=eq.'+encoded+'&select=id,prompt,position,counts_for_score,answer_options,result&order=position.asc'),
       db('submissions?week_id=eq.'+encoded+'&select=user_id,tiebreaker_answer'),
       db('picks?week_id=eq.'+encoded+'&select=user_id,question_id,answer'),
       db('week_scores?week_id=eq.'+encoded+'&select=user_id,placement,correct_count'),
@@ -95,10 +106,13 @@
       if(call!==sequence||weekId()!==id||!visible())return;
       if(!data){remove();return;}
       const prediction=M.result(data.bundle);
-      const html=view(data.bundle,prediction,data.names);
-      const signature=JSON.stringify([id,data.bundle.week.status,data.bundle.week.tiebreaker_result,data.bundle.questions.map(q=>[q.id,q.result]),prediction.kind,prediction.players?.map(p=>[p.id,p.probability])]);
+      const html=percentageView(data.bundle,data.names)+view(data.bundle,prediction,data.names);
+      const signature=JSON.stringify([html,nextPercentageId,id,data.bundle.week.status,data.bundle.week.tiebreaker_result,data.bundle.questions.map(q=>[q.id,q.result]),prediction.kind,prediction.players?.map(p=>[p.id,p.probability])]);
       const target=insert();
-      if(target&&target.dataset.signature!==signature){target.innerHTML=html;target.dataset.signature=signature;target.dataset.week=id;}
+      if(target&&target.dataset.signature!==signature){target.innerHTML=html;target.dataset.signature=signature;target.dataset.week=id;
+        const selector=target.querySelector('#percentageNext');
+        if(selector)selector.onchange=()=>{nextPercentageId=selector.value;refresh();};
+      }
     }catch(e){
       if(call!==sequence||weekId()!==id)return;
       const target=insert();
