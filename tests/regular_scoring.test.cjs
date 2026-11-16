@@ -235,3 +235,20 @@ test('a tied NFL game gives neither team pick credit and earns no pick-based bon
     assert.equal(r.cold_bonus,-5);
   }
 });
+
+test('missing submissions publish zero-point rows and ignore draft answers',async()=>{
+ const h=buildHarness();
+ h.submissions.splice(0,2);
+ const rows=await score(h);
+ for(const id of ['p1','p2']){
+  const r=rows.find(r=>r.user_id===id);
+  assert.equal(r.correct_count,0);assert.equal(r.total_points,0);
+  assert.equal(r.cold_bonus,0);assert.equal(r.unicorn_bonus,0);
+  assert.equal(r.tiebreaker_answer,null);
+ }
+ assert.equal(rows[0].user_id,'p3');assert.equal(rows[0].placement_points,8);
+ await h.context.window.publishCurrentWeek();
+ const write=h.writes.find(w=>w.url.startsWith('week_scores?'));
+ assert.ok(write);assert.equal(JSON.parse(write.opts.body).length,8);
+ assert.ok(h.writes.some(w=>w.url.startsWith('weeks?')&&JSON.parse(w.opts.body).status==='published'));
+});

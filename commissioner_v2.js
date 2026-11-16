@@ -126,7 +126,7 @@
         if(r.upset_bonus) bonuses.push('Upset +'+fmtNum(r.upset_bonus));
         if(r.streak_bonus) bonuses.push('Streak +'+fmtNum(r.streak_bonus));
         if(r.cold_bonus) bonuses.push('Cold '+fmtNum(r.cold_bonus));
-        return '<tr><td><b>'+(r.golf_tie?'T':'#')+r.placement+'</b></td><td><b>'+esc(r.name)+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+fmtNum(r.tb_distance)+'</td><td>'+fmtNum(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmtNum(r.total_points)+'</b></td></tr>';
+        return '<tr><td><b>'+(r.golf_tie?'T':'#')+r.placement+'</b></td><td><b>'+esc(r.name)+(r.submitted===false?' · Did not submit':'')+'</b></td><td>'+r.correct_count+'/'+r.question_count+'</td><td>'+(Number.isFinite(r.tb_distance)?fmtNum(r.tb_distance):'—')+'</td><td>'+fmtNum(r.placement_points)+'</td><td>'+(bonuses.join(', ')||'—')+'</td><td><b>'+fmtNum(r.total_points)+'</b></td></tr>';
       }).join('')+'</tbody></table></div>';
       const resolver=rows.some(r=>r.golf_tie)?'<div class="notice"><b>Golf-style tie split applied</b><div class="muted">Players exactly tied on correct picks and tiebreaker distance share the same place and split the placement points for the tied spots.</div></div>':'';
       const publish='<button class="btn full" '+(unresolved.length?'disabled':'')+' onclick="publishCurrentWeek()">Publish '+esc(week.name)+'</button><div class="mini">Publishing makes the scores visible to everyone and unlocks Create Next Week.</div>';

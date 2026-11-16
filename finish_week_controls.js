@@ -31,7 +31,7 @@
     const allResults = scored.length > 0 && decided === scored.length;
     const tbSaved = week.tiebreaker_result !== null && week.tiebreaker_result !== undefined && week.tiebreaker_result !== '';
     const subs = await submissionCount();
-    const allSubs = subs === 8;
+    const allSubs = subs > 0 && subs <= 8;
     const ready = allResults && allSubs;
 
     let h = '<div class="card" id="finishWeekCard" style="border-color:#38bdf8;box-shadow:0 10px 30px rgba(0,0,0,.16)">'+
@@ -39,7 +39,7 @@
       '<div class="muted">When everything below is ready, calculate the final standings, review them, then publish the week.</div>'+
       '<div style="margin-top:12px">'+
         checklistRow(allResults,'Results',decided+'/'+scored.length+' scored results entered')+
-        checklistRow(allSubs,'Player entries',subs+'/8 submitted')+
+        checklistRow(allSubs,'Player entries',subs+'/8 submitted · Missing entries receive zero points')+
         checklistRow(tbSaved,'Actual tiebreaker',tbSaved?('Saved: '+String(week.tiebreaker_result)):'Enter the final number below')+
       '</div>'+
       '<label style="margin-top:14px">Actual tiebreaker result</label>'+
@@ -51,7 +51,7 @@
     if(!allResults){
       h += '<div class="notice" style="margin-top:14px"><b>'+ (scored.length-decided) +' result'+((scored.length-decided)===1?'':'s')+' left.</b><div class="muted">Enter the remaining result'+((scored.length-decided)===1?'':'s')+' in Live Result Entry first.</div></div>';
     }else if(!allSubs){
-      h += '<div class="notice" style="margin-top:14px"><b>Waiting on submitted entries.</b><div class="muted">All 8 players must have a submitted entry before the week can be published.</div></div>';
+      h += '<div class="notice" style="margin-top:14px"><b>Waiting on submitted entries.</b><div class="muted">At least one submitted entry is required to publish this week.</div></div>';
     }
 
     h += '<button id="finishWeekCalculateBtn" class="btn full" '+(!ready?'disabled':'')+' onclick="calculateFinishWeek()">Calculate Final Scores</button>'+

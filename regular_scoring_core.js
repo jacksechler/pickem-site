@@ -33,12 +33,12 @@
     if(scored.some(q=>resultFor(q)===null || resultFor(q)===undefined)) throw new Error('Save every question result first.');
     if(tiebreakerResult===null || tiebreakerResult===undefined || !Number.isFinite(Number(tiebreakerResult))) throw new Error('Save the actual tiebreaker result first.');
 
-    if(!Array.isArray(submissions) || submissions.length!==8) throw new Error('All 8 players must have a submitted entry before publishing.');
+    if(!Array.isArray(submissions) || !submissions.length) throw new Error('At least one submitted entry is required.');
     const subMap={};
-    submissions.forEach(s=>subMap[s.user_id]=s);
-    for(const p of people){
-      if(!subMap[p.id]) throw new Error((p.name||'A player')+' does not have a submitted entry.');
-    }
+    submissions.forEach(s=>{
+      if(subMap[s.user_id] || !people.some(p=>p.id===s.user_id)) throw new Error('Invalid or duplicate submitted entry.');
+      subMap[s.user_id]=s;
+    });
 
     const pickMap={};
     (picks||[]).forEach(p=>{
@@ -52,7 +52,7 @@
     for(const p of people){
       correctness[p.id]=[];
       for(const q of scored){
-        const ok=sameAnswer(pickMap[p.id]?.[q.id],resultFor(q));
+        const ok=!!subMap[p.id] && sameAnswer(pickMap[p.id]?.[q.id],resultFor(q));
         correctness[p.id].push(ok);
         if(ok) (correctUsersByQuestion[q.id]??=[]).push(p.id);
       }
@@ -70,16 +70,19 @@
 
       let unicornCount=0,upsetCount=0;
       for(const q of scored){
-        if(!sameAnswer(pickMap[p.id]?.[q.id],resultFor(q))) continue;
+        if(!subMap[p.id] || !sameAnswer(pickMap[p.id]?.[q.id],resultFor(q))) continue;
         const winners=(correctUsersByQuestion[q.id]||[]).length;
         if(winners===1) unicornCount++;
         else if(winners===2) upsetCount++;
       }
 
-      const tbAnswer=Number(subMap[p.id].tiebreaker_answer);
-      const tbDistance=Math.abs(tbAnswer-Number(tiebreakerResult));
+      const submitted=!!subMap[p.id];
+      const rawAnswer=subMap[p.id]?.tiebreaker_answer;
+      const tbAnswer=rawAnswer==null||rawAnswer===''?null:Number(rawAnswer);
+      const tbDistance=tbAnswer===null?Infinity:Math.abs(tbAnswer-Number(tiebreakerResult));
       return {
         user_id:p.id,
+        submitted,
         name:p.name,
         correct_count:correct,
         question_count:questionCount,
@@ -93,11 +96,12 @@
         upset_bonus:upsetCount*0.5,
         opening_streak:openingStreak,
         streak_bonus:openingStreak*0.5,
-        cold_bonus:correct===0?-5:0
+        cold_bonus:submitted&&correct===0?-5:0
       };
     });
 
     rows.sort((a,b)=>{
+      if(a.submitted!==b.submitted) return a.submitted?-1:1;
       if(b.correct_count!==a.correct_count) return b.correct_count-a.correct_count;
       if(a.tb_distance!==b.tb_distance) return a.tb_distance-b.tb_distance;
       return String(a.name||'').localeCompare(String(b.name||''));
@@ -106,13 +110,13 @@
     let i=0;
     while(i<rows.length){
       let j=i+1;
-      while(j<rows.length && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
+      while(j<rows.length && rows[j].submitted===rows[i].submitted && rows[j].correct_count===rows[i].correct_count && rows[j].tb_distance===rows[i].tb_distance) j++;
       const tieSize=j-i;
       const splitPoints=placementPoints.slice(i,j).reduce((sum,v)=>sum+Number(v??0),0)/tieSize;
       for(let k=i;k<j;k++){
         const r=rows[k];
         r.placement=i+1;
-        r.placement_points=splitPoints;
+        r.placement_points=r.submitted?splitPoints:0;
         r.golf_tie=tieSize>1;
         r.total_points=r.placement_points+r.perfect_bonus+r.unicorn_bonus+r.upset_bonus+r.streak_bonus+r.cold_bonus;
       }
