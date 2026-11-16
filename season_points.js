@@ -53,5 +53,11 @@
     }catch(e){if(token===request)host.innerHTML='<h2>Season points tracker</h2><p>Could not load the graph.</p><button type="button" id="retrySeasonGraph">Retry</button>';host.querySelector('#retrySeasonGraph')?.addEventListener('click',load);}
   }
   const previous=window.renderStandings;
-  window.renderStandings=async function(){const result=await previous.apply(this,arguments);await load();return result;};
+  window.renderStandings=async function(){
+    const result=await previous.apply(this,arguments);
+    const standings=document.getElementById('standingsBox');
+    if(standings&&!standings.contains(host))standings.appendChild(host);
+    await load();
+    return result;
+  };
 })();

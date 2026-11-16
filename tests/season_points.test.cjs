@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 test('graph accumulates published season points including penalties and supports historical totals',async()=>{
  const selector={};
- const host={innerHTML:'',querySelector(){return selector;},querySelectorAll(){return [];}};
+ const host={contains:()=>true,innerHTML:'',querySelector(){return selector;},querySelectorAll(){return [];}};
  const window={renderStandings:async()=>{}};
  const context={window,document:{getElementById:()=>host},session:{user:{id:'a'}},week:{season_id:'current'},db:async path=>{
   if(path.startsWith('weeks?'))return [{id:'w1',name:'Week 1',number:1,season_id:'current'},{id:'w2',name:'Week 2',number:2,season_id:'current'},{id:'old',name:'Old',number:1,season_id:'old'}];

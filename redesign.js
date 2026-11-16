@@ -182,9 +182,9 @@
     },
     standingsBox: {
       label: 'Season standings views',
-      tabs: [['table', 'Season standings'], ['movement', 'Rank history']],
+      tabs: [['table', 'Standings'], ['movement', 'Graphs']],
       initial: () => 'table',
-      classify: node => /Rank Tracker/.test(node.querySelector('h2')?.textContent || '') ? 'movement' : 'table'
+      classify: node => ['seasonPointsGraph','championshipHistoryBox'].includes(node.id) || /Rank Tracker/.test(node.querySelector('h2')?.textContent || '') ? 'movement' : 'table'
     }
   };
 
