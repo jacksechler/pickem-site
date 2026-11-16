@@ -88,7 +88,7 @@
   <p id="gdAnnouncement" class="gd-sr" role="status" aria-live="polite" aria-atomic="true"></p>
   <div id="gdContent"></div>
 </section>
-<section id="standings" class="page hidden"><div class="hero"><div><div class="eyebrow">2026 SEASON</div><h1>Standings</h1></div></div><div id="standingsBox" class="card"></div></section>
+<section id="standings" class="page hidden"><div class="hero"><div><div class="eyebrow">2026 SEASON</div><h1>Standings</h1></div></div><div id="standingsBox" class="card"></div><section id="seasonPointsGraph" class="card" style="margin-top:18px;min-width:0"></section></section>
 <section id="stats" class="page hidden"><div class="hero"><div><div class="eyebrow">YOUR 2026 SEASON</div><h1>Stats</h1><div class="muted">Updates after each week is scored and published.</div></div></div><div id="statsBox"></div></section>
 <section id="commissioner" class="page hidden"><div class="hero"><div><div class="eyebrow">COMMISSIONER</div><h1 id="commWeek">Current Week</h1></div></div><div id="commissionerBox"></div></section>
 <section id="playoffs" class="page hidden" aria-labelledby="playoffsTitle">
@@ -154,7 +154,7 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="potential_unicorn.js?v=3"></script>
 <script src="commissioner_admin_tools.js?v=4"></script>
 <script src="archived_week_editor.js?v=6"></script>
-<script src="app_update.js?v=40"></script>
+<script src="app_update.js?v=41"></script>
 <script src="quality_fixes.js?v=5"></script>
 <script src="weekly_standings_v2.js?v=4"></script>
 <script src="copy_standings.js?v=5"></script>
@@ -195,5 +195,6 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="iphone_experience.js?v=1"></script>
 <script src="question_batch_model.js?v=1"></script>
 <script src="question_batch_release.js?v=1"></script>
+<script src="season_points.js?v=1"></script>
 </body>
 </html>
