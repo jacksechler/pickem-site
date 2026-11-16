@@ -27,22 +27,6 @@
     return rows.filter(w => w.status==='published' || (w.is_active && (w.status==='published' || Date.now()>=new Date(w.lock_at).getTime() || !!w.auto_locked_at)));
   }
 
-  const FINAL_FEATURE_MS = 24*60*60*1000;
-  function isFreshPublishedWeek(w){
-    if(!w || w.status!=='published' || !w.published_at) return false;
-    const age=Date.now()-new Date(w.published_at).getTime();
-    return age>=0 && age<FINAL_FEATURE_MS;
-  }
-
-  function finalFeatureTimeLeft(w){
-    if(!isFreshPublishedWeek(w)) return '';
-    const left=Math.max(0,FINAL_FEATURE_MS-(Date.now()-new Date(w.published_at).getTime()));
-    const hours=Math.floor(left/3600000);
-    const mins=Math.max(1,Math.ceil((left-hours*3600000)/60000));
-    if(hours>=1) return hours+'h '+Math.min(59,mins)+'m';
-    return mins+'m';
-  }
-
   async function loadWeekBundle(weekId){
     const [weekRows,profiles,qs,subs,picks,scores] = await Promise.all([
       db('weeks?id=eq.'+weekId+'&select=*&limit=1'),
@@ -146,33 +130,13 @@
     try{
       const weeks=await availableWeeks();
       const activeId=week?.id||null;
-      const freshPublished=weeks.find(w=>isFreshPublishedWeek(w))||null;
-
-      // A newly finished week stays the default League Picks/results view for
-      // 24 hours, even if a newer draft week is already active. Manual week
-      // selections always win and are never overridden by this feature.
-      if(!selectedLeagueWeekId){
-        if(freshPublished && freshPublished.id!==activeId){
-          selectedLeagueWeekId=freshPublished.id;
-          leagueSelectionManual=false;
-        }else{
-          selectedLeagueWeekId=activeId || weeks[0]?.id || null;
-          leagueSelectionManual=false;
-        }
-      }
-      if(selectedLeagueWeekId && !weeks.some(w=>w.id===selectedLeagueWeekId) && selectedLeagueWeekId!==activeId){
-        selectedLeagueWeekId=freshPublished?.id || activeId || weeks[0]?.id || null;
+      const activeWeek=weeks.find(w=>w.id===activeId)||week;
+      const activeLocked=!!activeWeek && (activeWeek.status==='published'||!!activeWeek.auto_locked_at||Date.now()>=new Date(activeWeek.lock_at).getTime());
+      const previousPublished=weeks.find(w=>w.status==='published' && w.id!==activeId && (!activeWeek || (w.season_id===activeWeek.season_id && Number(w.number)<Number(activeWeek.number))))||null;
+      const defaultWeekId=activeLocked?activeId:(previousPublished?.id||activeId||weeks[0]?.id||null);
+      if(!leagueSelectionManual || !selectedLeagueWeekId || !weeks.some(w=>w.id===selectedLeagueWeekId)){
+        selectedLeagueWeekId=defaultWeekId;
         leagueSelectionManual=false;
-      }
-
-      // If the current selection happened automatically (for example it was
-      // the active week before Create Next Week), keep that published week
-      // featured only while its 24-hour window is still open.
-      if(!leagueSelectionManual && activeId && selectedLeagueWeekId!==activeId){
-        const selectedWeek=weeks.find(w=>w.id===selectedLeagueWeekId);
-        if(!isFreshPublishedWeek(selectedWeek)){
-          selectedLeagueWeekId=activeId;
-        }
       }
 
       let h='';
@@ -180,17 +144,17 @@
       if(week && !options.some(w=>w.id===week.id)) options.unshift(week);
       if(options.length) h+=weekSelectorHtml(options,selectedLeagueWeekId,'setLeagueHistoryWeek');
 
-      if(selectedLeagueWeekId===activeId && week && !locked()){
+      if(selectedLeagueWeekId===activeId && week && !activeLocked){
         h+='<div class="notice"><b>🔒 Everyone\'s '+esc(week.name)+' picks stay private until this week locks.</b><div class="muted">You can still use the Week menu above to view past published weeks.</div></div>';
         box.innerHTML=h; return;
       }
       if(!selectedLeagueWeekId){ box.innerHTML=h+'<div class="card muted">No viewable weeks yet.</div>'; return; }
       const d=await loadWeekBundle(selectedLeagueWeekId);
       box.dataset.phase=d.week?.phase||'regular';
-      const featuredFinal=!!(activeId && d.week?.id!==activeId && isFreshPublishedWeek(d.week));
+      const featuredFinal=!!(activeId && !activeLocked && d.week?.id===previousPublished?.id);
       h+='<div class="card"><div class="eyebrow">'+(d.week?.status==='published'?'FINAL WEEK':'LIVE WEEK')+'</div><div class="row" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 style="margin:4px 0">'+esc(d.week?.name||'Week')+'</h2><div class="muted">Every pick, result, tiebreaker, and weekly stat in one place.</div></div><button class="btn secondary" onclick="openHistoryWeek(\''+selectedLeagueWeekId+'\')">Open Full Week History</button></div></div>';
       if(featuredFinal){
-        h+='<div class="notice"><b>🏆 Final results are still featured.</b><div class="muted">'+esc(d.week?.name||'This week')+' stays on League Picks for 24 hours after publication. About <b>'+esc(finalFeatureTimeLeft(d.week))+'</b> remaining. Use the Week menu above anytime to switch weeks.</div></div>';
+        h+='<div class="notice"><b>🏆 Final results are still featured.</b><div class="muted">'+esc(d.week?.name||'This week')+' stays on League Picks until '+esc(activeWeek?.name||'the new week')+' locks. The page then switches to the new week. Past results remain in the Week menu.</div></div>';
       }
       h+=weekScoreSummary(d)+fullGridHtml(d)+screenshotGridHtml(d);
       box.innerHTML=h;
@@ -301,5 +265,16 @@
     if(id==='player' && selectedPlayerId) renderPlayerProfile(selectedPlayerId);
   };
 
+  let checkingWeekSwitch=false;
+  setInterval(async()=>{
+    if(checkingWeekSwitch || leagueSelectionManual || !session?.user?.id || document.hidden || el('league')?.classList.contains('hidden'))return;
+    checkingWeekSwitch=true;
+    try{
+      const active=(await db('weeks?is_active=eq.true&select=id,status,lock_at,auto_locked_at&order=number.desc&limit=1'))[0];
+      const isLocked=active && (active.status==='published'||!!active.auto_locked_at||Date.now()>=new Date(active.lock_at).getTime());
+      if(isLocked && selectedLeagueWeekId!==active.id){await loadData();await window.renderLeague();}
+    }catch(e){console.debug('Week switch check unavailable',e);}
+    finally{checkingWeekSwitch=false;}
+  },20000);
   ensurePages();
 })();
