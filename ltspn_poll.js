@@ -57,7 +57,7 @@
     const token=++request;
     box.innerHTML='<div class="card">Loading LTSPN polls…</div>';
     try{
-      const data=await Promise.all([fetch('cfb_teams.json?v=2').then(r=>{if(!r.ok)throw Error('Team list unavailable');return r.json();}),db('weeks?select=id,name,number,is_active,questions_released_at&questions_released_at=not.is.null&order=created_at.desc'),db('profiles?select=id,display_name')]);
+      const data=await Promise.all([fetch('cfb_teams.json?v=3').then(r=>{if(!r.ok)throw Error('Team list unavailable');return r.json();}),db('weeks?select=id,name,number,is_active,questions_released_at&questions_released_at=not.is.null&order=created_at.desc'),db('profiles?select=id,display_name')]);
       if(token!==request)return;
       [catalog,weeks,profiles]=data;
       selected=id||weeks.find(w=>w.is_active)?.id||weeks[0]?.id;
