@@ -8,3 +8,10 @@
 #top25 .poll-table{overflow-x:auto}#top25 table{width:100%}#top25 th,#top25 td{padding:10px 6px}
 #top25 button:disabled{opacity:.4;cursor:default}
 @media(max-width:800px){#top25 .poll-columns{grid-template-columns:1fr}#top25 .poll-columns>section:last-child{grid-row:1}}
+
+#top25 .poll-team-logo{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:8px;flex-shrink:0}
+#top25 .poll-voters{display:grid;gap:8px;margin-bottom:16px}#top25 .poll-voters>div{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#top25 .poll-voters [aria-pressed="true"]{outline:2px solid var(--accent)}
+#top25 .poll-viewed{border-top:1px solid var(--line);padding-top:12px}#top25 .poll-viewed li{padding:6px 0}
+
+#top25 .poll-graphic-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}

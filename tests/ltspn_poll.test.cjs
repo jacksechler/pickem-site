@@ -3,25 +3,40 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs');
 test('poll combines points, counts first place votes, and submits an ordered ballot',async()=>{
- const nodes=new Map();let click;const writes=[];
+ const nodes=new Map();let click;let freshWeek=false;const writes=[];
  const get=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:'',textContent:'',addEventListener(type,fn){if(id==='pollBox')click=fn;}});return nodes.get(id);};
- const teams=Array.from({length:26},(_,i)=>({id:String(i),name:'Team '+i}));
+ const teams=Array.from({length:26},(_,i)=>({id:String(i),name:'Team '+i,logo:'https://example.com/logo.png'}));
  const first=teams.slice(0,25).map(t=>t.id),second=[...first].reverse();
  const window={showPage(){}};
- const context={window,document:{getElementById:get},session:{user:{id:'me'}},fetch:async()=>({ok:true,json:async()=>teams}),db:async(path,opt)=>{
-  if(opt){writes.push(JSON.parse(opt.body));return null;}
-  if(path.startsWith('weeks'))return [{id:'week',name:'Week test',is_active:true}];
+ const context={profile:{role:'commissioner'},confirm:()=>true,window,document:{getElementById:get},session:{user:{id:'me'}},fetch:async()=>({ok:true,json:async()=>teams}),db:async(path,opt)=>{
+  if(opt){writes.push({path,method:opt.method,body:opt.body?JSON.parse(opt.body):null});return [{user_id:'me'}];}
+  if(path.startsWith('weeks'))return freshWeek?[{id:'new-week',name:'New week',is_active:true},{id:'week',name:'Week test',is_active:false}]:[{id:'week',name:'Week test',is_active:false}];
   if(path.startsWith('profiles'))return [{id:'me',display_name:'Me'}];
+  if(path.includes('week_id=eq.new-week'))return [];
   return [{user_id:'me',teams:first},{user_id:'other',teams:second}];
  }};
  vm.runInNewContext(fs.readFileSync('ltspn_poll.js','utf8'),context);
  window.showPage('top25');await new Promise(r=>setImmediate(r));
  assert.match(get('pollBox').innerHTML,/2 ballots submitted/);
- assert.match(get('pollBox').innerHTML,/<td>1<\/td><td>Team 0<\/td><td>26<\/td><td>1<\/td>/);
+ assert.match(get('pollBox').innerHTML,/<td>26<\/td><td>1<\/td>/);
+ assert.match(get('pollBox').innerHTML,/poll-team-logo/);
+ await click({target:{closest:()=>({dataset:{view:'other'}})}});
+ assert.match(get('pollBox').innerHTML,/Member’s Top 25/);
+ assert.match(get('pollBox').innerHTML,/data-graphic="other"/);
  await click({target:{closest:()=>({dataset:{down:'0'}})}});
  await click({target:{closest:()=>({id:'pollSubmit',dataset:{}})}});
- assert.equal(writes.length,1);assert.equal(writes[0].teams.length,25);
- assert.deepEqual(writes[0].teams.slice(0,2),['1','0']);
- assert.equal(writes[0].user_id,'me');assert.equal(writes[0].week_id,'week');
+ assert.equal(writes.length,1);assert.equal(writes[0].body.teams.length,25);
+ assert.deepEqual(writes[0].body.teams.slice(0,2),['1','0']);
+ assert.equal(writes[0].method,'PATCH');assert.match(writes[0].path,/week_id=eq.week&user_id=eq.me/);
  assert.match(get('pollStatus').textContent,/Ballot saved/);
+ await click({target:{closest:()=>({dataset:{delete:'other'}})}});
+ assert.equal(writes[1].method,'DELETE');assert.match(writes[1].path,/user_id=eq.other/);
+ assert.match(get('pollStatus').textContent,/Ballot deleted/);
+ context.profile.role='player';
+ await click({target:{closest:()=>({dataset:{delete:'other'}})}});
+ assert.equal(writes.length,2);
+ freshWeek=true;window.showPage('top25');await new Promise(r=>setImmediate(r));
+ assert.match(get('pollBox').innerHTML,/0 ballots submitted/);
+ assert.match(get('pollBox').innerHTML,/0\/25 teams ranked/);
+ assert.doesNotMatch(get('pollBox').innerHTML,/Save changes/);
 });
