@@ -105,6 +105,8 @@ test('official champion title is reserved for finalized championship results',()
   assert.equal(data.playoffs.length,1);
   assert.match(data.playoffs[0].headline,/Member 1 wins the league championship/);
   assert.match(data.playoffs[0].body.join(' '),/runner-up was Member 2/);
+  assert.match(data.playoffs[0].body.join(' '),/championship-week points.*started the final at zero/);
+  assert.doesNotMatch(data.playoffs[0].body.join(' '),/cumulative playoff points/);
 });
 test('news story IDs, ordering and text remain deterministic for unchanged official results',()=>{
   const input={profiles,weeks:[week(1),week(2)],scores:[...makeScores(1),...makeScores(2)]};

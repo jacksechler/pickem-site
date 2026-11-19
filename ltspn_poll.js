@@ -1,7 +1,19 @@
 (() => {
   const box=document.getElementById('pollBox');
   const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const Model=window.LTSPNPollModel;
+  const storage=()=>{try{return window.localStorage;}catch{return null;}};
   let catalog=[],weeks=[],ballots=[],profiles=[],selected='',draft=[],busy=false,request=0,viewedUser=null;
+  let priorWeek=null,priorBallots=[],priorAvailable=false,draftNote='',ready=false;
+  function saveDraft(){
+    const saved=Model.saveDraft(storage(),session.user.id,selected,draft,ownBallot()?.teams);
+    draftNote=saved?'Draft saved on this device. Submit to include these changes in the rankings.':'Could not save a draft on this device. Keep this page open until you submit.';
+  }
+  function restoreDraft(){
+    const local=Model.readDraft(storage(),session.user.id,selected,catalog);
+    draft=[...(local?.teams||ownBallot()?.teams||[])];
+    draftNote=local?(JSON.stringify(local.base)!==JSON.stringify(ownBallot()?.teams||null)?'Restored device draft. The submitted ballot has changed; review your draft before saving.':'Restored draft from this device. Submit to include these changes in the rankings.'):'Draft changes save on this device only; they do not count as submitted votes.';
+  }
   const current=()=>weeks.find(w=>w.id===selected);
   const ownBallot=()=>ballots.find(b=>b.user_id===session.user.id);
   const editable=()=>current()?.is_active===true||!!ownBallot();
@@ -19,32 +31,25 @@
       (ballot?'<section class="poll-viewed"><h3>'+escape(voterName(ballot.user_id))+'’s Top 25</h3><div class="poll-graphic-actions"><button class="btn secondary" data-graphic="'+escape(ballot.user_id)+'">Copy ballot graphic</button><button class="btn secondary" data-download="'+escape(ballot.user_id)+'">Download PNG</button></div><ol>'+ballot.teams.map(id=>'<li>'+teamLabel(id)+'</li>').join('')+'</ol></section>':'');
   }
   const name=id=>catalog.find(t=>t.id===id)?.name||id;
-  function results(){
-    const totals=new Map();
-    ballots.forEach(ballot=>ballot.teams.forEach((id,index)=>{
-      const row=totals.get(id)||{id,points:0,first:0};
-      row.points+=25-index;
-      row.first+=index===0?1:0;
-      totals.set(id,row);
-    }));
-    return [...totals.values()].sort((a,b)=>b.points-a.points||name(a.id).localeCompare(name(b.id)));
-  }
+  function results(){return Model.rank(ballots,name);}
   function render(){
     const rows=results();
-    let rank=0,previous=null;
-    const ranked=rows.map((r,i)=>{
-      if(r.points!==previous)rank=i+1;
-      previous=r.points;
-      return {...r,rank};
-    });
+    const comparison=Model.compare(rows,Model.rank(priorBallots,name),priorAvailable&&priorBallots.length>0&&ballots.length>0);
+    const ranked=comparison.rows;
+    const priorOwn=priorBallots.find(b=>b.user_id===session.user.id);
     box.innerHTML='<div class="card"><label>Poll week<select id="pollWeek">'+weeks.map(w=>'<option value="'+w.id+'" '+(w.id===selected?'selected':'')+'>'+escape(w.name)+(w.is_active?' · Voting open':' · Archived')+'</option>').join('')+'</select></label><p>'+ballots.length+' ballots submitted · 25 points for No. 1 down to 1 for No. 25. Ties share a rank.</p><p class="muted">New ballots are accepted during the active week. You can edit your submitted ballots anytime. Just for fun — no effect on league standings.</p></div>'+
-      '<div class="poll-columns"><section class="card"><h2>LTSPN Top 25</h2><div class="poll-graphic-actions"><button class="btn secondary" data-graphic="combined">Copy Top 25 Graphic</button><button class="btn secondary" data-download="combined">Download PNG</button></div><p id="pollGraphicStatus" role="status"></p>'+(!rows.length?'<p>The first submitted ballot starts this week’s rankings.</p>':'<div class="poll-table"><table class="table"><thead><tr><th>Rank</th><th>Team</th><th>Points</th><th>1st</th></tr></thead><tbody>'+ranked.filter(r=>r.rank<=25).map(r=>'<tr><td>'+r.rank+'</td><td>'+teamLabel(r.id)+'</td><td>'+r.points+'</td><td>'+r.first+'</td></tr>').join('')+'</tbody></table></div>')+
+      '<div class="poll-columns"><section class="card"><h2>LTSPN Top 25</h2><div class="poll-graphic-actions"><button class="btn secondary" data-graphic="combined">Copy Top 25 Graphic</button><button class="btn secondary" data-download="combined">Download PNG</button></div><p id="pollGraphicStatus" role="status"></p>'+(!rows.length?'<p>The first submitted ballot starts this week’s rankings.</p>':'<div class="poll-table"><table class="table"><thead><tr><th>Rank</th><th>Team</th><th>Points</th><th>1st</th><th>Change</th></tr></thead><tbody>'+ranked.filter(r=>r.rank<=25).map(r=>'<tr><td>'+r.rank+'</td><td>'+teamLabel(r.id)+'</td><td>'+r.points+'</td><td>'+r.first+'</td><td><span class="poll-movement">'+r.movement+'</span></td></tr>').join('')+'</tbody></table></div>')+
       (ranked.some(r=>r.rank>25)?'<h3>Also receiving votes</h3><p>'+ranked.filter(r=>r.rank>25).map(r=>escape(name(r.id))+' '+r.points).join(' · ')+'</p>':'')+
+      (comparison.dropped.length?'<h3>Dropped out</h3><p>'+comparison.dropped.map(row=>escape(name(row.id))+' (was No. '+row.rank+')').join(' · ')+'</p>':'')+
+      '<p class="muted">'+(priorAvailable&&priorBallots.length?'Changes compared with '+escape(priorWeek.name)+'. Previous rankings reflect any later ballot edits.':priorWeek?'No previous poll available for comparison.':'First poll week — no previous ranking.')+'</p>'+
       voterPanel()+'</section>'+
       '<section class="card"><h2>My Top 25</h2>'+ (ownBallot()?'<p class="muted">Edit your submitted ballot below, then save your changes.</p>':'')+'<p>'+draft.length+'/25 teams ranked'+(editable()?' · Use arrows to reorder.':' · Voting closed.')+'</p>'+
+      '<p class="poll-draft-status" role="status">'+escape(draftNote)+'</p>'+
+      (editable()&&priorOwn?'<button class="btn secondary" data-copy-prior type="button">Start from last week’s ballot</button><p class="mini">Copies your '+escape(priorWeek.name)+' ballot into this week’s draft. You still need to submit.</p>':'')+
       (editable()?'<label>Find a college team<input id="pollSearch" placeholder="Search school or mascot" autocomplete="off"></label><div id="pollMatches"></div>':'')+
       '<ol class="poll-ballot">'+draft.map((id,i)=>'<li><span>'+teamLabel(id)+'</span>'+(editable()?'<div><button data-up="'+i+'" aria-label="Move '+escape(name(id))+' up" '+(i===0?'disabled':'')+'>↑</button><button data-down="'+i+'" aria-label="Move '+escape(name(id))+' down" '+(i===24||i===draft.length-1?'disabled':'')+'>↓</button><button data-remove="'+i+'" aria-label="Remove '+escape(name(id))+'">×</button></div>':'')+'</li>').join('')+'</ol>'+
       (editable()?'<button class="btn" id="pollSubmit" '+(draft.length!==25||busy?'disabled':'')+'>'+(busy?'Saving…':ballots.some(b=>b.user_id===session.user.id)?'Save changes':'Submit ballot')+'</button>':'')+'<p id="pollStatus" role="status"></p></section></div>';
+    if(busy)box.querySelectorAll('button,input,select').forEach(control=>control.disabled=true);
     document.getElementById('pollWeek').disabled=busy;
     document.getElementById('pollWeek').onchange=e=>{viewedUser=null;load(e.target.value);};
     const search=document.getElementById('pollSearch');
@@ -54,31 +59,32 @@
     };
   }
   async function load(id){
-    const token=++request;
+    const token=++request, userId=session.user.id;
+    ready=false;priorWeek=null;priorBallots=[];priorAvailable=false;
     box.innerHTML='<div class="card">Loading LTSPN polls…</div>';
     try{
-      const data=await Promise.all([fetch('cfb_teams.json?v=3').then(r=>{if(!r.ok)throw Error('Team list unavailable');return r.json();}),db('weeks?select=id,name,number,is_active,questions_released_at&questions_released_at=not.is.null&order=created_at.desc'),db('profiles?select=id,display_name')]);
+      const data=await Promise.all([fetch('cfb_teams.json?v=3').then(r=>{if(!r.ok)throw Error('Team list unavailable');return r.json();}),db('weeks?select=id,season_id,name,number,is_active,questions_released_at&questions_released_at=not.is.null&order=created_at.desc'),db('profiles?select=id,display_name')]);
       if(token!==request)return;
       [catalog,weeks,profiles]=data;
       selected=id||weeks.find(w=>w.is_active)?.id||weeks[0]?.id;
       if(!selected){box.innerHTML='<div class="card">Polls open when the first league week is released.</div>';return;}
       const votes=await db('ltspn_ballots?select=user_id,teams&week_id=eq.'+selected);
       if(token!==request)return;
+      if(userId!==session.user.id)return;
       ballots=votes;
-      draft=[...(ballots.find(b=>b.user_id===session.user.id)?.teams||[])];
-      render();
+      priorWeek=Model.previousWeek(current(),weeks);
+      if(priorWeek){
+        try{const previous=await db('ltspn_ballots?select=user_id,teams&week_id=eq.'+priorWeek.id);if(token!==request||userId!==session.user.id)return;priorBallots=previous;priorAvailable=true;}
+        catch{if(token!==request||userId!==session.user.id)return;priorAvailable=false;}
+      }
+      restoreDraft();ready=true;render();
     }catch(e){if(token===request)box.innerHTML='<div class="card">Could not load polls. <button id="pollRetry">Retry</button></div>';document.getElementById('pollRetry')?.addEventListener('click',()=>load(id));}
   }
   async function exportGraphic(userId,download){
     const status=document.getElementById('pollGraphicStatus');
     status.textContent='Creating graphic…';
     const ballot=ballots.find(b=>b.user_id===userId);
-    let previous=null,rank=0;
-    const rows=ballot?ballot.teams.map((id,i)=>({id,rank:i+1,points:25-i,first:null})):results().slice(0,25).map((row,i)=>{
-      if(row.points!==previous)rank=i+1;
-      previous=row.points;
-      return {...row,rank};
-    });
+    const rows=ballot?ballot.teams.map((id,i)=>({id,rank:i+1,points:25-i,first:null})):results().filter(row=>row.rank<=25);
     const payload={rows:rows.map(row=>({...row,name:name(row.id),logo:catalog.find(t=>t.id===row.id)?.logo})),
       title:ballot?voterName(userId)+'’s Top 25':'LTSPN TOP 25',
       subtitle:current().name+' · '+(ballot?'Individual ballot':ballots.length+' ballots · Combined ranking'),
@@ -101,7 +107,7 @@
   }
   box.addEventListener('click',async event=>{
     const button=event.target.closest('button');
-    if(!button||button.disabled||busy)return;
+    if(!button||button.disabled||busy||!ready)return;
     if(button.dataset.graphic||button.dataset.download){await exportGraphic(button.dataset.graphic||button.dataset.download,!!button.dataset.download);return;}
     if(button.dataset.view){viewedUser=button.dataset.view;render();return;}
     if(button.dataset.delete){
@@ -113,25 +119,39 @@
         const removed=await db('ltspn_ballots?week_id=eq.'+selected+'&user_id=eq.'+userId,{method:'DELETE',headers:{Prefer:'return=representation'}});
         if(!Array.isArray(removed)||removed.length!==1)throw Error('Ballot was not deleted');
         busy=false;viewedUser=null;await load(selected);
-        document.getElementById('pollStatus').textContent='Ballot deleted. The combined rankings have been updated.';
+        if(ready)document.getElementById('pollStatus').textContent='Ballot deleted. The combined rankings have been updated.';
+        else box.insertAdjacentHTML('afterbegin','<div class="notice">Ballot deleted. Reload the poll to see the updated rankings.</div>');
       }catch(e){busy=false;render();document.getElementById('pollStatus').textContent='Could not delete this ballot. Please reload and try again.';}
       return;
     }
     if(!editable())return;
-    if(button.dataset.add){draft.push(button.dataset.add);render();return;}
-    if(button.dataset.remove!==undefined){draft.splice(Number(button.dataset.remove),1);render();return;}
+    if(button.dataset.copyPrior!==undefined){
+      const prior=priorBallots.find(b=>b.user_id===session.user.id);
+      if(!prior)return;
+      if(draft.length&&!confirm('Replace the current draft with your ballot from '+priorWeek.name+'? You must still submit it.'))return;
+      const valid=new Set(catalog.map(t=>t.id));
+      draft=[...new Set(prior.teams)].filter(id=>valid.has(id)).slice(0,25);saveDraft();render();return;
+    }
+    if(button.dataset.add){if(draft.length>=25||draft.includes(button.dataset.add))return;draft.push(button.dataset.add);saveDraft();render();return;}
+    if(button.dataset.remove!==undefined){draft.splice(Number(button.dataset.remove),1);saveDraft();render();return;}
     const moving=button.dataset.up??button.dataset.down;
-    if(moving!==undefined){const i=Number(moving),j=i+(button.dataset.up!==undefined?-1:1);[draft[i],draft[j]]=[draft[j],draft[i]];render();return;}
+    if(moving!==undefined){const i=Number(moving),j=i+(button.dataset.up!==undefined?-1:1);if(i<0||j<0||i>=draft.length||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];saveDraft();render();return;}
     if(button.id==='pollSubmit'){
+      if(draft.length!==25||new Set(draft).size!==25)return;
+      saveDraft();const savedWeek=selected,savedUser=session.user.id,savedTeams=[...draft];
       busy=true;render();
       try{
         if(ownBallot()){
           const updated=await db('ltspn_ballots?week_id=eq.'+selected+'&user_id=eq.'+session.user.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({teams:draft})});
           if(!Array.isArray(updated)||updated.length!==1)throw Error('Ballot is no longer available');
         }else{
-          await db('ltspn_ballots?on_conflict=week_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({week_id:selected,user_id:session.user.id,teams:draft})});
+          const inserted=await db('ltspn_ballots?on_conflict=week_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify({week_id:selected,user_id:session.user.id,teams:draft})});
+          if(!Array.isArray(inserted)||inserted.length!==1)throw Error('Submission was not confirmed');
         }
-        busy=false;await load(selected);document.getElementById('pollStatus').textContent='Ballot saved. Your votes are included in the LTSPN rankings.';
+        if(!Model.clearDraft(storage(),savedUser,savedWeek))Model.saveDraft(storage(),savedUser,savedWeek,savedTeams,savedTeams);
+        busy=false;await load(savedWeek);
+        if(ready)document.getElementById('pollStatus').textContent='Ballot saved. Your votes are included in the LTSPN rankings.';
+        else box.insertAdjacentHTML('afterbegin','<div class="notice">Ballot saved. Reload the poll to see the updated rankings.</div>');
       }catch(e){busy=false;render();document.getElementById('pollStatus').textContent='Could not save. Your ballot is still here. Please reload and try again.';}
     }
   });

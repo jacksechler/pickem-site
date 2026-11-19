@@ -243,8 +243,8 @@
     const playoffs=(news.playoffs||[]).map(story=>({
       ...story,
       body:[...story.body,
-        'The bracket is decided by the rules of the postseason: each officially scored correct answer adds to the cumulative playoff total, and the advancement cut reduces the surviving field after each round. A live projected cut does not become official until the commissioner finalizes it.',
-        'The retained seeds and starting bonuses carry across the playoff path. The listed finishers advanced or were eliminated according to the finalized round results, rather than a probability forecast.',
+        'The bracket is decided by the rules of the postseason: each officially scored correct answer adds one point. Points accumulate through the first three rounds as the advancement cuts reduce the field. Both finalists then reset to zero for a one-week championship. A live projected cut does not become official until the commissioner finalizes it.',
+        'Starting bonuses apply to the first three rounds only. In the championship, only correct picks from the final week count toward the title; the frozen seed is retained solely as the fallback after the round tiebreaker. The listed finishers advanced or were eliminated according to the finalized round results, rather than a probability forecast.',
         'LTSPN will continue to track the surviving contenders and the path to the title as the remaining rounds are officially completed. Unpublished game outcomes and future picks are not reported as facts.'
       ],
       readMinutes:Math.max(2,Math.ceil(story.body.join(' ').split(/\s+/).length/180))

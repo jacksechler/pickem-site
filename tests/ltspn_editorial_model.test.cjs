@@ -93,3 +93,13 @@ test('no source input objects are mutated by the editorial transformation',()=>{
   Editorial.build({news,profiles,weeks,scores,questions:qs,picks:ps});
   assert.equal(JSON.stringify({weeks,scores,qs,ps,news}),before);
 });
+
+test('playoff explanations distinguish the cumulative rounds from the zero-start final',()=>{
+  const news=Base.build({profiles,weeks:[],scores:[],seasonId:'season'});
+  news.playoffs=[{id:'final',body:[],headline:'Championship complete'}];
+  const result=Editorial.build({news,profiles,weeks:[],scores:[],seasonId:'season'});
+  const text=result.playoffs[0].body.join(' ');
+  assert.match(text,/Both finalists then reset to zero/);
+  assert.match(text,/first three rounds only/);
+  assert.match(text,/only correct picks from the final week count/);
+});

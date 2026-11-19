@@ -200,7 +200,7 @@
         eliminated.length+' contender'+(eliminated.length===1?'':'s')+' eliminated from the title race.';
       const body=isFinal&&champ?[
         name(champ)+' finished #1 in the officially finalized championship round with '+
-          (Number(champ.cumulative_after)).toFixed(1).replace(/\.0$/,'')+' cumulative playoff points.',
+          (Number(champ.cumulative_after)).toFixed(1).replace(/\.0$/,'')+' championship-week points. Both finalists started the final at zero.',
         'The runner-up was '+name(eliminated[0])+'. This result is official.'
       ]:[
         'The commissioner finalized '+roundName+'. '+advancing.map(r=>name(r)).join(', ')+

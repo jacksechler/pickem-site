@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="commissioner_hq.css?v=1">
 <link rel="stylesheet" href="iphone_experience.css?v=1">
 <link rel="stylesheet" href="ltspn_poll.css?v=2">
+<link rel="stylesheet" href="league_guide.css?v=1">
 <link rel="stylesheet" href="thanksgiving.css?v=1">
 <link rel="stylesheet" href="seasonal_themes.css?v=6">
 <script src="seasonal_themes_model.js?v=1"></script>
@@ -63,6 +64,7 @@
     <button class="navbtn" data-page="championship" onclick="showPage('championship',this)">Championship</button>
     <button id="playoffsNav" class="navbtn" data-page="playoffs" onclick="showPage('playoffs',this)">Playoffs</button>
     <button class="navbtn" data-page="seasoncalendar" onclick="showPage('seasoncalendar',this)">Season calendar</button>
+    <button class="navbtn" data-page="rules" onclick="showPage('rules',this)">Rules &amp; Scoring</button>
     <button id="commNav" class="navbtn hidden" data-page="commissioner" onclick="showPage('commissioner',this)">Commissioner</button>
   </nav>
   <div class="sidebar-footer"><span id="homePlayer">Your account</span><button class="linkbtn" onclick="logoutAccount()">Log out</button></div>
@@ -99,6 +101,40 @@
   <div class="hero"><div><div class="eyebrow">ROAD TO THE CROWN · 2026–27 POSTSEASON</div><h1 id="playoffsTitle">Playoffs</h1><p class="muted">Eight members. Four rounds. One champion. Every correct playoff pick matters.</p><p id="playoffSync" class="muted" role="status">Loading…</p></div><div class="ps-actions"><button type="button" class="btn secondary" data-ps-action="refresh">Refresh</button><button type="button" class="btn secondary" onclick="showPage('championship',document.querySelector('[data-page=championship]'))">Championship GameDay</button><button id="copyPlayoffStandings" type="button" class="btn secondary hidden" data-ps-action="copy">Copy standings</button></div></div>
   <div id="playoffBox"></div><label for="playoffCopyFallback" class="ps-sr">Copy playoff standings</label><textarea id="playoffCopyFallback" hidden readonly></textarea>
 </section>
+<section id="rules" class="page hidden" aria-labelledby="rulesTitle">
+  <div class="hero"><div><div class="eyebrow">THE LEAGUE GUIDE</div><h1 id="rulesTitle">Rules &amp; Scoring</h1><p class="muted">How your picks turn into points, from opening week to the championship.</p></div></div>
+  <nav class="rules-links" aria-label="Rules sections"><a href="#rules-entry">Submitting</a><a href="#rules-regular">Regular season</a><a href="#rules-bonuses">Bonuses</a><a href="#rules-playoffs">Playoffs</a><a href="#rules-polls">LTSPN polls</a></nav>
+  <div id="rules-entry" class="card rules-section"><h2>Make it official</h2>
+    <p>Pick each scored answer, review your choices, enter the week’s tiebreaker, and press <b>Submit picks</b>. A timestamped confirmation means your entry was received. Saved picks alone are not a submitted entry.</p>
+    <p>You can change picks until the week locks. Changes to an already submitted entry’s picks are saved immediately; submit again to save a new tiebreaker answer. The displayed deadline applies to that week. It can lock early when all eight players submit, or when all active playoff contenders submit.</p>
+    <p><b>Missed the deadline?</b> A player without a submitted entry gets 0 points for the week and no cold penalty. Their saved picks do not count. One missing entry does not stop everyone else’s results from being scored.</p>
+  </div>
+  <div id="rules-regular" class="card rules-section"><h2>Regular-season points</h2>
+    <p>Most correct scored picks wins the week. If players have the same number correct, the answer closest to the actual tiebreaker result wins. Follow the tiebreaker question shown for that week.</p>
+    <div class="rules-points" aria-label="Weekly placement points"><div><span>1st</span><b>8</b></div><div><span>2nd</span><b>7</b></div><div><span>3rd</span><b>6</b></div><div><span>4th</span><b>5</b></div><div><span>5th</span><b>4</b></div><div><span>6th</span><b>3</b></div><div><span>7th</span><b>2</b></div><div><span>8th</span><b>0</b></div></div>
+    <p><b>Still tied?</b> Equal correct picks and equal tiebreaker distance share a place and split the points for those places. Two players tied for first each receive (8 + 7) ÷ 2 = <b>7.5 placement points</b>.</p>
+    <p><b>Season total = placement points + bonuses</b> from each published regular-season week. For example, second place with one unicorn earns 7 + 3 = <b>10 points</b>, before any other bonuses. The number of correct picks decides placement; it is not added directly to your season total.</p>
+  </div>
+  <div id="rules-bonuses" class="card rules-section"><h2>Regular-season bonuses</h2><ul>
+    <li><b>Perfect week: +5.</b> Get every scored question right.</li>
+    <li><b>Unicorn: +3 per question.</b> Be the only submitted player to get that question right.</li>
+    <li><b>Upset: +0.5 per question.</b> Exactly two submitted players get it right; both earn the bonus.</li>
+    <li><b>Opening streak: +0.5 per correct result.</b> After a perfect previous week, keep earning this bonus from this week’s opening result until your first miss. The official result order determines the streak.</li>
+    <li><b>Cold week: −5.</b> Submit an entry but get zero scored questions right.</li>
+  </ul><p>Questions marked “just for fun” are not scored and do not affect these bonuses.</p></div>
+  <div id="rules-playoffs" class="card rules-section"><h2>Playoffs &amp; the championship</h2>
+    <p>The field narrows <b>8 → 6 → 4 → 2 → 1</b>. Seeds 1–8 begin with a one-time bonus of <b>10, 8, 7, 5, 4, 3, 2, and 0</b> points. Every correct scored playoff pick adds <b>1 point</b>. Regular-season placement points and bonuses do not apply.</p>
+    <p>Points accumulate through the first three playoff rounds. The commissioner finalizes each round’s advancement; live projections are not official results.</p>
+    <div class="notice"><b>The championship starts at 0–0.</b><p>Both finalists’ totals reset to zero. Only correct picks during the final week count toward the championship. Earlier playoff points and starting bonuses do not carry into the final.</p></div>
+    <p><b>Playoff ties:</b> closest to that round’s actual tiebreaker result wins, followed by the better frozen regular-season seed if the distance is also equal. A missing tiebreaker ranks behind a valid answer. Live ties remain pending until the actual result is known.</p>
+    <p>For example, finalists arriving with 70 and 62 points both start the final at 0. If they finish with 18 and 19 correct picks, the player with 19 wins. Eliminated players can keep picking for fun and do not hold up the active contenders’ early lock.</p>
+  </div>
+  <div id="rules-polls" class="card rules-section"><h2>LTSPN Top 25</h2>
+    <p>This is a separate, just-for-fun college football poll with <b>no effect on league standings</b>. Each ballot awards 25 points to No. 1, 24 to No. 2, down to 1 point for No. 25. Everyone’s submitted ballots combine into one weekly ranking. Equal totals share a rank, including every team tied at No. 25.</p>
+    <p>Each week starts fresh. Unfinished drafts save on your current device; “Start from last week’s ballot” gives you a starting point. Neither counts as a vote until you submit. You can edit your submitted ballots, and the commissioner can delete a ballot.</p>
+    <p>Movement compares this week’s combined poll with the previous week: ↑ means a climb, ↓ a drop, and NEW means a team entered the Top 25. A dash means unchanged or no comparison is available. Later edits to older ballots also update that comparison.</p>
+  </div>
+</section>
 <section id="seasoncalendar" class="page hidden" aria-labelledby="seasonCalendarTitle">
   <div class="hero"><div><div class="eyebrow">2026–27 SEASON PLAN</div><h1 id="seasonCalendarTitle">Season calendar</h1><p class="muted">Every card, from college football’s opening weeks to Super Bowl Sunday.</p></div></div><div id="seasonCalendarBox"></div>
 </section>
@@ -122,12 +158,31 @@ async function db(path,opt={}){const r=await fetch(SUPABASE+'/rest/v1/'+path,{..
 function locked(){return !week||week.status==='published'||Date.now()>=new Date(week.lock_at).getTime();}
 async function loadData(){const p=await db('profiles?id=eq.'+session.user.id+'&select=*');profile=p[0];const w=await db('weeks?is_active=eq.true&select=*&order=number.desc&limit=1');week=w[0]||null;questions=[];myPicks={};submission=null;if(week){questions=await db('questions?week_id=eq.'+week.id+'&select=*&order=position.asc');const picks=await db('picks?week_id=eq.'+week.id+'&user_id=eq.'+session.user.id+'&select=*');picks.forEach(p=>myPicks[p.question_id]=p.answer);const subs=await db('submissions?week_id=eq.'+week.id+'&user_id=eq.'+session.user.id+'&select=*');submission=subs[0]||null;}}
 async function boot(){if(!session)return;try{await loadData();el('auth').classList.add('hidden');el('app').classList.remove('hidden');el('commNav').classList.toggle('hidden',profile.role!=='commissioner');renderHome();renderStandings();renderStats();void window.MobileNavigation?.refreshSeasonStatus?.(true);}catch(e){el('authMsg').textContent='Could not load account.';}}
-function renderHome(){el('homeWeek').textContent=week?week.name:'No Active Week';el('homeSubtitle').textContent=week?'Week '+week.number:'';el('homePlayer').textContent=window.MemberNames?.full(profile)||profile?.display_name||'—';el('homeSubmitted').textContent=submission?'✓':'—';el('homeQuestionCount').textContent=questions.length;if(!week){el('homeLock').innerHTML='Commissioner needs to create the first week.';el('homeAction').classList.add('hidden');return;}el('homeAction').classList.toggle('hidden',locked());el('homeLock').innerHTML=locked()?'<b>🔒 '+esc(week.name)+' is locked.</b> Other weeks are unaffected.':'🔒 '+esc(week.name)+' locks <b>'+esc(new Date(week.lock_at).toLocaleString())+'</b>. This deadline applies only to this week.';}
-function showPage(id,btn){document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!==id));document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='picks')renderPicks();if(id==='league')renderLeague();if(id==='standings')renderStandings();if(id==='stats')renderStats();if(id==='commissioner')renderCommissioner();if(id==='sharegrid'&&typeof window.renderShareGrid==='function')window.renderShareGrid();}
-function renderPicks(){el('picksWeek').textContent=week?(week.name+' · '+questions.length+' questions'):'NO ACTIVE WEEK';const box=el('pickBox'),next=el('nextPickBtn');if(!week){box.innerHTML='<div class="muted">No active week.</div>';next.disabled=true;return;}if(locked()){box.innerHTML='<div class="notice"><b>🔒 Picks are locked for this week.</b></div>';next.disabled=true;return;}if(!questions.length){box.innerHTML='<div class="muted">No questions have been added yet.</div>';next.disabled=true;return;}if(step>questions.length)step=questions.length;el('progressBar').style.width=Math.round(step/(questions.length+1)*100)+'%';if(step===questions.length){box.innerHTML='<div class="question"><div class="eyebrow">TIEBREAKER</div><h2>'+esc(week.tiebreaker_prompt||'Tiebreaker answer')+'</h2><input id="tbInput" type="number" value="'+esc(submission?.tiebreaker_answer??'')+'"></div>';next.textContent='Submit Picks';next.disabled=false;return;}const q=questions[step],opts=Array.isArray(q.answer_options)?q.answer_options:[];box.innerHTML='<div class="question"><div class="eyebrow">'+esc(q.sport||'PICK')+' · QUESTION '+(step+1)+' OF '+questions.length+'</div><h2>'+esc(q.prompt)+'</h2><div class="answers">'+opts.map((v,i)=>'<button class="answer '+(JSON.stringify(myPicks[q.id])===JSON.stringify(v)?'selected':'')+'" data-i="'+i+'">'+esc(typeof v==='string'?v:JSON.stringify(v))+'</button>').join('')+'</div></div>';box.querySelectorAll('.answer').forEach(b=>b.onclick=()=>choosePick(q.id,opts[Number(b.dataset.i)]));next.textContent='Next →';next.disabled=myPicks[q.id]===undefined;}
-async function choosePick(id,answer){try{await db('picks?on_conflict=week_id,question_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({week_id:week.id,question_id:id,user_id:session.user.id,answer})});myPicks[id]=answer;renderPicks();setTimeout(()=>{if(step<questions.length){step++;renderPicks();}},180);}catch(e){alert('Could not save pick. The week may have locked.');}}
-function previousPick(){if(step>0){step--;renderPicks();}}
-async function nextPick(){if(step<questions.length){if(myPicks[questions[step].id]===undefined)return;step++;renderPicks();return;}const t=el('tbInput')?.value;if(t==='')return alert('Enter the tiebreaker.');if(questions.some(q=>q.counts_for_score!==false&&myPicks[q.id]===undefined))return alert('Finish every pick first.');try{await db('submissions?on_conflict=week_id,user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({week_id:week.id,user_id:session.user.id,tiebreaker_answer:Number(t),submitted_at:new Date().toISOString()})});await loadData();renderHome();alert('Picks submitted!');}catch(e){alert('Could not submit picks.');}}
+function renderHome(){el('homeWeek').textContent=week?week.name:'No Active Week';el('homeSubtitle').textContent=week?'Week '+week.number:'';el('homePlayer').textContent=window.MemberNames?.full(profile)||profile?.display_name||'—';el('homeSubmitted').textContent=submission?'Submitted':'Not submitted';el('homeQuestionCount').textContent=questions.length;if(!week){el('homeLock').innerHTML='Commissioner needs to create the first week.';el('homeAction').classList.add('hidden');return;}el('homeAction').classList.toggle('hidden',locked());el('homeLock').innerHTML=locked()?'<b>🔒 '+esc(week.name)+' is locked.</b> Other weeks are unaffected.':'🔒 '+esc(week.name)+' locks <b>'+esc(new Date(week.lock_at).toLocaleString())+'</b>. This deadline applies only to this week.';}
+function showPage(id,btn){document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!==id));document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='picks'){if(submission)step=questions.length;renderPicks();}if(id==='league')renderLeague();if(id==='standings')renderStandings();if(id==='stats')renderStats();if(id==='commissioner')renderCommissioner();if(id==='sharegrid'&&typeof window.renderShareGrid==='function')window.renderShareGrid();}
+function renderPicks(){
+  el('picksWeek').textContent=week?(week.name+' · '+questions.length+' questions'):'NO ACTIVE WEEK';
+  const box=el('pickBox'),next=el('nextPickBtn');
+  if(!week){box.innerHTML='<div class="muted">No active week.</div>';next.disabled=true;return;}
+  if(locked()){window.PickReview.render(true);return;}
+  if(!questions.length){box.innerHTML='<div class="muted">No questions have been added yet.</div>';next.disabled=true;return;}
+  if(step>questions.length)step=questions.length;
+  el('progressBar').style.width=Math.round(step/(questions.length+1)*100)+'%';
+  if(step===questions.length){window.PickReview.render(false);return;}
+  const q=questions[step],opts=Array.isArray(q.answer_options)?q.answer_options:[];
+  box.innerHTML=window.PickReview.statusHtml()+'<div class="question"><div class="eyebrow">'+esc(q.sport||'PICK')+' · QUESTION '+(step+1)+' OF '+questions.length+'</div><h2>'+esc(q.prompt)+'</h2><div class="answers">'+opts.map((v,i)=>'<button class="answer '+(JSON.stringify(myPicks[q.id])===JSON.stringify(v)?'selected':'')+'" data-i="'+i+'">'+esc(typeof v==='string'?v:JSON.stringify(v))+'</button>').join('')+'</div></div><button type="button" class="btn secondary pick-review-shortcut" id="openPickReview">Review picks</button>';
+  box.querySelectorAll('.answer').forEach(b=>{b.disabled=window.PickReview.isBusy();b.onclick=()=>choosePick(q.id,opts[Number(b.dataset.i)]);});
+  el('openPickReview').onclick=()=>window.PickReview.open();
+  next.textContent=step===questions.length-1?'Review picks →':'Next →';
+  next.disabled=window.PickReview.isBusy()||myPicks[q.id]===undefined;
+}
+async function choosePick(id,answer){return window.PickReview.choose(id,answer);}
+function previousPick(){if(!window.PickReview.isBusy()&&step>0){step--;renderPicks();}}
+async function nextPick(){
+  if(window.PickReview.isBusy()||!week||locked())return;
+  if(step<questions.length){if(myPicks[questions[step].id]===undefined)return;step++;renderPicks();return;}
+  return window.PickReview.submit();
+}
 async function renderLeague(){const box=el('leagueBox');if(!week){box.innerHTML='<div class="card">No active week.</div>';return;}if(!locked()){box.innerHTML='<div class="notice"><b>🔒 Everyone\'s picks stay private until this week locks.</b></div>';return;}try{const profiles=await db('profiles?select=id,display_name,username'),names={};profiles.forEach(p=>names[p.id]=window.MemberNames?.full(p)||p.display_name);const subs=await db('submissions?week_id=eq.'+week.id+'&select=user_id,tiebreaker_answer'),users=subs.map(s=>s.user_id);const picks=await db('picks?week_id=eq.'+week.id+'&select=user_id,question_id,answer'),map={};picks.forEach(p=>{(map[p.question_id]??={})[p.user_id]=p.answer});let h='<div class="card tablewrap"><table class="table"><thead><tr><th>Question</th>'+users.map(u=>'<th>'+esc(names[u]||'Player')+'</th>').join('')+'</tr></thead><tbody>';questions.forEach(q=>{h+='<tr><td><b>'+esc(q.prompt)+'</b></td>'+users.map(u=>'<td>'+esc(map[q.id]?.[u]??'—')+'</td>').join('')+'</tr>';});h+='</tbody></table></div>';box.innerHTML=h;}catch(e){box.innerHTML='<div class="notice">Could not load league picks.</div>';}}
 async function renderStandings(){if(!session)return;const box=el('standingsBox');try{const scores=await db('week_scores?select=user_id,total_points,weeks!inner(phase)&weeks.phase=eq.regular'),profiles=await db('profiles?select=id,display_name,username'),names={};profiles.forEach(p=>names[p.id]=window.MemberNames?.full(p)||p.display_name);if(!scores.length){box.innerHTML='<h2>No published scores yet</h2><p class="muted">Season standings appear after the first week is scored and published.</p>';return;}const totals={};scores.forEach(s=>totals[s.user_id]=(totals[s.user_id]||0)+Number(s.total_points));const rows=Object.entries(totals).sort((a,b)=>b[1]-a[1]);box.innerHTML='<div class="tablewrap"><table class="table"><thead><tr><th>Rank</th><th>Player</th><th>Points</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+esc(names[r[0]]||'Player')+'</b></td><td><b>'+r[1]+'</b></td></tr>').join('')+'</tbody></table></div>';}catch(e){box.innerHTML='Standings unavailable.';}}
 async function renderStats(){if(!session)return;const box=el('statsBox');if(!box)return;try{const scores=await db('week_scores?user_id=eq.'+session.user.id+'&select=*,weeks!inner(phase)&weeks.phase=eq.regular'),weeks=await db('weeks?select=id,number,name'),weekMap={};weeks.forEach(w=>weekMap[w.id]=w);if(!scores.length){box.innerHTML='<div class="card"><h2>No published stats yet</h2><p class="muted">Your stats will appear here after the first week is scored and published.</p></div>';return;}const n=v=>Number(v||0),fmt=v=>Number(v).toFixed(1).replace(/\.0$/,'');const totalPoints=scores.reduce((a,s)=>a+n(s.total_points),0),correct=scores.reduce((a,s)=>a+n(s.correct_count),0),qTotal=scores.reduce((a,s)=>a+n(s.question_count),0),pickRate=qTotal?correct/qTotal*100:0,wins=scores.filter(s=>n(s.placement)===1).length,perfect=scores.filter(s=>n(s.question_count)>0&&n(s.correct_count)===n(s.question_count)).length,unicorns=scores.reduce((a,s)=>a+n(s.unicorn_count),0),upsets=scores.reduce((a,s)=>a+n(s.upset_count),0),longest=Math.max(0,...scores.map(s=>n(s.opening_streak))),pcts=scores.map(s=>s.pick_percentage!=null?n(s.pick_percentage):(n(s.question_count)?n(s.correct_count)/n(s.question_count)*100:0)),best=Math.max(...pcts),worst=Math.min(...pcts);let h='<div class="grid three"><div class="card"><div class="muted">Season Points</div><div class="big">'+fmt(totalPoints)+'</div></div><div class="card"><div class="muted">Pick Rate</div><div class="big">'+pickRate.toFixed(1)+'%</div></div><div class="card"><div class="muted">Correct Picks</div><div class="big">'+correct+'/'+qTotal+'</div></div><div class="card"><div class="muted">Weekly Wins</div><div class="big">'+wins+'</div></div><div class="card"><div class="muted">Perfect Rounds</div><div class="big">'+perfect+'</div></div><div class="card"><div class="muted">Unicorns</div><div class="big">'+unicorns+'</div></div><div class="card"><div class="muted">Upsets</div><div class="big">'+upsets+'</div></div><div class="card"><div class="muted">Best / Worst Week</div><div class="big">'+best.toFixed(0)+'% / '+worst.toFixed(0)+'%</div></div><div class="card"><div class="muted">Longest Opening Streak</div><div class="big">'+longest+'</div></div></div>';const rows=[...scores].sort((a,b)=>n(weekMap[b.week_id]?.number)-n(weekMap[a.week_id]?.number));h+='<div class="card tablewrap"><h2>Week-by-Week</h2><table class="table"><thead><tr><th>Week</th><th>Finish</th><th>Correct</th><th>Pick %</th><th>Points</th></tr></thead><tbody>'+rows.map(r=>{const w=weekMap[r.week_id]||{},pct=r.pick_percentage!=null?n(r.pick_percentage):(n(r.question_count)?n(r.correct_count)/n(r.question_count)*100:0);return '<tr><td><b>'+esc(w.name||('Week '+(w.number||'')))+'</b></td><td>'+(r.placement?('#'+r.placement):'—')+'</td><td>'+n(r.correct_count)+'/'+n(r.question_count)+'</td><td>'+pct.toFixed(1)+'%</td><td><b>'+fmt(n(r.total_points))+'</b></td></tr>';}).join('')+'</tbody></table></div>';box.innerHTML=h;}catch(e){box.innerHTML='<div class="notice">Could not load stats yet.</div>';}}
@@ -143,6 +198,7 @@ async function saveWeekSettings(){try{const lock=el('weekLock').value;if(!lock)r
 async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x.trim()).filter(Boolean);if(!el('qPrompt').value.trim()||opts.length<2)return alert('Enter a question and at least two choices.');try{await db('questions',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({week_id:week.id,position:questions.length+1,sport:el('qSport').value,question_type:'Multiple Choice',prompt:el('qPrompt').value.trim(),answer_options:opts,counts_for_score:true})});await loadData();renderHome();renderCommissioner();}catch(e){alert('Could not add question.');}}
 </script>
 <script src="member_names.js?v=1"></script>
+<script src="pick_review.js?v=1"></script>
 <script src="auth_session.js?v=1"></script>
 <script src="regular_scoring_core.js?v=3"></script>
 <script src="commissioner_v2.js?v=9"></script>
@@ -158,7 +214,7 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="potential_unicorn.js?v=3"></script>
 <script src="commissioner_admin_tools.js?v=4"></script>
 <script src="archived_week_editor.js?v=6"></script>
-<script src="app_update.js?v=53"></script>
+<script src="app_update.js?v=54"></script>
 <script src="quality_fixes.js?v=5"></script>
 <script src="weekly_standings_v2.js?v=4"></script>
 <script src="copy_standings.js?v=5"></script>
@@ -170,8 +226,8 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="playoff_advancement_model.js?v=1"></script>
 <script src="championship_odds_model.js?v=2"></script>
 <script src="championship_history_model.js?v=3"></script>
-<script src="league_news_model.js?v=2"></script>
-<script src="ltspn_editorial_model.js?v=2"></script>
+<script src="league_news_model.js?v=3"></script>
+<script src="ltspn_editorial_model.js?v=3"></script>
 <script src="playoff_race_model.js?v=2"></script>
 <script src="playoff_race.js?v=2"></script>
 <script src="playoff_advancement.js?v=3"></script>
@@ -194,9 +250,10 @@ async function addQuestion(){const opts=el('qOptions').value.split(',').map(x=>x
 <script src="league_news.js?v=4"></script>
 <script src="league_extras_model.js?v=3"></script>
 <script src="league_extras.js?v=3"></script>
-<script src="ltspn_poll_graphic.js?v=1"></script>
-<script src="ltspn_poll.js?v=3"></script>
-<script src="mobile_navigation.js?v=2"></script>
+<script src="ltspn_poll_graphic.js?v=2"></script>
+<script src="ltspn_poll_model.js?v=1"></script>
+<script src="ltspn_poll.js?v=4"></script>
+<script src="mobile_navigation.js?v=3"></script>
 <script src="iphone_experience.js?v=1"></script>
 <script src="question_batch_model.js?v=1"></script>
 <script src="question_batch_release.js?v=1"></script>

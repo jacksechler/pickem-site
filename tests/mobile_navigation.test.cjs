@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const path=require('node:path');
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
 const primary=['home','picks','league','standings'];
-const more=['playoffs','championship','sharegrid','seasoncalendar','news','studio','stats','awards','commissioner'];
+const more=['playoffs','championship','sharegrid','seasoncalendar','rules','news','studio','stats','awards','commissioner'];
 function harness({desktop=false,commissioner=false,playoffs=true,authenticated=false,week20Published=false,activeSeason='season-2026'}={}){
   let document;
   const nodes=[];
@@ -216,7 +216,7 @@ test('mobile CSS intentionally hides the legacy nav and gives bottom bar five eq
 test('JS and CSS load after prior mobile and page scripts, without changing the desktop sidebar',()=>{
  const html=read('index.html');
  const old=html.indexOf('league_extras.js?');
- const newJS=html.indexOf('mobile_navigation.js?v=2');
+ const newJS=html.indexOf('mobile_navigation.js?v=');
  const oldCss=html.indexOf('mobile_polish.css?v=');
  const newCss=html.indexOf('mobile_navigation.css?v=1');
  assert.ok(old>=0&&newJS>old&&oldCss>=0&&newCss>oldCss);

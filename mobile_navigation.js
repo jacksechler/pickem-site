@@ -16,7 +16,8 @@
       {id:'standings',label:'Standings',detail:'Final regular-season rankings',icon:'standings'},
       {id:'championship',label:'Championship',detail:'The final matchup',icon:'trophy'},
       {id:'sharegrid',label:'Share Pick Grid',detail:'All members at a glance',icon:'grid'},
-      {id:'seasoncalendar',label:'Season Calendar',detail:'Upcoming weeks',icon:'calendar'}
+      {id:'seasoncalendar',label:'Season Calendar',detail:'Upcoming weeks',icon:'calendar'},
+      {id:'rules',label:'Rules & Scoring',detail:'Points, ties & playoffs',icon:'picks'}
     ]},
     {title:'COVERAGE & STATS',items:[
       {id:'top25',label:'LTSPN Top 25',detail:'Just-for-fun college poll',icon:'standings'},

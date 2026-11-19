@@ -1,0 +1,28 @@
+.pick-review-list { list-style:none; padding:0; margin:16px 0 24px; }
+.pick-review-list li { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+.pick-review-list li>div { min-width:0; overflow-wrap:anywhere; }
+.pick-review-list li>div>div { color:var(--muted); margin-top:5px; }
+.pick-review-list .btn { flex-shrink:0; }
+.pick-receipt { margin-top:0; scroll-margin-top:100px; }
+.pick-review-shortcut { margin-top:18px; }
+#rules { max-width:850px; margin:auto; }
+#rules .rules-links { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+#rules .rules-links a { color:var(--accent); padding:8px 0; margin-right:10px; }
+#rules .rules-section { scroll-margin-top:100px; }
+#rules .rules-section p,#rules li { max-width:70ch; }
+#rules li { margin:10px 0; }
+#rules .rules-points { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+#rules .rules-points div { padding:12px; text-align:center; background:var(--panel2); border:1px solid var(--line); border-radius:8px; }
+#rules .rules-points span { display:block; font-size:.8rem; color:var(--muted); }
+#rules .rules-points b { font-size:1.3rem; }
+#top25 .poll-draft-status { font-size:.875rem; color:var(--muted); }
+#top25 .poll-movement { white-space:nowrap; font-weight:800; }
+#top25 .poll-columns>section { min-width:0; }
+#top25 .poll-table .table { min-width:0; width:100%; }
+#top25 .poll-table td:nth-child(2) { overflow-wrap:anywhere; }
+@media(max-width:500px) {
+  #top25 .poll-table .table { font-size:.8rem; }
+  #top25 .poll-table :is(th,td) { padding:10px 4px; }
+  #top25 .poll-table .poll-team-logo { display:block; width:24px; height:24px; margin:0 0 4px; }
+}
+@media(max-width:420px) { .pick-review-list li { gap:10px; } .pick-review-list .btn { padding:8px 12px; } }

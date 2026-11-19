@@ -4,13 +4,14 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 test('poll combines points, counts first place votes, and submits an ordered ballot',async()=>{
  const nodes=new Map();let click;let freshWeek=false;const writes=[];
- const get=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:'',textContent:'',addEventListener(type,fn){if(id==='pollBox')click=fn;}});return nodes.get(id);};
+ const get=id=>{if(!nodes.has(id))nodes.set(id,{innerHTML:'',value:'',textContent:'',querySelectorAll:()=>[],addEventListener(type,fn){if(id==='pollBox')click=fn;}});return nodes.get(id);};
  const teams=Array.from({length:26},(_,i)=>({id:String(i),name:'Team '+i,logo:'https://example.com/logo.png'}));
  const first=teams.slice(0,25).map(t=>t.id),second=[...first].reverse();
- const window={showPage(){}};
+ const stored=new Map();
+ const window={showPage(){},LTSPNPollModel:require('../ltspn_poll_model.js'),localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)}};
  const context={profile:{role:'commissioner'},confirm:()=>true,window,document:{getElementById:get},session:{user:{id:'me'}},fetch:async()=>({ok:true,json:async()=>teams}),db:async(path,opt)=>{
   if(opt){writes.push({path,method:opt.method,body:opt.body?JSON.parse(opt.body):null});return [{user_id:'me'}];}
-  if(path.startsWith('weeks'))return freshWeek?[{id:'new-week',name:'New week',is_active:true},{id:'week',name:'Week test',is_active:false}]:[{id:'week',name:'Week test',is_active:false}];
+  if(path.startsWith('weeks'))return freshWeek?[{id:'new-week',season_id:'season',number:2,name:'New week',is_active:true},{id:'week',season_id:'season',number:1,name:'Week test',is_active:false}]:[{id:'week',season_id:'season',number:1,name:'Week test',is_active:false}];
   if(path.startsWith('profiles'))return [{id:'me',display_name:'Me'}];
   if(path.includes('week_id=eq.new-week'))return [];
   return [{user_id:'me',teams:first},{user_id:'other',teams:second}];
@@ -39,4 +40,15 @@ test('poll combines points, counts first place votes, and submits an ordered bal
  assert.match(get('pollBox').innerHTML,/0 ballots submitted/);
  assert.match(get('pollBox').innerHTML,/0\/25 teams ranked/);
  assert.doesNotMatch(get('pollBox').innerHTML,/Save changes/);
+ assert.match(get('pollBox').innerHTML,/Start from last week/);
+ await click({target:{closest:()=>({dataset:{copyPrior:''}})}});
+ assert.equal(writes.length,2,'copying last week does not submit a ballot');
+ assert.match(get('pollBox').innerHTML,/25\/25 teams ranked/);
+ await click({target:{closest:()=>({dataset:{remove:'0'}})}});
+ window.showPage('top25');await new Promise(r=>setImmediate(r));
+ assert.match(get('pollBox').innerHTML,/24\/25 teams ranked/);
+ assert.match(get('pollBox').innerHTML,/Restored draft/);
+ assert.equal(writes.length,2,'restoring a draft never writes submitted votes');
+ context.session.user.id='someone-else';window.showPage('top25');await new Promise(r=>setImmediate(r));
+ assert.match(get('pollBox').innerHTML,/0\/25 teams ranked/);
 });
