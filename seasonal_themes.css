@@ -35,7 +35,7 @@ html:is(.christmas,.newyear) body.clean-ui {
 :is(.christmas,.newyear) .clean-ui .gd-table .gd-me>* { color:var(--holiday-focus); background:var(--holiday-active); }
 
 .holiday-banner {
-  position:relative; isolation:isolate; display:grid; place-items:center; overflow:hidden;
+  position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(0,1fr); place-items:center; overflow:hidden;
   min-height:220px; margin:0 0 28px; padding:62px 80px 40px;
   border:1px solid #b79c5b; border-radius:16px;
   box-shadow:0 10px 32px #0002; text-align:center;
@@ -50,7 +50,7 @@ html:is(.christmas,.newyear) body.clean-ui {
 .holiday-firework { position:absolute; width:clamp(110px,23%,205px); top:-24px; opacity:.8; }
 .holiday-firework-left { left:-25px; }
 .holiday-firework-right { right:-25px; transform:scaleX(-1); filter:saturate(.25); }
-.holiday-copy { position:relative; z-index:1; max-width:100%; }
+.holiday-copy { position:relative; z-index:1; min-width:0; max-width:100%; }
 .holiday-date { color:#efcf82; font:650 .8125rem/1.5 system-ui,sans-serif; letter-spacing:.11em; }
 .clean-ui .holiday-copy h2 { margin:12px 0 0; color:#fff3d6; font:600 clamp(1.75rem,3vw,2.8rem)/1.18 Georgia,'Times New Roman',serif; letter-spacing:-.025em; text-wrap:balance; }
 .holiday-year { display:flex; align-items:center; justify-content:center; gap:16px; color:#f1d79b; margin-top:12px; font:italic 1.75rem/1.2 Georgia,serif; }
@@ -100,3 +100,8 @@ html.christmas body.clean-ui {
   .christmas .holiday-christmas { padding:58px 16px 20px; }
   .christmas-party { letter-spacing:3px; font-size:34px; }
 }
+
+.christmas .holiday-welcome { padding:58px 16px 20px; }
+.christmas .holiday-welcome .holiday-copy h2 { font-size:1.9rem; }
+.christmas .holiday-welcome .christmas-party { font-size:34px; letter-spacing:3px; }
+.christmas .clean-ui .auth-card { margin-left:auto; margin-right:auto; }
