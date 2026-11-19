@@ -1,0 +1,70 @@
+/* Scoped seasonal skins. Semantic result colors and chart series stay intact. */
+html.christmas body.clean-ui {
+  --bg:#101b17; --panel:#192b22; --panel2:#243b2e; --line:#576246;
+  --text:#fff5df; --muted:#bbcab9; --accent:#e9c778; --gold:#efcf82;
+  --holiday-nav:#0c1712; --holiday-input:#132119; --holiday-active:#3f4b2b;
+  --holiday-wash:#385e372b; --holiday-focus:#f8dda2;
+}
+html.newyear body.clean-ui {
+  --bg:#0b1321; --panel:#132137; --panel2:#203149; --line:#5e5d52;
+  --text:#fff6e6; --muted:#bdc8d7; --accent:#ebce8c; --gold:#f1d79b;
+  --holiday-nav:#090f1a; --holiday-input:#101a2b; --holiday-active:#3c3d36;
+  --holiday-wash:#2d43722b; --holiday-focus:#fff0c9;
+}
+html:is(.christmas,.newyear) body.clean-ui {
+  background-color:var(--bg);
+  background-image:radial-gradient(ellipse at 80% 0%,var(--holiday-wash),transparent 65%);
+}
+:is(.christmas,.newyear) .clean-ui :is(.topbar,.mnav-bar) { background:var(--holiday-nav); border-color:var(--line); }
+:is(.christmas,.newyear) .clean-ui :is(input,select,textarea,.answer,.auth-card .tabs,.gd-answer-group) { background:var(--holiday-input); color:var(--text); }
+:is(.christmas,.newyear) .clean-ui :is(.notice,.mnav-sheet,.nav-secondary-panel,.mnav-menu-item) { background:var(--panel); border-color:var(--line); color:var(--text); }
+:is(.christmas,.newyear) .clean-ui :is(.mnav-sheet-top,.mnav-menu-icon,.mnav-close) { background:var(--panel2); border-color:var(--line); color:var(--text); }
+:is(.christmas,.newyear) .clean-ui :is(.navbtn.active,.mnav-tab.is-active,.answer.selected,.mnav-menu-item.is-active,.gd-filters [aria-pressed="true"]) { background:var(--holiday-active); color:var(--holiday-focus); border-color:var(--accent); }
+:is(.christmas,.newyear) .clean-ui :is(.navbtn:hover,.mnav-tab:hover,.mnav-menu-item:hover) { background:var(--panel2); }
+:is(.christmas,.newyear) .clean-ui :is(.mnav-sheet-heading p,.mnav-menu-words small) { color:var(--muted); }
+:is(.christmas,.newyear) .clean-ui .clean-tab[aria-selected="true"] { background:var(--accent); color:#171c14; border-color:var(--accent); }
+:is(.christmas,.newyear) .clean-ui .clean-tab { padding-left:14px; padding-right:14px; border-radius:8px 8px 0 0; }
+:is(.christmas,.newyear) .clean-ui :is(.clean-tabs,.sidebar-footer .linkbtn) { background:var(--holiday-input); border-color:var(--line); }
+:is(.christmas,.newyear) .clean-ui .btn:not(.secondary) { background:var(--accent); color:#171c14; }
+:is(.christmas,.newyear) .clean-ui :is(.home-week,.gd-overview,#weeklyWinOdds.wo-odds) { background:linear-gradient(125deg,var(--panel2),var(--panel) 75%); border-color:var(--line); }
+:is(.christmas,.newyear) .clean-ui .home-week { border-top-color:var(--gold); }
+:is(.christmas,.newyear) .clean-ui :is(.weekly-standing-metrics>div,.feature-story,.feature-record,.feature-trophy,.wo-odds .wo-card) { background:var(--holiday-input); border-color:var(--line); }
+:is(.christmas,.newyear) .clean-ui .wo-odds .wo-card:first-child { background:linear-gradient(125deg,var(--holiday-active),var(--holiday-input)); border-color:var(--gold); }
+:is(.christmas,.newyear) .clean-ui :is(.eyebrow,.brand span,.mnav-tab.is-active svg) { color:var(--gold); }
+:is(.christmas,.newyear) .clean-ui #top25 :is(button[data-up],button[data-down],button[data-remove],#pollMatches button) { background:var(--panel2); color:var(--text); }
+:is(.christmas,.newyear) .clean-ui .gd-table .gd-me>* { color:var(--holiday-focus); background:var(--holiday-active); }
+
+.holiday-banner {
+  position:relative; isolation:isolate; display:grid; place-items:center; overflow:hidden;
+  min-height:220px; margin:0 0 28px; padding:62px 80px 40px;
+  border:1px solid #b79c5b; border-radius:16px;
+  box-shadow:0 10px 32px #0002; text-align:center;
+}
+.holiday-christmas { background:radial-gradient(ellipse at 50% 75%,#2c4a2b66,transparent 65%),linear-gradient(135deg,#173020,#0c2016 65%,#203623); }
+.holiday-newyear { background:radial-gradient(ellipse at 50% 95%,#21385988,transparent 70%),linear-gradient(135deg,#0c1628,#101f37 70%,#0b1424); }
+.holiday-art { position:absolute; inset:0; pointer-events:none; user-select:none; z-index:0; overflow:hidden; }
+.holiday-bough { position:absolute; top:0; width:clamp(110px,24%,230px); height:auto; }
+.holiday-bough-left { left:0; }
+.holiday-bough-right { right:0; }
+.holiday-lights { position:absolute; inset:0 0 auto; width:100%; height:64px; }
+.holiday-firework { position:absolute; width:clamp(110px,23%,205px); top:-24px; opacity:.8; }
+.holiday-firework-left { left:-25px; }
+.holiday-firework-right { right:-25px; transform:scaleX(-1); filter:saturate(.25); }
+.holiday-copy { position:relative; z-index:1; max-width:100%; }
+.holiday-date { color:#efcf82; font:650 .8125rem/1.5 system-ui,sans-serif; letter-spacing:.11em; }
+.clean-ui .holiday-copy h2 { margin:12px 0 0; color:#fff3d6; font:600 clamp(1.75rem,3vw,2.8rem)/1.18 Georgia,'Times New Roman',serif; letter-spacing:-.025em; text-wrap:balance; }
+.holiday-year { display:flex; align-items:center; justify-content:center; gap:16px; color:#f1d79b; margin-top:12px; font:italic 1.75rem/1.2 Georgia,serif; }
+.holiday-year::before,.holiday-year::after { content:''; width:36px; height:1px; background:#bca166; }
+.holiday-welcome { max-width:440px; margin-left:auto; margin-right:auto; }
+/* No falling snow, flashing lights, motion, or decorations over league controls. */
+@media(max-width:600px) {
+  .holiday-banner { min-height:210px; padding:78px 24px 32px; margin-bottom:24px; }
+  .holiday-bough { width:110px; }
+  .holiday-lights { height:48px; }
+  .holiday-date { font-size:.75rem; letter-spacing:.07em; }
+  .clean-ui .holiday-copy h2 { font-size:1.9rem; }
+  .holiday-firework { width:120px; top:-15px; }
+  .holiday-firework-left { left:-28px; }
+  .holiday-firework-right { right:-28px; }
+}
+@media print { [data-seasonal-banner] { display:none!important; } }
