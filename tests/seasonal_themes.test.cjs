@@ -33,6 +33,7 @@ test('open page changes banners once, then restores normal colors and removes de
   let now = Date.parse('2026-11-26T23:59:59-05:00');
   let color = '#10151e';
   let nodes = [];
+  const location = { search: '', pathname: '/pickem-site/', hash: '#standings' };
   const classes = new Set(), listeners = {}, timers = new Map();
   let sequence = 0;
   const host = { prepend(node) { nodes.push(node); } };
@@ -41,13 +42,13 @@ test('open page changes banners once, then restores normal colors and removes de
     querySelector: () => ({ getAttribute: () => color, setAttribute: (_, value) => { color = value; } }),
     querySelectorAll: () => [...nodes],
     getElementById: () => host,
-    createElement: () => ({ setAttribute() {}, remove() { nodes = nodes.filter(node => node !== this); } }),
+    createElement: () => ({ children: [], append(...children) { this.children.push(...children); }, setAttribute() {}, remove() { nodes = nodes.filter(node => node !== this); } }),
     readyState: 'loading',
     addEventListener(name, fn) { listeners[name] = fn; }
   };
   vm.runInNewContext(fs.readFileSync('seasonal_themes.js', 'utf8'), {
-    document, window: { SeasonalThemesModel: model, addEventListener(name, fn) { listeners[name] = fn; } },
-    Date: { now: () => now },
+    document, window: { location, SeasonalThemesModel: model, addEventListener(name, fn) { listeners[name] = fn; } },
+    Date: { now: () => now }, URLSearchParams,
     setTimeout(fn, delay) { timers.set(++sequence, { fn, delay }); return sequence; },
     clearTimeout(id) { timers.delete(id); }
   });
@@ -76,4 +77,20 @@ test('open page changes banners once, then restores normal colors and removes de
     assert.equal(color, themeColor);
     assert.equal(timers.size, 1, 'resume does not accumulate timers');
   }
+  location.search = '?themePreview=christmas&view=league';
+  listeners.popstate();
+  assert.deepEqual([...classes], ['christmas'], 'preview can show Christmas outside its dates');
+  assert.equal(nodes.length, 2);
+  assert.equal(nodes[0].children[0].children[1].href, '/pickem-site/?view=league#standings', 'exit removes only the preview parameter');
+  location.search = '?themePreview=unknown';
+  listeners.popstate();
+  assert.equal(nodes.length, 0, 'unknown preview names are ignored');
+  now = Date.parse('2026-12-10T12:00:00-05:00');
+  location.search = '?themePreview=christmas';
+  listeners.popstate();
+  assert.equal(nodes[0].children.length, 1);
+  location.search = '';
+  listeners.popstate();
+  assert.deepEqual([...classes], ['christmas']);
+  assert.equal(nodes[0].children.length, 0, 'exit hides preview controls even during the same scheduled holiday');
 });

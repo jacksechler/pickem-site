@@ -18,10 +18,11 @@
     newyear: { name: 'Happy New Year 2027', markup: newyear }
   };
 
-  function render(id) {
-    if (!mounted || rendered === id) return;
+  function render(id, preview) {
+    const key = (id || '') + ':' + preview;
+    if (!mounted || rendered === key) return;
     for (const node of document.querySelectorAll('[data-seasonal-banner]')) node.remove();
-    rendered = id;
+    rendered = key;
     if (!id) return;
     const design = designs[id];
     for (const target of ['mainContent', 'auth']) {
@@ -37,16 +38,32 @@
         banner.className = 'tg-welcome';
         banner.innerHTML = '<span aria-hidden="true">🍁 🦃 🥧 🎃 🍂</span><strong>Thanksgiving Week</strong><small>November 19–26</small>';
       }
+      if (preview) {
+        const controls = document.createElement('div');
+        controls.className = 'seasonal-preview-controls';
+        const label = document.createElement('span');
+        label.textContent = 'Theme preview';
+        const exit = document.createElement('a');
+        exit.textContent = 'Exit preview';
+        const params = new URLSearchParams(window.location.search);
+        params.delete('themePreview');
+        exit.href = window.location.pathname + (params.size ? '?' + params.toString() : '') + window.location.hash;
+        controls.append(label, exit);
+        banner.append(controls);
+      }
       parent.prepend(banner);
     }
   }
 
   function sync() {
     const now = Date.now();
-    const season = model.at(now);
+    // URL-only preview: does not persist or affect any other visitor's theme.
+    const previewId = new URLSearchParams(window.location?.search || '').get('themePreview');
+    const preview = model.seasons.find(candidate => candidate.id === previewId);
+    const season = preview || model.at(now);
     for (const candidate of model.seasons) root.classList.toggle(candidate.id, season?.id === candidate.id);
     if (meta) meta.setAttribute('content', season?.color || originalColor);
-    render(season?.id || null);
+    render(season?.id || null, Boolean(preview));
     clearTimeout(timer);
     // Wake exactly at a boundary, and also recheck for a changed device clock.
     const boundary = model.nextBoundary(now);
@@ -59,4 +76,5 @@
   else mount();
   document.addEventListener('visibilitychange', sync);
   window.addEventListener('pageshow', sync);
+  window.addEventListener('popstate', sync);
 })();

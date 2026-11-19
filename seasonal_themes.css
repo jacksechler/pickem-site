@@ -56,6 +56,8 @@ html:is(.christmas,.newyear) body.clean-ui {
 .holiday-year { display:flex; align-items:center; justify-content:center; gap:16px; color:#f1d79b; margin-top:12px; font:italic 1.75rem/1.2 Georgia,serif; }
 .holiday-year::before,.holiday-year::after { content:''; width:36px; height:1px; background:#bca166; }
 .holiday-welcome { max-width:440px; margin-left:auto; margin-right:auto; }
+.seasonal-preview-controls { position:relative; z-index:1; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px 16px; margin-top:12px; color:var(--muted); font:500 .8125rem/1.4 system-ui,sans-serif; }
+.seasonal-preview-controls a { display:inline-flex; align-items:center; min-height:44px; color:var(--text); text-decoration:underline; text-underline-offset:3px; }
 /* No falling snow, flashing lights, motion, or decorations over league controls. */
 @media(max-width:600px) {
   .holiday-banner { min-height:210px; padding:78px 24px 32px; margin-bottom:24px; }
