@@ -68,3 +68,33 @@ html:is(.christmas,.newyear) body.clean-ui {
   .holiday-firework-right { right:-28px; }
 }
 @media print { [data-seasonal-banner] { display:none!important; } }
+
+/* Colorful Christmas: steady lights, cheerful decorations, clear controls. */
+html.christmas body.clean-ui {
+  --bg:#0b211a; --panel:#15382b; --panel2:#224a38; --line:#467258;
+  --accent:#ffda78; --gold:#ffda78; --holiday-active:#8d2935;
+}
+.christmas .holiday-christmas { background:radial-gradient(ellipse at center,#285c3b,#102f23); border:2px solid #db4855; padding-top:62px; padding-bottom:20px; }
+.christmas .holiday-copy h2 { font-family:system-ui,-apple-system,sans-serif; font-weight:900; letter-spacing:-.04em; text-shadow:0 3px 0 #822b35; }
+.christmas .holiday-lights { display:none; }
+.christmas .holiday-christmas::before,
+.christmas .clean-ui .topbar::after,
+.christmas .clean-ui .card::before,
+.christmas .clean-ui .mnav-bar::before {
+  content:''; display:block; height:40px; background:url('holiday-assets/christmas-party-lights.svg') repeat-x center top / 300px 40px;
+  pointer-events:none;
+}
+.christmas .holiday-christmas::before { position:absolute; top:0; left:0; right:0; }
+.christmas .clean-ui .card::before { margin:-8px -8px 10px; }
+.christmas .clean-ui .topbar::after { position:absolute; left:0; right:0; top:0; }
+.christmas .clean-ui .mnav-bar::before { position:absolute; left:0; right:0; top:-20px; height:24px; background-size:210px 28px; }
+.christmas-party { margin-top:18px; font-size:clamp(32px,4vw,52px); line-height:1.4; letter-spacing:10px; white-space:nowrap; }
+.christmas .clean-ui .page>.hero::after { content:'🎄 🎁'; display:block; font-size:26px; flex-shrink:0; pointer-events:none; }
+@media(max-width:820px) {
+  .christmas .clean-ui .topinner { padding-top:34px; }
+  .christmas .clean-ui .page>.hero::after { align-self:flex-end; margin-top:-8px; }
+}
+@media(max-width:600px) {
+  .christmas .holiday-christmas { padding:58px 16px 20px; }
+  .christmas-party { letter-spacing:3px; font-size:34px; }
+}

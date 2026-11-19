@@ -10,7 +10,7 @@
   let rendered;
 
   const thanksgiving = '<div class="tg-garland" aria-hidden="true">🍁 🍂 🌽 🍁 🥧 🍂 🍁</div><div class="tg-feast-body"><span class="tg-turkey" aria-hidden="true">🦃</span><div class="tg-copy"><div class="tg-kicker">NOVEMBER 19–26</div><h2>Thanksgiving Week</h2></div><span class="tg-harvest" aria-hidden="true">🎃<span>🏈 🍁</span></span></div>';
-  const christmas = '<div class="holiday-art" aria-hidden="true"><img class="holiday-bough holiday-bough-left" src="holiday-assets/christmas-left.svg" alt=""><img class="holiday-bough holiday-bough-right" src="holiday-assets/christmas-right.svg" alt=""><img class="holiday-lights" src="holiday-assets/christmas-lights.svg" alt=""></div><div class="holiday-copy"><div class="holiday-date">DECEMBER 1–25</div><h2>Christmas at Pick’em</h2></div>';
+  const christmas = '<div class="holiday-art" aria-hidden="true"><img class="holiday-lights" src="holiday-assets/christmas-party-lights.svg" alt=""></div><div class="holiday-copy"><div class="holiday-date">DECEMBER 1–25</div><h2>Christmas at Pick’em</h2><div class="christmas-party" aria-hidden="true">🎄 🎁 🎅 🎁 🎄</div></div>';
   const newyear = '<div class="holiday-art" aria-hidden="true"><img class="holiday-firework holiday-firework-left" src="holiday-assets/newyear-firework.svg" alt=""><img class="holiday-firework holiday-firework-right" src="holiday-assets/newyear-firework.svg" alt=""></div><div class="holiday-copy"><div class="holiday-date">DECEMBER 31–JANUARY 1</div><h2>Happy New Year</h2><div class="holiday-year">2027</div></div>';
   const designs = {
     thanksgiving: { name: 'Thanksgiving Week', markup: thanksgiving },
