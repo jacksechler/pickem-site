@@ -20,7 +20,7 @@
       banner.className = 'tg-feast';
       banner.setAttribute('data-thanksgiving', '');
       banner.setAttribute('aria-label', 'Thanksgiving week');
-      banner.innerHTML = '<div class="tg-garland" aria-hidden="true">🍁 🍂 🌽 🍁 🥧 🍂 🍁</div><div class="tg-feast-body"><span class="tg-turkey" aria-hidden="true">🦃</span><div class="tg-copy"><div class="tg-kicker">THANKSGIVING WEEK · NOV 19–26</div><h2>A feast of football.</h2><p>Full plates. Big games. Bragging rights.</p><span class="tg-tag">Pass the pie. Make your picks.</span></div><span class="tg-harvest" aria-hidden="true">🎃<span>🏈 🍁</span></span></div><div class="tg-feast-footer"><span aria-hidden="true">🍂</span> Grateful for the league. Hungry for the win. <span aria-hidden="true">🍂</span></div>';
+      banner.innerHTML = '<div class="tg-garland" aria-hidden="true">🍁 🍂 🌽 🍁 🥧 🍂 🍁</div><div class="tg-feast-body"><span class="tg-turkey" aria-hidden="true">🦃</span><div class="tg-copy"><div class="tg-kicker">NOVEMBER 19–26</div><h2>Thanksgiving Week</h2></div><span class="tg-harvest" aria-hidden="true">🎃<span>🏈 🍁</span></span></div>';
       main.prepend(banner);
     }
     const auth = document.getElementById('auth');
@@ -29,7 +29,7 @@
       welcome.id = 'thanksgivingWelcome';
       welcome.className = 'tg-welcome';
       welcome.setAttribute('data-thanksgiving', '');
-      welcome.innerHTML = '<span aria-hidden="true">🍁 🦃 🥧 🎃 🍂</span><strong>Football. Family. A little friendly rivalry.</strong><small>Happy Thanksgiving from Pick’em</small>';
+      welcome.innerHTML = '<span aria-hidden="true">🍁 🦃 🥧 🎃 🍂</span><strong>Thanksgiving Week</strong><small>November 19–26</small>';
       auth.prepend(welcome);
     }
     sync();
