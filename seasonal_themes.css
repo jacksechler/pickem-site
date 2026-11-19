@@ -105,3 +105,15 @@ html.christmas body.clean-ui {
 .christmas .holiday-welcome .holiday-copy h2 { font-size:1.9rem; }
 .christmas .holiday-welcome .christmas-party { font-size:34px; letter-spacing:3px; }
 .christmas .clean-ui .auth-card { margin-left:auto; margin-right:auto; }
+
+/* Near-white grid surfaces keep the dark green correct-pick cells distinct. */
+.christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap,
+.christmas .clean-ui #sharegrid .share-grid-card {
+  --panel:#f6faf7; --panel2:#edf4ef; --line:#cad8ce;
+  --text:#172c23; --muted:#4c6255; --accent:#305b43;
+  background:#f6faf7; color:var(--text); border-color:var(--line);
+}
+.christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap::before,
+.christmas .clean-ui #sharegrid .share-grid-card::before { display:none; }
+.christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap .mini.good { color:#17633c; }
+.christmas .clean-ui #sharegrid .share-grid .tb :is(th,td) { background:#e7eef8; color:#244a75; }
