@@ -1,0 +1,58 @@
+/* Every seasonal override is gated; the regular palette returns automatically. */
+html.thanksgiving body.clean-ui {
+  --bg:#19120f; --panel:#2b2019; --panel2:#3a2a20; --line:#685039;
+  --text:#fff4df; --muted:#cbb79e; --accent:#f4ad62; --gold:#f2ce7a;
+  background-color:var(--bg);
+  background-image:radial-gradient(ellipse at 90% 0%,#76341b44,transparent 55%);
+}
+.thanksgiving .clean-ui :is(.topbar,.mnav-bar) { background:#21140f; border-color:#785331; }
+.thanksgiving .clean-ui :is(.card,.clean-disclosure) { border-color:var(--line); }
+.thanksgiving .clean-ui :is(input,select,textarea,.answer,.auth-card .tabs) { background:#241a14; color:var(--text); }
+.thanksgiving .clean-ui .answer.selected { background:#54331c; }
+.thanksgiving .clean-ui .notice { background:#382719; border-color:#795735; }
+.thanksgiving .clean-ui .home-week { border-top-color:#f4ad62; background:linear-gradient(125deg,#482818,#2b2019 70%); }
+.thanksgiving .clean-ui :is(.navbtn.active,.mnav-tab.is-active,.clean-tab[aria-selected="true"]) { background:#59351e; color:#ffe3a5; border-color:#ba7c3f; }
+.thanksgiving .clean-ui :is(.navbtn:hover,.mnav-tab:hover) { background:#493122; }
+.thanksgiving .clean-ui :is(.mnav-sheet,.nav-secondary-panel,.mnav-menu-item) { background:#302118; border-color:#785331; color:var(--text); }
+.thanksgiving .clean-ui :is(.mnav-sheet-top,.mnav-menu-icon,.mnav-close) { background:#4b2d1d; border-color:#785331; color:var(--text); }
+.thanksgiving .clean-ui .mnav-menu-item.is-active { background:#613b23; border-color:var(--accent); }
+.thanksgiving .clean-ui :is(.mnav-sheet-heading p,.mnav-menu-words small) { color:var(--muted); }
+.thanksgiving .clean-ui .weekly-standing-metrics>div { background:#241a14; }
+.thanksgiving .clean-ui :is(.feature-story,.feature-record,.feature-trophy) { background:#241a14; }
+.thanksgiving .clean-ui .eyebrow { color:#e8bd82; }
+.thanksgiving .clean-ui .brand { color:#fff0d2; }
+.thanksgiving .clean-ui .brand-caption { color:#e8bd82; }
+.thanksgiving .clean-ui .page>.hero { border-bottom:2px solid #87512b; padding-bottom:16px; }
+.thanksgiving .clean-ui .page>.hero h1 { color:#ffe3a5; }
+.thanksgiving .clean-ui .btn:not(.secondary) { background:#f4ad62; color:#241509; }
+.thanksgiving .clean-ui :is(.clean-tabs,.entry-strip) { border-color:#795735; }
+.tg-feast,.tg-welcome { display:none; }
+.thanksgiving .tg-feast {
+  display:block; margin:0 0 28px; border:1px solid #c38a48; border-radius:18px;
+  background:linear-gradient(120deg,#572517,#302017 65%,#4a241c);
+  box-shadow:0 10px 34px #0003; color:#fff3dc; overflow:hidden;
+}
+.thanksgiving .tg-garland { text-align:center; letter-spacing:clamp(8px,2vw,26px); font-size:23px; padding:8px 12px; background:#21130e66; border-bottom:1px solid #97643966; white-space:nowrap; overflow:hidden; user-select:none; }
+.thanksgiving .tg-feast-body { display:flex; align-items:center; gap:22px; padding:24px; }
+.thanksgiving .tg-turkey { font-size:clamp(60px,8vw,100px); line-height:1.2; flex-shrink:0; filter:drop-shadow(0 6px 8px #0005); }
+.thanksgiving .tg-copy { flex:1; min-width:0; }
+.thanksgiving .tg-kicker { font-size:11px; letter-spacing:.12em; font-weight:850; color:#f5c47c; }
+.thanksgiving .tg-copy h2 { margin:6px 0; font-size:clamp(25px,3.5vw,40px); line-height:1.1; font-weight:900; letter-spacing:-.04em; color:#fff1d2; }
+.thanksgiving .tg-copy p { margin:8px 0 12px; color:#e6c8a8; font-size:14px; }
+.thanksgiving .tg-tag { display:inline-block; border:1px solid #be7d4c; border-radius:99px; padding:5px 11px; background:#7b302b; color:#ffe9cb; font-size:12px; font-weight:750; }
+.thanksgiving .tg-harvest { font-size:56px; text-align:center; flex-shrink:0; }
+.thanksgiving .tg-harvest span { display:block; font-size:25px; }
+.thanksgiving .tg-feast-footer { padding:10px 14px; text-align:center; font-size:12px; font-weight:650; color:#ebc999; border-top:1px solid #97643966; background:#21130e55; }
+.thanksgiving .tg-welcome { display:grid; gap:7px; text-align:center; margin:0 auto 24px; max-width:440px; color:#f3ce7b; }
+.thanksgiving .tg-welcome>span { font-size:36px; }
+.thanksgiving .tg-welcome strong { font-size:15px; }
+.thanksgiving .tg-welcome small { color:#cbb79e; }
+@media(max-width:600px) {
+  .thanksgiving .tg-feast-body { gap:12px; padding:18px 14px; flex-wrap:wrap; }
+  .thanksgiving .tg-turkey { font-size:65px; }
+  .thanksgiving .tg-copy { flex-basis:180px; }
+  .thanksgiving .tg-harvest { display:none; }
+  .thanksgiving .tg-garland { font-size:22px; letter-spacing:9px; }
+  .thanksgiving .tg-feast-footer { font-size:11px; }
+}
+@media print { .tg-feast,.tg-welcome { display:none!important; } }
