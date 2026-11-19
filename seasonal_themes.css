@@ -106,14 +106,14 @@ html.christmas body.clean-ui {
 .christmas .holiday-welcome .christmas-party { font-size:34px; letter-spacing:3px; }
 .christmas .clean-ui .auth-card { margin-left:auto; margin-right:auto; }
 
-/* Near-white grid surfaces keep the dark green correct-pick cells distinct. */
+/* Neutral charcoal grid surfaces distinguish unscored picks from green results. */
 .christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap,
 .christmas .clean-ui #sharegrid .share-grid-card {
-  --panel:#f6faf7; --panel2:#edf4ef; --line:#cad8ce;
-  --text:#172c23; --muted:#4c6255; --accent:#305b43;
-  background:#f6faf7; color:var(--text); border-color:var(--line);
+  --panel:#292b30; --panel2:#34363c; --line:#4b4e56;
+  --text:#f1f3f5; --muted:#bdc2cb; --accent:#eed49b;
+  background:#292b30; color:var(--text); border-color:var(--line);
 }
 .christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap::before,
 .christmas .clean-ui #sharegrid .share-grid-card::before { display:none; }
-.christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap .mini.good { color:#17633c; }
-.christmas .clean-ui #sharegrid .share-grid .tb :is(th,td) { background:#e7eef8; color:#244a75; }
+.christmas .clean-ui :is(#leagueBox,#historyBox) .pick-grid-tablewrap .mini.good { color:#68d6ac; }
+.christmas .clean-ui #sharegrid .share-grid .tb :is(th,td) { background:#1d2a3c; color:#bdd6f7; }
